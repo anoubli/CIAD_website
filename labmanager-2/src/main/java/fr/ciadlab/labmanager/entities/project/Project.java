@@ -30,6 +30,9 @@ import fr.ciadlab.labmanager.entities.AttributeProvider;
 import fr.ciadlab.labmanager.entities.EntityUtils;
 import fr.ciadlab.labmanager.entities.IdentifiableEntity;
 
+import fr.ciadlab.labmanager.entities.organization.*;
+import fr.ciadlab.labmanager.entities.member.Person;
+
 /**
  * @author baptiste
  *
@@ -41,14 +44,12 @@ import fr.ciadlab.labmanager.entities.IdentifiableEntity;
 public abstract class Project
 		implements Serializable, JsonSerializable, Comparable<Project>, AttributeProvider, IdentifiableEntity {
 	/**
-	 * Constants for State of the project
+	 * Constants for Type of the project
 	 */
-	public final String UNDER_EVALUATION = "under evaluation";
-	public final String ACCEPTED = "accepted";
-	public final String STARTED = "started";
-	public final String FINISHED = "finihed";
-	public final String CANCELED = "canceled";
-
+	public final String THEORICAL_RESEARCH = "Recherche théorique";
+	public final String APPLIED_RESEARCH = "Recherche appliqué";
+	public final String EXPERIMENTAL_DEVELOPMENT = "Développement expérimental";
+	//Todo enum ?
 	
 	/**
 	 * Identifier of the project
@@ -72,225 +73,80 @@ public abstract class Project
 	 */
 	@Column(length = EntityUtils.LARGE_TEXT_SIZE)
 	private String fundingScheme;
+	//TODO faire une enum (class) avec une description de ce dernier
 	
 	/** short description of the project.
 	 */
 	@Column(length = EntityUtils.LARGE_TEXT_SIZE)
 	private String description;
 	
-	/** starting date of the project.
-	 */
-	@Column
-	private LocalDate startingDate;
-	
-	/** duration (in month) of the project.
-	 */
-	@Column
-	private int duration;
-	
-	/** state of the project.
-	 */
-	@Column
-	private String state;
-	
 	/** global budget of the project.
 	 */
 	@Column
-	private int globalBudget;
+	private float globalBudget;
 	
 	/** budget only for the CIAD Lab of the project.
 	 */
 	@Column
-	private int budgetCIADLabOnly;
+	private float budgetCIADLabOnly;
 	
 	/** type of the project.
 	 */
 	@Column
 	private String type;
 	//TODO maybe add a new class ProjectType and ProjectCategory
+
+	/** List of the reference Person of the project.
+	 */
+	@Column
+	private List<Person> referencePersons;
 	
-	//private <Person> managerCIAD;
-	//private List<Person> participantsCIAD;
+	/**
+	 * Organization who coordinate the project
+	 */
+	@Column
+	private ResearchOrganization OwningOrganization;
+	//Todo link to ResearchOrganization
 	
 	/**
 	 * List of institution involved in the project (Outside the CIAD)
 	 */
 	@Column
-	private List<String> participatingInstutitions;
+	private List<ResearchOrganization> participatingOrganizations;
 	
 	/**
-	 * Institution who coordinate the project
+	 * Organization with a partnership on the project
 	 */
 	@Column
-	private String coordinatingInstitution;
+	private ResearchOrganization partnerOrganization;
+	//Todo link to ResearchOrganization
 	
-	/** number of people involved in the project from CIAD.
-	 */
-	@Column
-	private int numberPersonsByMonth;
-	
-	//One to Many
-	//private List<Publication> publications;
 	
 	//private List<Image> images;
-	//private List<Video> images;
+	
+	/** URL of a associated video if the project has one.
+	 */
+	@Column(length = EntityUtils.LARGE_TEXT_SIZE)
+	private String videoUrl;
 	
 	/** Website URL of the project if it has one.
 	 */
-	@Column
+	@Column(length = EntityUtils.LARGE_TEXT_SIZE)
 	private String websiteUrl;
+	
+	/** Name of the powerpoint of the project if it has one.
+	 */
+	@Column(length = EntityUtils.LARGE_TEXT_SIZE)
+	private String powerpoint;
 	
 	/** expected TRL for the project.
 	 */
 	@Column
 	private int expectedTRL;
 	
-	//private List<String|ScientificDomain> scientificDomains;
-	//private List<String|ApplicationDomain> applicationDomains;s
-	
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getAcronym() {
-		return acronym;
-	}
-
-	public void setAcronym(String acronym) {
-		this.acronym = acronym;
-	}
-
-	public String getFundingScheme() {
-		return fundingScheme;
-	}
-
-	public void setFundingScheme(String fundingScheme) {
-		this.fundingScheme = fundingScheme;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public LocalDate getStartingDate() {
-		return startingDate;
-	}
-
-	public void setStartingDate(LocalDate startingDate) {
-		this.startingDate = startingDate;
-	}
-
-	public int getDuration() {
-		return duration;
-	}
-
-	public void setDuration(int duration) {
-		this.duration = duration;
-	}
-
-	public String getState() {
-		return state;
-	}
-
-	public void setState(String state) {
-		this.state = state;
-	}
-
-	public int getGlobalBudget() {
-		return globalBudget;
-	}
-
-	public void setGlobalBudget(int globalBudget) {
-		this.globalBudget = globalBudget;
-	}
-
-	public int getBudgetCIADLabOnly() {
-		return budgetCIADLabOnly;
-	}
-
-	public void setBudgetCIADLabOnly(int budgetCIADLabOnly) {
-		this.budgetCIADLabOnly = budgetCIADLabOnly;
-	}
-
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
-
-	public List<String> getParticipatingInstutitions() {
-		return participatingInstutitions;
-	}
-
-	public void setParticipatingInstutitions(List<String> participatingInstutitions) {
-		this.participatingInstutitions = participatingInstutitions;
-	}
-
-	public String getCoordinatingInstitution() {
-		return coordinatingInstitution;
-	}
-
-	public void setCoordinatingInstitution(String coordinatingInstitution) {
-		this.coordinatingInstitution = coordinatingInstitution;
-	}
-
-	public int getNumberPersonsByMonth() {
-		return numberPersonsByMonth;
-	}
-
-	public void setNumberPersonsByMonth(int numberPersonsByMonth) {
-		this.numberPersonsByMonth = numberPersonsByMonth;
-	}
-
-	public String getWebsiteUrl() {
-		return websiteUrl;
-	}
-
-	public void setWebsiteUrl(String websiteUrl) {
-		this.websiteUrl = websiteUrl;
-	}
-
-	public int getExpectedTRL() {
-		return expectedTRL;
-	}
-
-	public void setExpectedTRL(int expectedTRL) {
-		this.expectedTRL = expectedTRL;
-	}
-
-	@Override
-	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public void forEachAttribute(AttributeConsumer consumer) throws IOException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void serialize(JsonGenerator gen, SerializerProvider serializers) throws IOException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void serializeWithType(JsonGenerator gen, SerializerProvider serializers, TypeSerializer typeSer)
-			throws IOException {
-		// TODO Auto-generated method stub
-
-	}
+	/** If the project is confidential or not.
+	 */
+	@Column
+	private boolean confidential;
 
 }
