@@ -47,6 +47,7 @@ import fr.ciadlab.labmanager.entities.AttributeProvider;
 import fr.ciadlab.labmanager.entities.EntityUtils;
 import fr.ciadlab.labmanager.entities.IdentifiableEntity;
 import fr.ciadlab.labmanager.entities.member.Membership;
+import fr.ciadlab.labmanager.entities.project.Project;
 import fr.ciadlab.labmanager.io.json.JsonUtils;
 import fr.ciadlab.labmanager.io.json.JsonUtils.CachedGenerator;
 import fr.ciadlab.labmanager.utils.CountryCodeUtils;
@@ -129,6 +130,24 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 	 */
 	@OneToMany(mappedBy = "superOrganization")
 	private Set<ResearchOrganization> subOrganizations = new HashSet<>();
+	
+	/**
+	 * Reference to the projects owned
+	 */
+	@OneToMany(mappedBy = "owningOrganization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private Set<Project> owningProjects;
+	
+	/**
+	 * Reference to the partner projects 
+	 */
+	@OneToMany(mappedBy = "partnerOrganizations", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private Set<Project> partnerProjects;
+	
+	/**
+	 * Reference to the projects managed
+	 */
+	@OneToMany(mappedBy = "manageOrganization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private Set<Project> manageProjects;
 
 	/** Construct a research organization from the given values.
 	 * 

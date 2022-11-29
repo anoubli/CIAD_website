@@ -7,15 +7,22 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Polymorphism;
@@ -33,9 +40,12 @@ import fr.ciadlab.labmanager.entities.IdentifiableEntity;
 import fr.ciadlab.labmanager.entities.organization.*;
 import fr.ciadlab.labmanager.entities.member.Person;
 
-/**
- * @author baptiste
- *
+/** Abstract rerpesentation of a research project
+ * 
+ * @author $Author: bperrat-dit-janton$
+ * @version $Name$ $Revision$ $Date$
+ * @mavengroupid $GroupId$
+ * @mavenartifactid $ArtifactId$
  */
 @Entity
 @Table(name = "Projects")
@@ -43,13 +53,6 @@ import fr.ciadlab.labmanager.entities.member.Person;
 @Polymorphism(type = PolymorphismType.IMPLICIT)
 public abstract class Project
 		implements Serializable, JsonSerializable, Comparable<Project>, AttributeProvider, IdentifiableEntity {
-	/**
-	 * Constants for Type of the project
-	 */
-	public final String THEORICAL_RESEARCH = "Recherche théorique";
-	public final String APPLIED_RESEARCH = "Recherche appliqué";
-	public final String EXPERIMENTAL_DEVELOPMENT = "Développement expérimental";
-	//Todo enum ?
 	
 	/**
 	 * Identifier of the project
@@ -71,9 +74,9 @@ public abstract class Project
 	
 	/** funding scheme of the project.
 	 */
-	@Column(length = EntityUtils.LARGE_TEXT_SIZE)
-	private String fundingScheme;
-	//TODO faire une enum (class) avec une description de ce dernier
+	@Column
+	@Enumerated(EnumType.STRING)
+	private FundingSchemeType fundingScheme;
 	
 	/** short description of the project.
 	 */
@@ -93,36 +96,36 @@ public abstract class Project
 	/** type of the project.
 	 */
 	@Column
-	private String type;
-	//TODO maybe add a new class ProjectType and ProjectCategory
+	@Enumerated(EnumType.STRING)
+	private ProjectType type;
 
 	/** List of the reference Person of the project.
 	 */
-	@Column
-	private List<Person> referencePersons;
+	@OneToMany(mappedBy = "referenceProjects", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private Set<Person> referencePersons;
 	
 	/**
 	 * Organization who coordinate the project
 	 */
-	@Column
-	private ResearchOrganization OwningOrganization;
-	//Todo link to ResearchOrganization
+	@ManyToOne(fetch = FetchType.EAGER)
+	private ResearchOrganization owningOrganization;
 	
 	/**
 	 * List of institution involved in the project (Outside the CIAD)
 	 */
-	@Column
-	private List<ResearchOrganization> participatingOrganizations;
+	@OneToMany(mappedBy = "partnerProjects", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private Set<ResearchOrganization> partnerOrganizations;
 	
 	/**
 	 * Organization with a partnership on the project
 	 */
-	@Column
-	private ResearchOrganization partnerOrganization;
-	//Todo link to ResearchOrganization
+	@ManyToOne(fetch = FetchType.EAGER)
+	private ResearchOrganization managerOrganization;
 	
-	
-	//private List<Image> images;
+	/** URL of a associated video if the project has one.
+	 */
+	@Column(length = EntityUtils.LARGE_TEXT_SIZE)
+	private String pathImage;
 	
 	/** URL of a associated video if the project has one.
 	 */
@@ -137,12 +140,13 @@ public abstract class Project
 	/** Name of the powerpoint of the project if it has one.
 	 */
 	@Column(length = EntityUtils.LARGE_TEXT_SIZE)
-	private String powerpoint;
+	private String pathToDownloadPowerpoint;
 	
 	/** expected TRL for the project.
 	 */
 	@Column
-	private int expectedTRL;
+	@Enumerated(EnumType.STRING)
+	private TRLGrade expectedTRL; 
 	
 	/** If the project is confidential or not.
 	 */

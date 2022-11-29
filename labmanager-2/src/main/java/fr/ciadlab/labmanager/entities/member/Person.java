@@ -54,6 +54,7 @@ import fr.ciadlab.labmanager.entities.AttributeProvider;
 import fr.ciadlab.labmanager.entities.EntityUtils;
 import fr.ciadlab.labmanager.entities.IdentifiableEntity;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganization;
+import fr.ciadlab.labmanager.entities.project.Project;
 import fr.ciadlab.labmanager.entities.publication.Authorship;
 import fr.ciadlab.labmanager.entities.publication.AuthorshipComparator;
 import fr.ciadlab.labmanager.io.json.JsonUtils;
@@ -241,6 +242,12 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 	@OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private Set<Authorship> authorships;
 
+	/**
+	 * Reference to the references projects 
+	 */
+	@OneToMany(mappedBy = "referencePersons", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private Set<Project> referenceProjects;
+	
 	/** Construct a person with the given values.
 	 *
 	 * @param id the identifier of the person.
