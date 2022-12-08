@@ -140,13 +140,13 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 	/**
 	 * Reference to the partner projects 
 	 */
-	@OneToMany(mappedBy = "partnerOrganizations", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private Set<Project> partnerProjects;
 	
 	/**
 	 * Reference to the projects managed
 	 */
-	@OneToMany(mappedBy = "manageOrganization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "managerOrganization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private Set<Project> manageProjects;
 
 	/** Construct a research organization from the given values.

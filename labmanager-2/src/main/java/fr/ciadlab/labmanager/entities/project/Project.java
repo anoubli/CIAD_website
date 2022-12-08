@@ -5,8 +5,7 @@ package fr.ciadlab.labmanager.entities.project;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.time.LocalDate;
-import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -20,7 +19,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -54,6 +52,8 @@ import fr.ciadlab.labmanager.entities.member.Person;
 public abstract class Project
 		implements Serializable, JsonSerializable, Comparable<Project>, AttributeProvider, IdentifiableEntity {
 	
+	private static final long serialVersionUID = 2713078763828551628L;
+
 	/**
 	 * Identifier of the project
 	 */
@@ -153,4 +153,241 @@ public abstract class Project
 	@Column
 	private boolean confidential;
 
+	public Project(int id, String name, String acronym, FundingSchemeType fundingScheme, String description,
+			float globalBudget, float budgetCIADLabOnly, ProjectType type, Set<Person> referencePersons,
+			ResearchOrganization owningOrganization, Set<ResearchOrganization> partnerOrganizations,
+			ResearchOrganization managerOrganization, String pathImage, String videoUrl, String websiteUrl,
+			String pathToDownloadPowerpoint, TRLGrade expectedTRL, boolean confidential) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.acronym = acronym;
+		this.fundingScheme = fundingScheme;
+		this.description = description;
+		this.globalBudget = globalBudget;
+		this.budgetCIADLabOnly = budgetCIADLabOnly;
+		this.type = type;
+		this.referencePersons = referencePersons;
+		this.owningOrganization = owningOrganization;
+		this.partnerOrganizations = partnerOrganizations;
+		this.managerOrganization = managerOrganization;
+		this.pathImage = pathImage;
+		this.videoUrl = videoUrl;
+		this.websiteUrl = websiteUrl;
+		this.pathToDownloadPowerpoint = pathToDownloadPowerpoint;
+		this.expectedTRL = expectedTRL;
+		this.confidential = confidential;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getAcronym() {
+		return acronym;
+	}
+
+	public void setAcronym(String acronym) {
+		this.acronym = acronym;
+	}
+
+	public FundingSchemeType getFundingScheme() {
+		return fundingScheme;
+	}
+
+	public void setFundingScheme(FundingSchemeType fundingScheme) {
+		this.fundingScheme = fundingScheme;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public float getGlobalBudget() {
+		return globalBudget;
+	}
+
+	public void setGlobalBudget(float globalBudget) {
+		this.globalBudget = globalBudget;
+	}
+
+	public float getBudgetCIADLabOnly() {
+		return budgetCIADLabOnly;
+	}
+
+	public void setBudgetCIADLabOnly(float budgetCIADLabOnly) {
+		this.budgetCIADLabOnly = budgetCIADLabOnly;
+	}
+
+	public ProjectType getType() {
+		return type;
+	}
+
+	public void setType(ProjectType type) {
+		this.type = type;
+	}
+
+	public Set<Person> getReferencePersons() {
+		return referencePersons;
+	}
+
+	public void setReferencePersons(Set<Person> referencePersons) {
+		this.referencePersons = referencePersons;
+	}
+
+	public ResearchOrganization getOwningOrganization() {
+		return owningOrganization;
+	}
+
+	public void setOwningOrganization(ResearchOrganization owningOrganization) {
+		this.owningOrganization = owningOrganization;
+	}
+
+	public Set<ResearchOrganization> getPartnerOrganizations() {
+		return partnerOrganizations;
+	}
+
+	public void setPartnerOrganizations(Set<ResearchOrganization> partnerOrganizations) {
+		this.partnerOrganizations = partnerOrganizations;
+	}
+
+	public ResearchOrganization getManagerOrganization() {
+		return managerOrganization;
+	}
+
+	public void setManagerOrganization(ResearchOrganization managerOrganization) {
+		this.managerOrganization = managerOrganization;
+	}
+
+	public String getPathImage() {
+		return pathImage;
+	}
+
+	public void setPathImage(String pathImage) {
+		this.pathImage = pathImage;
+	}
+
+	public String getVideoUrl() {
+		return videoUrl;
+	}
+
+	public void setVideoUrl(String videoUrl) {
+		this.videoUrl = videoUrl;
+	}
+
+	public String getWebsiteUrl() {
+		return websiteUrl;
+	}
+
+	public void setWebsiteUrl(String websiteUrl) {
+		this.websiteUrl = websiteUrl;
+	}
+
+	public String getPathToDownloadPowerpoint() {
+		return pathToDownloadPowerpoint;
+	}
+
+	public void setPathToDownloadPowerpoint(String pathToDownloadPowerpoint) {
+		this.pathToDownloadPowerpoint = pathToDownloadPowerpoint;
+	}
+
+	public TRLGrade getExpectedTRL() {
+		return expectedTRL;
+	}
+
+	public void setExpectedTRL(TRLGrade expectedTRL) {
+		this.expectedTRL = expectedTRL;
+	}
+
+	public boolean isConfidential() {
+		return confidential;
+	}
+
+	public void setConfidential(boolean confidential) {
+		this.confidential = confidential;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(acronym, budgetCIADLabOnly, confidential, description, expectedTRL, fundingScheme,
+				globalBudget, id, managerOrganization, name, owningOrganization, partnerOrganizations, pathImage,
+				pathToDownloadPowerpoint, referencePersons, type, videoUrl, websiteUrl);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Project other = (Project) obj;
+		return Objects.equals(acronym, other.acronym)
+				&& Float.floatToIntBits(budgetCIADLabOnly) == Float.floatToIntBits(other.budgetCIADLabOnly)
+				&& confidential == other.confidential && Objects.equals(description, other.description)
+				&& expectedTRL == other.expectedTRL && fundingScheme == other.fundingScheme
+				&& Float.floatToIntBits(globalBudget) == Float.floatToIntBits(other.globalBudget) && id == other.id
+				&& Objects.equals(managerOrganization, other.managerOrganization) && Objects.equals(name, other.name)
+				&& Objects.equals(owningOrganization, other.owningOrganization)
+				&& Objects.equals(partnerOrganizations, other.partnerOrganizations)
+				&& Objects.equals(pathImage, other.pathImage)
+				&& Objects.equals(pathToDownloadPowerpoint, other.pathToDownloadPowerpoint)
+				&& Objects.equals(referencePersons, other.referencePersons) && type == other.type
+				&& Objects.equals(videoUrl, other.videoUrl) && Objects.equals(websiteUrl, other.websiteUrl);
+	}
+
+	@Override
+	public String toString() {
+		return "Project [id=" + id + ", name=" + name + ", acronym=" + acronym + ", fundingScheme=" + fundingScheme
+				+ ", description=" + description + ", globalBudget=" + globalBudget + ", budgetCIADLabOnly="
+				+ budgetCIADLabOnly + ", type=" + type + ", referencePersons=" + referencePersons
+				+ ", owningOrganization=" + owningOrganization + ", partnerOrganizations=" + partnerOrganizations
+				+ ", managerOrganization=" + managerOrganization + ", pathImage=" + pathImage + ", videoUrl=" + videoUrl
+				+ ", websiteUrl=" + websiteUrl + ", pathToDownloadPowerpoint=" + pathToDownloadPowerpoint
+				+ ", expectedTRL=" + expectedTRL + ", confidential=" + confidential + "]";
+	}
+
+	@Override
+	public void forEachAttribute(AttributeConsumer consumer) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public int compareTo(Project arg0) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void serialize(JsonGenerator gen, SerializerProvider serializers) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void serializeWithType(JsonGenerator gen, SerializerProvider serializers, TypeSerializer typeSer)
+			throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
 }

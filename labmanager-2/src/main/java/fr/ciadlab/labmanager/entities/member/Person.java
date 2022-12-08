@@ -245,7 +245,7 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 	/**
 	 * Reference to the references projects 
 	 */
-	@OneToMany(mappedBy = "referencePersons", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private Set<Project> referenceProjects;
 	
 	/** Construct a person with the given values.
