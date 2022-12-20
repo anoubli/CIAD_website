@@ -5,3 +5,6 @@ src/main/resources/static/fonts/*
 src/main/resources/static/js/*.js
 src/main/resources/static/js/*.js.map
 
+#Ignore document that are different in each user configuration 
+src/main/resources/application-dev.yml
+src/main/resources/application.yml
