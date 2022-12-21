@@ -70,19 +70,19 @@ public class Conference implements Serializable, JsonSerializable, AttributeProv
 	/** History of the quality indicators for this journal.
 	 */
 	@OneToMany(cascade = CascadeType.ALL)
-	@JoinTable(name = "journal_journal_annual_indicators_mapping", 
+	@JoinTable(name = "conference_conference_annual_indicators_mapping", 
 	joinColumns = {
-			@JoinColumn(name = "journal_id", referencedColumnName = "id")
+			@JoinColumn(name = "conference_id", referencedColumnName = "id")
 	},
 	inverseJoinColumns = {
 			@JoinColumn(name = "indicators_id", referencedColumnName = "id")
 	})
 	@MapKey(name = "referenceYear")
-	private Map<Integer, JournalQualityAnnualIndicators> qualityIndicators;
+	private Map<Integer, ConferenceQualityAnnualIndicators> qualityIndicators;
 	
 	
 	public Conference(int id, String acronym, String name, String conferenceUrl, String publisher, String issn,
-			String coreIdentifier, Map<Integer, JournalQualityAnnualIndicators> qualityIndicators) {
+			String coreIdentifier, Map<Integer, ConferenceQualityAnnualIndicators> qualityIndicators) {
 		super();
 		this.id = id;
 		this.acronym = acronym;
@@ -172,11 +172,11 @@ public class Conference implements Serializable, JsonSerializable, AttributeProv
 		this.coreIdentifier = coreIdentifier;
 	}
 
-	public Map<Integer, JournalQualityAnnualIndicators> getQualityIndicators() {
+	public Map<Integer, ConferenceQualityAnnualIndicators> getQualityIndicators() {
 		return qualityIndicators;
 	}
 
-	public void setQualityIndicators(Map<Integer, JournalQualityAnnualIndicators> qualityIndicators) {
+	public void setQualityIndicators(Map<Integer, ConferenceQualityAnnualIndicators> qualityIndicators) {
 		this.qualityIndicators = qualityIndicators;
 	}
 
