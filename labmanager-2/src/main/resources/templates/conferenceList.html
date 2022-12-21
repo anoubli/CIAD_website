@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs"/>
+<th:block th:replace="fragments/libs :: bootstrap-datatable"/>
+
+<th:block th:replace="fragments/table :: adminTableDefinition(${changeEnabled})"/>
+
+<th:block th:replace="fragments/nav :: journalListBar"/>
+
+<table th:replace="fragments/table :: adminTable(~{::thead}, ~{::tbody})">
+    <thead>
+        <th th:utext="#{html.Id}"></th>
+        <th th:utext="#{html.Name}"></th>
+        <th th:utext="#{html.Acronym}"></th>
+        <th th:utext="#{html.ConferenceURL}"></th>
+        <th th:utext="#{html.Publisher}"></th>
+        <th th:utext="#{html.ISSN}"></th>
+		<th th:utext="#{html.CoreIdentifier}"></th>
+    </thead>
+    <tbody>
+        <tr th:each="conference : ${conferences}">
+            <td>
+                <th:block th:utext="${conference.id}"></th:block>
+            </td>
+            <td th:with="urlObject=${conference.conferenceUrl}">
+                <a th:if="${urlObject != null}"
+                   th:href="${conference.journalURL}"
+                   th:utext="${conference.conferenceName}"></a>
+                <th:block th:if="${urlObject == null}"
+                          th:utext="${conference.conferenceName}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${conference.publisher}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${conference.getISSN()}"></th:block>
+            </td>
+            <td th:replace="fragments/table :: adminToolButtons(${conference.id}, ${conference.conferenceName},
+            		#{html.EditJournal1(${conference.conferenceName})},
+            		#{html.DeleteJournal1(${conference.conferenceName})},
+            		~{::.admin-tool-buttons},
+            		journal, journal, journal,
+            		@{/getJournalData(id=${conference.id})} )">
+            	<a th:href="@{/journalRankingEditor(id=${conference.id})}"
+				   th:if="${changeEnabled}"
+				   class="noLink admin-tool-buttons">
+            		<span class="fa-solid fa-ranking-star"
+            		   th:title="#{html.EditRankingOf(${conference.conferenceName})}"
+                       style="font-size:14pt"></span>
+            	</a>
+           		<span class="fa fa-ranking-star admin-tool-buttons"
+				   th:unless="${changeEnabled}"
+           		   th:title="#{html.EditRankingOf(${conference.conferenceName})}"
+                   style="font-size:14pt"></span>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<script th:inline="javascript">
+    $(document).ready(() => {
+    	initAdministrationTable({
+    		columns: 9,
+    		actionWidth: '180px',
+    	});
+        /*[# th:if="${changeEnabled}" th:each="journal : ${journals}"]*/
+        attachDeletionHandler({
+        	id: "[[${conference.id}]]",
+        	url: "[(@{/deleteJournal(journal=${conference.id})})]",
+        	name: [[${conference.conferenceName}]],
+        	questionTitle: [[#{html.DeleteJournal1(${conference.conferenceName})}]],
+        	questionText: [[#{html.AreYouSureToDelete(${conference.conferenceName})}]],
+        	successText: [[#{html.JournalDeleted}]],
+        	failureText: [[#{html.CannotDeleteJournal}]],
+        });
+        /*[/]*/
+    });
+</script>
+</html>
