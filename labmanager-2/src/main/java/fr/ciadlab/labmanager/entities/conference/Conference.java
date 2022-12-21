@@ -3,6 +3,7 @@ package fr.ciadlab.labmanager.entities.conference;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -15,6 +16,9 @@ import javax.persistence.JoinTable;
 import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.arakhne.afc.util.IntegerList;
+import org.arakhne.afc.util.ListUtil;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializable;
@@ -186,6 +190,20 @@ public class Conference implements Serializable, JsonSerializable, AttributeProv
 
 	public void setId(int id) {
 		this.id = id;
+	}
+	
+	public final ConferenceQualityAnnualIndicators getQualityIndicatorsFor(int year, Predicate<ConferenceQualityAnnualIndicators> selector) {
+		if (this.qualityIndicators != null) {
+			final IntegerList ids = new IntegerList(this.qualityIndicators.keySet());
+			final int start = ListUtil.floorIndex(ids, (a, b) -> Integer.compare(a.intValue(), b.intValue()), Integer.valueOf(year));
+			for (int i = start; i >= 0; --i) {
+				final ConferenceQualityAnnualIndicators indicators = this.qualityIndicators.get(ids.get(i));
+				if (indicators != null && selector.test(indicators)) {
+					return indicators;
+				}
+			}
+		}
+		return null;
 	}
 	
 	

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.controller.api.AbstractApiController;
 import fr.ciadlab.labmanager.entities.conference.Conference;
+import fr.ciadlab.labmanager.entities.conference.ConferenceQualityAnnualIndicators;
 import fr.ciadlab.labmanager.entities.journal.Journal;
 import fr.ciadlab.labmanager.entities.journal.JournalQualityAnnualIndicators;
 import fr.ciadlab.labmanager.service.conference.ConferenceService;
@@ -44,28 +45,28 @@ public class ConferenceApiController extends AbstractApiController {
 		return this.conferenceService.getConferenceByName(name);
 	}
 	
-//	@GetMapping(value = "/getConferenceQualityIndicators")
-//	@ResponseBody
-//	public Map<Integer, JournalQualityAnnualIndicators> getJournalQualityIndicators(
-//			@RequestParam(required = true) String journal,
-//			@RequestParam(required = false, name = "year") List<Integer> years) {
-//		final Journal journalObj = getJournalWith(journal, this.journalService);
-//		if (journalObj == null) {
-//			throw new IllegalArgumentException("Journal not found with: " + journal); //$NON-NLS-1$
-//		}
-//		if (years != null && !years.isEmpty()) {
-//			final Map<Integer, JournalQualityAnnualIndicators> indicators = new HashMap<>();
-//			for (final Integer year : years) {
-//				if (year != null) {
-//					indicators.computeIfAbsent(year, it -> {
-//						return journalObj.getQualityIndicatorsFor(year.intValue(), null);
-//					});
-//				}
-//			}
-//			return indicators;
-//		}
-//		return journalObj.getQualityIndicators();
-//	}
+	@GetMapping(value = "/getConferenceQualityIndicators")
+	@ResponseBody
+	public Map<Integer, ConferenceQualityAnnualIndicators> getConferenceQualityIndicators(
+			@RequestParam(required = true) String conference,
+			@RequestParam(required = false, name = "year") List<Integer> years) {
+		final Conference conferenceObj = getConferenceWith(conference, this.conferenceService);
+		if (conferenceObj == null) {
+			throw new IllegalArgumentException("Conference not found with: " + conference); //$NON-NLS-1$
+		}
+		if (years != null && !years.isEmpty()) {
+			final Map<Integer, ConferenceQualityAnnualIndicators> indicators = new HashMap<>();
+			for (final Integer year : years) {
+				if (year != null) {
+					indicators.computeIfAbsent(year, it -> {
+						return conferenceObj.getQualityIndicatorsFor(year.intValue(), null);
+					});
+				}
+			}
+			return indicators;
+		}
+		return conferenceObj.getQualityIndicators();
+	}
 	
 	
 	@PostMapping(value = "/" + Constants.CONFERENCE_SAVING_ENDPOINT)
