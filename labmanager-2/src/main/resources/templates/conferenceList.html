@@ -65,7 +65,7 @@
         /*[# th:if="${changeEnabled}" th:each="journal : ${journals}"]*/
         attachDeletionHandler({
         	id: "[[${conference.id}]]",
-        	url: "[(@{/deleteJournal(journal=${conference.id})})]",
+        	url: "[(@{/deleteConference(conference=${conference.id})})]",
         	name: [[${conference.conferenceName}]],
         	questionTitle: [[#{html.DeleteJournal1(${conference.conferenceName})}]],
         	questionText: [[#{html.AreYouSureToDelete(${conference.conferenceName})}]],
