@@ -33,9 +33,12 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinTable;
+import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -140,7 +143,10 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 	/**
 	 * Reference to the partner projects 
 	 */
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinTable( name = "RESEARCH_ORGS_PARTNER_PROJECTS",
+				joinColumns = @JoinColumn(name = "idResearchOrgs"),
+				inverseJoinColumns = @JoinColumn( name = "idProjects"))
 	private Set<Project> partnerProjects;
 	
 	/**

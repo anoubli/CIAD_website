@@ -19,6 +19,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -38,7 +41,7 @@ import fr.ciadlab.labmanager.entities.IdentifiableEntity;
 import fr.ciadlab.labmanager.entities.organization.*;
 import fr.ciadlab.labmanager.entities.member.Person;
 
-/** Abstract rerpesentation of a research project
+/** Abstract representation of a research project
  * 
  * @author $Author: bperrat-dit-janton$
  * @version $Name$ $Revision$ $Date$
@@ -113,7 +116,10 @@ public abstract class Project
 	/**
 	 * List of institution involved in the project (Outside the CIAD)
 	 */
-	@OneToMany(mappedBy = "partnerProjects", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinTable( name = "RESEARCH_ORGS_PARTNER_PROJECTS",
+				joinColumns = @JoinColumn(name = "idProjects"),
+				inverseJoinColumns = @JoinColumn( name = "idResearchOrgs"))
 	private Set<ResearchOrganization> partnerOrganizations;
 	
 	/**
@@ -153,6 +159,7 @@ public abstract class Project
 	@Column
 	private boolean confidential;
 
+	
 	public Project(int id, String name, String acronym, FundingSchemeType fundingScheme, String description,
 			float globalBudget, float budgetCIADLabOnly, ProjectType type, Set<Person> referencePersons,
 			ResearchOrganization owningOrganization, Set<ResearchOrganization> partnerOrganizations,
@@ -179,6 +186,13 @@ public abstract class Project
 		this.confidential = confidential;
 	}
 
+	/**
+	 * Create an empty project
+	 */
+	public Project() {
+		//
+	}
+	
 	public int getId() {
 		return id;
 	}
