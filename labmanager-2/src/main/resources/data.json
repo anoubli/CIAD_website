@@ -157,6 +157,25 @@
 			}
 		}
 	],
+	"conferences": [
+		{
+			"@id": "/conf#0",
+			"acronym": "itoip",
+			"conferenceName": "IEEE Transactions on Image Processing",
+			"conferenceURL": "https://ieeexplore.ieee.org/xpl/RecentIssue.jsp?punumber=83",
+			"publisher": "IEEE",
+			"issn": "12222222",
+			"coreIdentifier": "25534",
+			"qualityIndicatorsHistory": {
+				"1999": {
+					"ranking": "A"
+				},
+				"2022": {
+					"ranking": "B"
+				}
+			}
+		}
+	],
 	"publications": [
 		{
 			"@id": "/publi#0",

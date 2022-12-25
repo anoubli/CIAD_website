@@ -12,8 +12,8 @@ import com.google.common.base.Strings;
 
 import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.entities.conference.Conference;
+import fr.ciadlab.labmanager.repository.conference.ConferenceQualityAnnualIndicatorsRepository;
 import fr.ciadlab.labmanager.repository.conference.ConferenceRepository;
-import fr.ciadlab.labmanager.repository.journal.JournalQualityAnnualIndicatorsRepository;
 import fr.ciadlab.labmanager.service.AbstractService;
 import fr.ciadlab.labmanager.utils.net.NetConnection;
 
@@ -25,13 +25,13 @@ public class ConferenceService extends AbstractService{
 	
 	private final ConferenceRepository conferenceRepository;
 	
-	private final JournalQualityAnnualIndicatorsRepository indicatorRepository;
+	private final ConferenceQualityAnnualIndicatorsRepository indicatorRepository;
 	
 	private final NetConnection netConnection;  ConferenceService(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
 			@Autowired ConferenceRepository conferenceRepository, 
-			@Autowired JournalQualityAnnualIndicatorsRepository indicatorRepository,
+			@Autowired ConferenceQualityAnnualIndicatorsRepository indicatorRepository,
 			@Autowired NetConnection netConnection) {
 		super(messages, constants);
 		this.conferenceRepository = conferenceRepository;
