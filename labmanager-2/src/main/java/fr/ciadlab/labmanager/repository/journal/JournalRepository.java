@@ -16,6 +16,7 @@
 
 package fr.ciadlab.labmanager.repository.journal;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -45,5 +46,5 @@ public interface JournalRepository extends JpaRepository<Journal, Integer> {
 	 * @return the journal with the given name.
 	 */
 	Optional<Journal> findByJournalName(String name);
-
+	
 }

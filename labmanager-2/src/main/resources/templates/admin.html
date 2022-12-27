@@ -9,10 +9,17 @@
 		    <div class="card-body">
 			    <h5 class="card-title">Dash Board</h5>
 			    <p class="card-text">
-			    	<button type="button" class="btn btn-labeled btn-success" disabled>
-			    	<span class="fa-solid fa-chart-simple"></span>&nbsp;Charts</button>
-			    	<button type="button" class="btn btn-labeled btn-primary" disabled>
-			    	<span class="fa-solid fa-file-excel"></span>&nbsp;Export to spreadsheet</button>
+				    	<a th:href="@{/dashboard}" class="btn btn-labeled btn-success" role="button">
+			    		<span class="fa-solid fa-chart-simple"></span>&nbsp;<th:block th:utext="#{html.OrganizationsList}"></th:block></a>
+			    	<a th:if="${changeEnabled}"
+			    	   th:href="@{/organizationEditor}" class="btn btn-labeled btn-primary" role="button">
+			    		<span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddOrganization}"></th:block></a>
+			    	
+			    				    	
+<!-- 			     	<button type="button" class="btn btn-labeled btn-success" disabled> -->
+<!-- 			    	<span class="fa-solid fa-chart-simple"></span>&nbsp;Charts</button> -->
+<!-- 			    	<button type="button" class="btn btn-labeled btn-primary" disabled> -->
+<!-- 			    	<span class="fa-solid fa-file-excel"></span>&nbsp;Export to spreadsheet</button> -->
 			    </p>
 			</div>
 		</div>

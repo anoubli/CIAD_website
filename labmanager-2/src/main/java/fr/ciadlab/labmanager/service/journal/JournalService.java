@@ -88,8 +88,9 @@ public class JournalService extends AbstractService {
 	 *
 	 * @return the list of journals.
 	 */
-	public List<Journal> getAllJournals() {
-		return this.journalRepository.findAll();
+	public List<Journal> getAllJournals() {		
+	
+		return this.journalRepository.findAll();		
 	}
 
 	/** Replies the journal with the given identifier.
