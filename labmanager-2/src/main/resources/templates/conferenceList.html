@@ -5,7 +5,7 @@
 
 <th:block th:replace="fragments/table :: adminTableDefinition(${changeEnabled})"/>
 
-<th:block th:replace="fragments/nav :: journalListBar"/>
+<th:block th:replace="fragments/nav :: conferenceListBar"/>
 
 <table th:replace="fragments/table :: adminTable(~{::thead}, ~{::tbody})">
     <thead>
@@ -16,6 +16,7 @@
         <th th:utext="#{html.Publisher}"></th>
         <th th:utext="#{html.ISSN}"></th>
 		<th th:utext="#{html.CoreIdentifier}"></th>
+        <th th:text="#{html.Actions}"></th>
     </thead>
     <tbody>
         <tr th:each="conference : ${conferences}">
@@ -24,23 +25,32 @@
             </td>
             <td th:with="urlObject=${conference.conferenceUrl}">
                 <a th:if="${urlObject != null}"
-                   th:href="${conference.journalURL}"
+                   th:href="${conference.conferenceUrl}"
                    th:utext="${conference.conferenceName}"></a>
                 <th:block th:if="${urlObject == null}"
                           th:utext="${conference.conferenceName}"></th:block>
             </td>
             <td>
+                <th:block th:utext="${conference.acronym}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${conference.conferenceUrl}"></th:block>
+            </td>
+            <td>
                 <th:block th:utext="${conference.publisher}"></th:block>
             </td>
             <td>
-                <th:block th:utext="${conference.getISSN()}"></th:block>
+                <th:block th:utext="${conference.getIssn()}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${conference.coreIdentifier}"></th:block>
             </td>
             <td th:replace="fragments/table :: adminToolButtons(${conference.id}, ${conference.conferenceName},
-            		#{html.EditJournal1(${conference.conferenceName})},
+            		#{html.EditConference1(${conference.conferenceName})},
             		#{html.DeleteJournal1(${conference.conferenceName})},
             		~{::.admin-tool-buttons},
-            		journal, journal, journal,
-            		@{/getJournalData(id=${conference.id})} )">
+            		conference, conference, conference,
+            		@{/getConferenceData(id=${conference.id})} )">
             	<a th:href="@{/journalRankingEditor(id=${conference.id})}"
 				   th:if="${changeEnabled}"
 				   class="noLink admin-tool-buttons">
@@ -58,21 +68,20 @@
 </table>
 <script th:inline="javascript">
     $(document).ready(() => {
-    	initAdministrationTable({
-    		columns: 9,
-    		actionWidth: '180px',
-    	});
-        /*[# th:if="${changeEnabled}" th:each="journal : ${journals}"]*/
-        attachDeletionHandler({
-        	id: "[[${conference.id}]]",
-        	url: "[(@{/deleteConference(conference=${conference.id})})]",
-        	name: [[${conference.conferenceName}]],
-        	questionTitle: [[#{html.DeleteJournal1(${conference.conferenceName})}]],
-        	questionText: [[#{html.AreYouSureToDelete(${conference.conferenceName})}]],
-        	successText: [[#{html.JournalDeleted}]],
-        	failureText: [[#{html.CannotDeleteJournal}]],
+        initAdministrationTable({
+            columns: 7,
         });
-        /*[/]*/
+        /*[# th:if="${changeEnabled}" th:each="conference : ${conferences}"]*/
+        attachDeletionHandler({
+            id: "[[${conference.id}]]",
+            url: "[(@{/deleteConference(conference=${conference.id})})]",
+            name: [[${conference.conferenceName}]],
+            questionTitle: [[#{html.DeleteConference1(${conference.conferenceName})}]],
+            questionText: [[#{html.AreYouSureToDelete(${conference.conferenceName})}]],
+            successText: [[#{html.ConferenceDeleted}]],
+            failureText: [[#{html.CannotDeleteConference}]],
+    });
+    /*[/]*/
     });
 </script>
 </html>

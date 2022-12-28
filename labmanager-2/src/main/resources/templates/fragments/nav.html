@@ -60,4 +60,14 @@
 		</th:block>
 	</th:block>
 
+	<th:block th:fragment="conferenceListBar">
+		<th:block th:replace="fragments/nav :: simpleBar(#{html.ConferencesList})"></th:block>
+	</th:block>
+
+	<th:block th:fragment="conferenceListBar*(current)">
+		<th:block th:replace="fragments/nav :: standardBar(~{::a#lab-nav-conferenceList-item}, ${current})">
+			<a id="lab-nav-conferenceList-item" th:href="@{/conferenceList}" th:utext="#{html.ConferencesList}"></a><
+		</th:block>
+	</th:block>
+
 </html>

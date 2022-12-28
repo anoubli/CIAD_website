@@ -33,14 +33,14 @@ public class ConferenceViewController extends AbstractViewController{
 	}
 	
 	@GetMapping("/" + Constants.CONFERENCE_LIST_ENDPOINT)
-	public ModelAndView showJournalList(
+	public ModelAndView showConferenceList(
 			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
 		getLogger().info("Opening /" + Constants.CONFERENCE_LIST_ENDPOINT + " by " + username); //$NON-NLS-1$ //$NON-NLS-2$
 		readCredentials(username);
 		final ModelAndView modelAndView = new ModelAndView(Constants.CONFERENCE_LIST_ENDPOINT);
 		initModelViewWithInternalProperties(modelAndView);
 		initAdminTableButtons(modelAndView, endpoint(Constants.CONFERENCE_EDITING_ENDPOINT, "conference")); //$NON-NLS-1$
-		modelAndView.addObject("Conferences", this.conferenceService.getAllConferences()); //$NON-NLS-1$
+		modelAndView.addObject("conferences", this.conferenceService.getAllConferences()); //$NON-NLS-1$
 		modelAndView.addObject("currentYear", Integer.valueOf(LocalDate.now().getYear())); //$NON-NLS-1$
 		return modelAndView;
 	}
@@ -74,8 +74,6 @@ public class ConferenceViewController extends AbstractViewController{
 		modelAndView.addObject("conference", conferenceObj); //$NON-NLS-1$
 		modelAndView.addObject("formActionUrl", rooted(Constants.CONFERENCE_SAVING_ENDPOINT)); //$NON-NLS-1$
 		modelAndView.addObject("formRedirectUrl", rooted(Constants.CONFERENCE_LIST_ENDPOINT)); //$NON-NLS-1$
-//		modelAndView.addObject("scimagoQIndex_imageUrl", JournalService.SCIMAGO_URL_PREFIX + "{0}"); //$NON-NLS-1$ //$NON-NLS-2$
-		//
 		return modelAndView;
 	}
 	

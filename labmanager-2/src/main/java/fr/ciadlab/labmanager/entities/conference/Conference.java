@@ -101,13 +101,6 @@ public class Conference implements Serializable, JsonSerializable, AttributeProv
 	public Conference(){
 		
 	}
-	
-	
-	@Override
-	public int getId() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 
 	@Override
 	public void forEachAttribute(AttributeConsumer consumer) throws IOException {
@@ -129,7 +122,7 @@ public class Conference implements Serializable, JsonSerializable, AttributeProv
 	}
 
 	public String getAcronym() {
-		return acronym;
+		return this.acronym;
 	}
 
 	public void setAcronym(String acronym) {
@@ -188,10 +181,22 @@ public class Conference implements Serializable, JsonSerializable, AttributeProv
 		return serialVersionUID;
 	}
 
+	@Override
+	public int getId() {
+		return this.id;
+	}
 	public void setId(int id) {
 		this.id = id;
 	}
-	
+
+	public String getConferenceName() {
+		return conferenceName;
+	}
+
+	public void setConferenceName(String conferenceName) {
+		this.conferenceName = conferenceName;
+	}
+
 	public final ConferenceQualityAnnualIndicators getQualityIndicatorsFor(int year, Predicate<ConferenceQualityAnnualIndicators> selector) {
 		if (this.qualityIndicators != null) {
 			final IntegerList ids = new IntegerList(this.qualityIndicators.keySet());

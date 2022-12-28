@@ -5,17 +5,17 @@
 <th:block th:replace="fragments/scimago :: scimagoPicture" />
 
 <th:block th:if="${conference != null}">
-	<th:block th:replace="fragments/nav :: journalListBar*(#{html.EditJournal1(${journal.journalName})})"/>
+	<th:block th:replace="fragments/nav :: conferenceListBar*(#{html.EditConference1(${conference.conferenceName})})"/>
 </th:block>
-<th:block th:if="${journal == null}">
-	<th:block th:replace="fragments/nav :: journalListBar*(#{html.AddJournal})"/>
+<th:block th:if="${conference == null}">
+	<th:block th:replace="fragments/nav :: conferenceListBar*(#{html.AddConference})"/>
 </th:block>
 
 <form th:replace="fragments/form :: entityForm(conference, ${conference == null ? '' : conference.id}, ${formActionUrl}, ${formRedirectUrl}, #{html.ConferenceSavingError}, ~{::.form-group})">
-	<div class="form-group" th:replace="fragments/form :: textInput*(name, #{html.Name}, #{html.PlaceHolderConferenceName}, ${conference != null ? conference.journalName : ''})"></div>
+	<div class="form-group" th:replace="fragments/form :: textInput*(name, #{html.Name}, #{html.PlaceHolderConferenceName}, ${conference != null ? conference.conferenceName : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: textInput(acronym, #{html.Acronym}, #{html.PlaceHolderConferenceAcronym}, ${conference != null ? conference.acronym : ''})"></div>
-	<div class="form-group" th:replace="fragments/form :: textInput*(publisher, #{html.Publisher}, #{html.PlaceHolderPublisher}, ${conference != null ? conference.publisher : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: textInput(conferenceUrl, #{html.ConferenceURL}, #{html.PlaceHolderConferenceURL}, ${conference != null ? conference.conferenceUrl : ''})"></div>
+	<div class="form-group" th:replace="fragments/form :: textInput*(publisher, #{html.Publisher}, #{html.PlaceHolderPublisher}, ${conference != null ? conference.publisher : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: textInput(issn, #{html.ISSN}, #{html.PlaceHolderISSN}, ${conference != null ? conference.getIssn() : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: textInput(coreIdentifier, #{html.CoreIdentifier}, #{html.PlaceHolderCoreIdentifier}, ${conference != null ? conference.getCoreIdentifier() : ''})"></div>
 </form>

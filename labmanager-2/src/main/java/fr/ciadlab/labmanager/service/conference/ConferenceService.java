@@ -27,7 +27,9 @@ public class ConferenceService extends AbstractService{
 	
 	private final ConferenceQualityAnnualIndicatorsRepository indicatorRepository;
 	
-	private final NetConnection netConnection;  ConferenceService(
+	private final NetConnection netConnection;  
+	
+	public ConferenceService(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
 			@Autowired ConferenceRepository conferenceRepository, 
@@ -82,6 +84,7 @@ public class ConferenceService extends AbstractService{
 		res.setPublisher(publisher);
 		res.setIssn(issn);
 		res.setCoreIdentifier(coreIdentifier);
+		this.conferenceRepository.save(res);
 		return res;
 	}
 	
@@ -104,6 +107,9 @@ public class ConferenceService extends AbstractService{
 				conference.setName(Strings.emptyToNull(name));
 				conference.setPublisher(Strings.emptyToNull(publisher));
 				conference.setIssn(Strings.emptyToNull(issn));
+				conference.setAcronym(Strings.emptyToNull(acronym));
+				conference.setConferenceUrl(Strings.emptyToNull(conferenceUrl));
+				conference.setCoreIdentifier(Strings.emptyToNull(coreIdentifier));
 				this.conferenceRepository.save(conference);
 				return conference; 
 			}
