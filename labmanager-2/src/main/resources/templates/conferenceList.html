@@ -51,7 +51,7 @@
             		~{::.admin-tool-buttons},
             		conference, conference, conference,
             		@{/getConferenceData(id=${conference.id})} )">
-            	<a th:href="@{/journalRankingEditor(id=${conference.id})}"
+            	<a th:href="@{/conferenceRankingEditor(id=${conference.id})}"
 				   th:if="${changeEnabled}"
 				   class="noLink admin-tool-buttons">
             		<span class="fa-solid fa-ranking-star"

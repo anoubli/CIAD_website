@@ -4,6 +4,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import fr.ciadlab.labmanager.entities.conference.ConferenceQualityAnnualIndicators;
+import fr.ciadlab.labmanager.entities.journal.Journal;
+import fr.ciadlab.labmanager.entities.journal.JournalQualityAnnualIndicators;
+import fr.ciadlab.labmanager.utils.ranking.CoreRanking;
+import fr.ciadlab.labmanager.utils.ranking.QuartileRanking;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
@@ -116,6 +121,21 @@ public class ConferenceService extends AbstractService{
 		}
 		return null;
 		
+	}
+
+	public ConferenceQualityAnnualIndicators setQualityIndicators(Conference conference, int year, CoreRanking ranking) {
+		final ConferenceQualityAnnualIndicators indicators = conference.setQualityIndicatorsByYear(year, ranking);
+		this.indicatorRepository.save(indicators);
+		this.conferenceRepository.save(conference);
+		return indicators;
+	}
+
+	public void deleteQualityIndicators(Conference conference, int year) {
+		final ConferenceQualityAnnualIndicators indicators = conference.getQualityIndicators().remove(Integer.valueOf(year));
+		if (indicators != null) {
+			this.indicatorRepository.delete(indicators);
+			this.conferenceRepository.save(conference);
+		}
 	}
 	
 	

@@ -3,6 +3,7 @@ package fr.ciadlab.labmanager.entities.conference;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 
 import javax.persistence.CascadeType;
@@ -17,6 +18,7 @@ import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import fr.ciadlab.labmanager.utils.ranking.CoreRanking;
 import org.arakhne.afc.util.IntegerList;
 import org.arakhne.afc.util.ListUtil;
 
@@ -209,6 +211,28 @@ public class Conference implements Serializable, JsonSerializable, AttributeProv
 			}
 		}
 		return null;
+	}
+
+	public final ConferenceQualityAnnualIndicators getQualityIndicatorsForYear(int year) {
+		if (this.qualityIndicators == null) {
+			return null;
+		}
+		return this.qualityIndicators.get(Integer.valueOf(year));
+	}
+
+	public ConferenceQualityAnnualIndicators setQualityIndicatorsByYear(int year, CoreRanking ranking) {
+
+		ConferenceQualityAnnualIndicators indicators = getQualityIndicatorsForYear(year);
+		if (indicators != null) {
+			indicators.setRanking(ranking);
+		} else {
+			indicators = new ConferenceQualityAnnualIndicators(year, ranking);
+			if (this.qualityIndicators == null) {
+				this.qualityIndicators = new TreeMap<>();
+			}
+			this.qualityIndicators.put(Integer.valueOf(year), indicators);
+		}
+		return indicators;
 	}
 	
 	

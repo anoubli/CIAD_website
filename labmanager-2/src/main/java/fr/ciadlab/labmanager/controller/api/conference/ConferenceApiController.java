@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fr.ciadlab.labmanager.utils.ranking.CoreRanking;
+import fr.ciadlab.labmanager.utils.ranking.QuartileRanking;
 import org.apache.jena.ext.com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -103,14 +105,33 @@ public class ConferenceApiController extends AbstractApiController {
 	}
 	
 	@PostMapping(value = "/" + Constants.SAVE_CONFERENCE_RANKING_ENDPOINT)
-	public void saveConferenceRanking() {
-		//TODO 
+	public void saveConferenceRanking(
+			@RequestParam(required = true) int conference,
+			@RequestParam(required = true) int year,
+			@RequestParam(required = false) CoreRanking ranking,
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
+		getLogger().info("Opening /" + Constants.SAVE_CONFERENCE_RANKING_ENDPOINT  + " by " + username + " for conference " + conference); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		ensureCredentials(username);
+		final Conference conferenceObj = this.conferenceService.getConferenceById(conference);
+		if (conferenceObj == null) {
+			throw new IllegalArgumentException("Conference not found with: " + conference); //$NON-NLS-1$
+		}
+		this.conferenceService.setQualityIndicators(conferenceObj, year, ranking);
 		
 	}
 	
 	@DeleteMapping("/" + Constants.DELETE_CONFERENCE_RANKING_ENDPOINT)
-	public void deleteJournalRanking() {
-		//TODO
+	public void deleteJournalRanking(
+			@RequestParam(required = true) int conference,
+			@RequestParam(required = true) int year,
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
+		getLogger().info("Opening /" + Constants.DELETE_CONFERENCE_RANKING_ENDPOINT + " by " + username + " for conference " + conference + " and year " + year); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+		ensureCredentials(username);
+		final Conference conferenceObj = this.conferenceService.getConferenceById(conference);
+		if (conferenceObj == null) {
+			throw new IllegalArgumentException("Journal not found with: " + conference); //$NON-NLS-1$
+		}
+		this.conferenceService.deleteQualityIndicators(conferenceObj, year);
 	}
 	
 	

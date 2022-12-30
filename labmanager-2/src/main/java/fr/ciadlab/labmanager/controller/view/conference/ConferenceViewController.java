@@ -1,7 +1,11 @@
 package fr.ciadlab.labmanager.controller.view.conference;
 
 import java.time.LocalDate;
+import java.util.*;
 
+import fr.ciadlab.labmanager.entities.conference.ConferenceQualityAnnualIndicators;
+import fr.ciadlab.labmanager.utils.ranking.CoreRanking;
+import fr.ciadlab.labmanager.utils.ranking.QuartileRanking;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -74,6 +78,76 @@ public class ConferenceViewController extends AbstractViewController{
 		modelAndView.addObject("conference", conferenceObj); //$NON-NLS-1$
 		modelAndView.addObject("formActionUrl", rooted(Constants.CONFERENCE_SAVING_ENDPOINT)); //$NON-NLS-1$
 		modelAndView.addObject("formRedirectUrl", rooted(Constants.CONFERENCE_LIST_ENDPOINT)); //$NON-NLS-1$
+		return modelAndView;
+	}
+
+	@GetMapping(value = "/conferenceRankingEditor")
+	public ModelAndView showConferenceEditor(
+			@RequestParam(required = true) int id,
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
+		getLogger().info("Opening /conferenceRankingEditor by " + username + " for conference " + id); //$NON-NLS-1$ //$NON-NLS-2$
+		ensureCredentials(username);
+		final ModelAndView modelAndView = new ModelAndView("conferenceRankingEditor"); //$NON-NLS-1$
+		initModelViewWithInternalProperties(modelAndView);
+		//
+		final Conference conference = this.conferenceService.getConferenceById(id);
+		if (conference == null) {
+			throw new IllegalArgumentException("Conference not found: " + id); //$NON-NLS-1$
+		}
+		//
+		modelAndView.addObject("savingUrl", endpoint(Constants.SAVE_CONFERENCE_RANKING_ENDPOINT, null)); //$NON-NLS-1$
+		modelAndView.addObject("deletionUrl", endpoint(Constants.DELETE_CONFERENCE_RANKING_ENDPOINT, null)); //$NON-NLS-1$
+		modelAndView.addObject("conference", conference); //$NON-NLS-1$
+		final Map<Integer, ConferenceQualityAnnualIndicators> sortedMap = new TreeMap<>((a, b) -> {
+			if (a == b) {
+				return 0;
+			}
+			if (a == null) {
+				return 1;
+			}
+			if (b == null) {
+				return -1;
+			}
+			return Integer.compare(b.intValue(), a.intValue());
+		});
+		sortedMap.putAll(conference.getQualityIndicators());
+		modelAndView.addObject("qualityIndicators", sortedMap); //$NON-NLS-1$
+		//
+		Integer year = null;
+		CoreRanking ranking = null;
+		final Iterator<ConferenceQualityAnnualIndicators> iterator = sortedMap.values().iterator();
+		while (iterator.hasNext() && ( ranking == null)) {
+			final ConferenceQualityAnnualIndicators indicators = iterator.next();
+			if (year == null) {
+				year = Integer.valueOf(indicators.getReferenceYear());
+			}
+			if (ranking == null && indicators.getRanking() != null) {
+				ranking = indicators.getRanking();
+			}
+		}
+		final int currentYear = LocalDate.now().getYear();
+		modelAndView.addObject("currentYear", Integer.valueOf(currentYear)); //$NON-NLS-1$
+		modelAndView.addObject("lastReferenceYear", year); //$NON-NLS-1$
+		modelAndView.addObject("lastRanking", ranking); //$NON-NLS-1$
+		final Set<Integer> years = new TreeSet<>((a, b) -> {
+			if (a == b) {
+				return 0;
+			}
+			if (a == null) {
+				return 1;
+			}
+			if (b == null) {
+				return -1;
+			}
+			return Integer.compare(b.intValue(), a.intValue());
+		});
+		for (int y = currentYear - 20; y <= currentYear; ++y) {
+			if (!sortedMap.containsKey(Integer.valueOf(y))) {
+				years.add(Integer.valueOf(y));
+			}
+		}
+		modelAndView.addObject("years", years); //$NON-NLS-1$
+		//
 		return modelAndView;
 	}
 	
