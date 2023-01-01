@@ -9,6 +9,7 @@
 		    <div class="card-body">
 			    <h5 class="card-title">Dash Board</h5>
 			    <p class="card-text">
+          
 				    	<a th:href="@{/dashboard}" class="btn btn-labeled btn-success" role="button">
 			    		<span class="fa-solid fa-chart-simple"></span>&nbsp;<th:block th:utext="#{html.OrganizationsList}"></th:block></a>
 			    	<a th:if="${changeEnabled}"
@@ -20,6 +21,7 @@
 <!-- 			    	<span class="fa-solid fa-chart-simple"></span>&nbsp;Charts</button> -->
 <!-- 			    	<button type="button" class="btn btn-labeled btn-primary" disabled> -->
 <!-- 			    	<span class="fa-solid fa-file-excel"></span>&nbsp;Export to spreadsheet</button> -->
+
 			    </p>
 			</div>
 		</div>
@@ -91,10 +93,13 @@
 				<img th:src="@{/images/card/conferences.jpg}" class="card-img-top"></img>
 			    <h5 class="card-title">Conferences</h5>
 			    <p class="card-text">
-			    	<button type="button" class="btn btn-labeled btn-success" disabled>
-			    		<span class="fa-solid fa-list"></span>&nbsp;List of conferences</button>
-			    	<button type="button" class="btn btn-labeled btn-primary" disabled>
-			    		<span class="fa-solid fa-circle-plus"></span>&nbsp;Add a conference</button>
+			    	<a th:href="@{/conferenceList}" class="btn btn-labeled btn-success" role="button">
+			    		<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.ConferencesList}"></th:block></a>
+<!-- 			    	<button type="button" class="btn btn-labeled btn-success" disabled> -->
+<!-- 			    		<span class="fa-solid fa-list"></span>&nbsp;List of conferences</button> -->
+			    	<a th:if="${changeEnabled}"
+			    	   th:href="@{/conferenceEditor}" class="btn btn-labeled btn-primary" role="button">
+			    		<span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddConference}"></th:block></a>			    	
 			    </p>
 			</div>
 		</div>
