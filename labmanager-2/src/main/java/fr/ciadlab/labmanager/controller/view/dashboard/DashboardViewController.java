@@ -14,7 +14,7 @@
  * http://www.ciad-lab.fr/
  */
 
-package fr.ciadlab.labmanager.controller.view.journal;
+package fr.ciadlab.labmanager.controller.view.dashboard;
 
 import java.time.LocalDate;
 import java.util.Iterator;
