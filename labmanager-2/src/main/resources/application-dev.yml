@@ -5,13 +5,13 @@ logging:
   level:
     fr.ciadlab: DEBUG
   file:
-    path: /tmp/ciadlab
+    path: /ciadlab
 
 spring:
   datasource:
     # Derby database
     driver-class-name: org.apache.derby.jdbc.EmbeddedDriver
-    url: jdbc:derby:/tmp/ciadlab/db;create=true
+    url: jdbc:derby:/ciadlab/db;create=true
     generate-unique-name: false
     username: sa
     password:
@@ -42,11 +42,11 @@ management:
   endpoint:
     logfile:
       # Path to the log file
-      external-file: /tmp/ciadlab/LabManagerApi.log
+      external-file: /ciadlab/LabManagerApi.log
 
 labmanager:
   file:
-    upload-directory: /tmp/ciadlab
+    upload-directory: /ciadlab
   web:
-    publish-resources: /tmp/ciadlab/Downloadables/
+    publish-resources: /ciadlab/Downloadables/
   debug: true

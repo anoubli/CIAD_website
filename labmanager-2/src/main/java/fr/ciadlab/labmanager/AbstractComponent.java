@@ -22,9 +22,11 @@ import java.util.Optional;
 import java.util.Random;
 
 import fr.ciadlab.labmanager.configuration.Constants;
+import fr.ciadlab.labmanager.entities.conference.Conference;
 import fr.ciadlab.labmanager.entities.journal.Journal;
 import fr.ciadlab.labmanager.entities.member.Person;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganization;
+import fr.ciadlab.labmanager.service.conference.ConferenceService;
 import fr.ciadlab.labmanager.service.journal.JournalService;
 import fr.ciadlab.labmanager.service.member.PersonService;
 import fr.ciadlab.labmanager.service.organization.ResearchOrganizationService;
@@ -278,6 +280,23 @@ public abstract class AbstractComponent {
 			}
 			final Journal journalObj = journalService.getJournalByName(journal);
 			return journalObj;
+		}
+		return null;
+	}
+	
+	protected static Conference getConferenceWith(String conference, ConferenceService conferenceService) {
+		if (!Strings.isNullOrEmpty(conference)) {
+			try {
+				final int id = Integer.parseInt(conference);
+				final Conference conferenceObj = conferenceService.getConferenceById(id);
+				if (conferenceObj != null) {
+					return conferenceObj;
+				}
+			} catch (Throwable ex) {
+				//
+			}
+			final Conference conferenceObj = conferenceService.getConferenceByName(conference);
+			return conferenceObj;
 		}
 		return null;
 	}
