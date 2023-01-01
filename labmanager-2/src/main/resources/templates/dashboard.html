@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:replace="fragments/general :: allBaseLibs"/>
+<th:block th:replace="fragments/libs :: bootstrap-datatable"/>
+
+<th:block th:replace="fragments/nav :: journalListBar"/>
+
+<head>
+
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript" >
+  
+  google.charts.load('current', {'packages':['corechart']});
+  google.charts.setOnLoadCallback(drawChart1);
+  google.charts.setOnLoadCallback(drawChart2);
+  google.charts.setOnLoadCallback(drawChart3);
+  google.charts.setOnLoadCallback(drawChart4);
+
+  
+  function drawChart1() {
+	  // Récupérez les données de la liste des journaux via l'API REST
+	  fetch("http://localhost:8080/LabManagerApi/hello")
+	    .then(response => response.json())
+		.then(data => {  	
+	    	
+	      var array = JSON.parse(data);
+	      // Définissez les données du graphique en utilisant les données de la liste des journaux
+	      var chartData = google.visualization.arrayToDataTable(array);
+			 })
+			
+	      // Définissez les options du graphique
+	      var options = {
+	        title: 'Liste des journaux',
+	        curveType: 'function',
+	        legend: { position: 'bottom' }
+	      };
+
+	      // Créez le graphique
+	      var chart = new google.visualization.LineChart(document.getElementById('chart1'));
+
+	      // Dessinez le graphique
+	      chart.draw(chartData, options);    
+	  
+	} 
+
+  function drawChart2() {
+    // Définissez les données du graphique
+    var data = google.visualization.arrayToDataTable([
+      ['Task', 'Hours per Day'],
+      ['Work',     11],
+      ['Eat',      2],
+      ['Commute',  2],
+      ['Watch TV', 2],
+      ['Sleep',    7]
+    ]);
+
+    // Définissez les options du graphique
+    var options = {
+      title: 'My Daily Activities',
+      pieHole: 0.4,
+    };
+
+    // Créez le graphique
+    var chart = new google.visualization.PieChart(document.getElementById('chart2'));
+
+    // Dessinez le graphique
+    chart.draw(data, options);
+  }
+  
+  function drawChart3() {
+      // Définissez les données du graphique
+	  var data = google.visualization.arrayToDataTable([
+	        ['ID', 'Life Expectancy', 'Fertility Rate', 'Region',     'Population'],
+	        ['CAN',    80.66,              1.67,      'North America',  33739900],
+	        ['DEU',    79.84,              1.36,      'Europe',         81902307],
+	        ['DNK',    78.6,               1.84,      'Europe',         5523095],
+	        ['EGY',    72.73,              2.78,      'Middle East',    79716203],
+	        ['GBR',    80.05,              2,         'Europe',         61801570],
+	        ['IRN',    72.49,              1.7,       'Middle East',    73137148],
+	        ['IRQ',    68.09,              4.77,      'Middle East',    31090763],
+	        ['ISR',    81.55,              2.96,      'Middle East',    7485600],
+	        ['RUS',    68.6,               1.54,      'Europe',         141850000],
+	        ['USA',    78.09,              2.05,      'North America',  307007000]
+	      ]);
+
+	      var options = {
+	        title: 'Fertility rate vs life expectancy in selected countries (2010).' +
+	          ' X=Life Expectancy, Y=Fertility, Bubble size=Population, Bubble color=Region',
+	        hAxis: {title: 'Life Expectancy'},
+	        vAxis: {title: 'Fertility Rate'},
+	        bubble: {textStyle: {fontSize: 11}}
+	      };
+
+	      var chart = new google.visualization.BubbleChart(document.getElementById('chart3'));
+	      chart.draw(data, options);
+	    }
+
+  function drawChart4() {
+    // Définissez les données du graphique
+    var data = google.visualization.arrayToDataTable([    ['Year', 'Sales', 'Expenses'],
+      ['2013',  1000,      400],
+      ['2014',  1170,      460],
+      ['2015',  660,       1120],
+      ['2016',  1030,      540]
+    ]);
+
+    // Définissez les options du graphique
+    var options = {
+      title: 'Company Performance',
+      bar: {groupWidth: "95%"},
+      legend: { position: "none" },
+    };
+
+    // Créez le graphique
+    var chart = new google.visualization.ColumnChart(document.getElementById('chart4'));
+
+    // Dessinez le graphique
+    chart.draw(data, options);
+  }
+   
+  
+
+//    function drawChart1() {
+    
+//      var data = google.visualization.arrayToDataTable([
+//        ['Year', 'Sales', 'Expenses'],
+//        ['2013',  1000,      400],
+//        ['2014',  1170,      460],
+//        ['2015',  660,       1120],
+//        ['2016',  1030,      540]
+//      ]);
+
+  
+//      var options = {
+//        title: 'Company Performance',
+//        curveType: 'function',
+//        legend: { position: 'bottom' }
+//      };
+
+    
+//      var chart = new google.visualization.LineChart(document.getElementById('chart1'));
+
+ 
+//      chart.draw(data, options);
+//    }
+
+  
+  </script>
+
+</head>
+
+<body style="background-color:#dcdaf0;">
+
+<h1 style="font-family:verdana;color:#6a578a;text-align:center;font-size:300%">Dashboard ALLLAIENT</h1>
+
+<table style="width: 100%;height: 100%">
+    <tr style="width: 50%; height: 50%">
+        <td >
+            <div id="chart1"></div>
+        </td>
+        <td >
+            <div id="chart2"></div>
+        </td>
+        <td></td>
+    </tr>
+    <tr>
+        <td style="width: 50%;">
+            <div id="chart3" style="height:100%;"></div>
+        </td>
+        <td style="width: 50%;">
+            <div id="chart4" style="height:100%;"></div>
+        </td>
+    </tr>
+</table>
+
+</body>
+
+
+
+</html>

@@ -19,6 +19,9 @@ package fr.ciadlab.labmanager.controller.api.journal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.MediaType;
+
+import javax.enterprise.inject.Produces;
 
 import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.controller.api.AbstractApiController;
@@ -34,9 +37,12 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /** REST Controller for journals.
  * 
@@ -85,6 +91,14 @@ public class JournalApiController extends AbstractApiController {
 			return this.journalService.getJournalById(id.intValue());
 		}
 		return this.journalService.getJournalByName(name);
+	}
+		
+	
+	@GetMapping(value = "/hello", produces = "application/json; charset=UTF-8")
+	@ResponseBody 
+	public List<Journal> getAllJournal()
+	{		
+		return this.journalService.getAllJournals();
 	}
 
 	/** Replies the quality indicators for a specific journal.
