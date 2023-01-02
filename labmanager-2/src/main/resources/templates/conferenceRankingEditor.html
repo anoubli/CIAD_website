@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs" />
+<th:block th:replace="fragments/form :: formLibs" />
+<th:block th:replace="fragments/buttons :: ajaxButtons" />
+<th:block th:replace="fragments/buttons :: waitButtons" />
+<th:block th:replace="fragments/buttons :: interactiveDeletionProcess" />
+
+<th:block th:replace="fragments/nav :: conferenceListBar*(#{html.EditRankingOf(${conference.conferenceName})})"/>
+
+<div class="card" th:if="${ lastRanking != null}">
+  <div class="card-body">
+    <p th:if="${lastRanking != null}"
+       th:utext="#{html.Ranking1} + ' ' + ${lastRanking}"></p>
+  </div>
+</div>
+<form id="form">
+  <button id="btAdd" class="btn btn-warning mt-4 pr-4 pl-4"
+          th:if="${changeEnabled}" th:utext="#{html.AddRanking}"></button>
+  <th:block th:if="${changeEnabled && currentYear >= lastReferenceYear}">
+    <div id="new-ranking-input-area" class="form-super-group form-super-group-new" style="display:none">
+      <div class="form-group" th:replace="fragments/form :: comboInput*(year, #{html.Year}, ~{::option#option-year-new})">
+        <option id="option-year-new"
+                th:each="year : ${years}"
+                th:value="${year}"
+                th:utext="${year}"></option>
+      </div>
+      <div class="form-group" th:replace="fragments/form :: comboInput(ranking_new, #{html.Ranking}, ~{::option#option-ranking-new})">
+        <option id="option-ranking-new" value="" th:utext="#{html.NotSpecified}"></option>
+        <option id="option-ranking-new"
+                th:each="rank : ${T(fr.ciadlab.labmanager.utils.ranking.CoreRanking).values}"
+                th:value="${rank.name}"
+                th:utext="${rank.name}"></option>
+      </div>
+      <button th:id="${'btSave_new'}" type="button"
+              class="btn btn-primary mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+              th:utext="#{html.Submit}"></button>
+    </div>
+  </th:block>
+  <th:block th:each="rankingPair : ${qualityIndicators}"
+            th:with="ranking = ${rankingPair.value}">
+    <div class="form-super-group form-super-group-active">
+      <div class="form-group">
+        <label class="col-form-label" th:utext="${ranking.referenceYear}"></label>
+      </div>
+      <div class="form-group" th:replace="fragments/form :: comboInput(${'ranking_' + ranking.referenceYear}, #{html.Ranking1}, ~{::option#option-ranking})">
+        <option id="option-ranking" value="" th:utext="#{html.NotSpecified}"></option>
+        <option id="option-ranking"
+                th:each="rank : ${T(fr.ciadlab.labmanager.utils.ranking.CoreRanking).values}"
+                th:value="${rank.name}"
+                th:selected="${rank == ranking.getRanking}"
+                th:utext="${rank.name}"></option>
+      </div>
+      <button th:id="${'btSave_' + ranking.referenceYear}" type="button"
+              class="btn btn-primary mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+              th:utext="#{html.Submit}"></button>
+      <button th:id="${'TheDeleteButton_' + ranking.referenceYear}" type="button"
+              class="btn btn-danger mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+              th:utext="#{html.DeleteRanking}"></button>
+    </div>
+  </th:block>
+</form>
+<script th:inline="javascript">
+  function addSavingButtonCallback(year, isNewRankingGroup) {
+    attachSpinnerAjaxHandler({
+      id: 'btSave_' + year,
+      url: "[(${savingUrl})]",
+      text: "[(#{html.Submit})]",
+      prepareData: ($bt, formData) => {
+        formData.append("conference", parseInt("[(${conference.id})]"));
+        var iyear = year;
+        if (isNewRankingGroup) {
+          iyear = $('#comboInput_year option:selected').attr('value');
+        }
+        formData.append("year", iyear);
+        var ranking = $('#comboInput_ranking_' + year + ' option:selected').attr('value');
+        formData.append("ranking", ranking);
+
+      },
+      failureText: "[(#{html.ConferenceRankingSavingError})]",
+      onSuccess: () => {
+        Swal.fire(
+                "[(#{html.Success})]",
+                "[(#{html.ConferenceRankingSavingSuccess})]",
+                'success'
+        ).then(result => {
+          location.reload();
+        });
+      },
+    });
+  }
+  $(document).ready(function () {
+    /*[# th:if="${changeEnabled}"]*/
+    /*[# th:if="${currentYear >= lastReferenceYear}"]*/
+    $(document).on('click', '#btAdd', () => {
+      $('#btAdd').prop("disabled", true);
+      $('#new-ranking-input-area').show();
+      addSavingButtonCallback('new', true);
+    });
+    /*[/]*/
+    /*[# th:unless="${currentYear >= lastReferenceYear}"]*/
+    $('#btAdd').prop("disabled", true);
+    /*[/]*/
+    /*[# th:each="rankingPair : ${qualityIndicators}"]*/
+    addSavingButtonCallback("[(${rankingPair.value.referenceYear})]", false);
+
+    attachDeletionHandler({
+      id: "[(${rankingPair.value.referenceYear})]",
+      url: "[(${deletionUrl + '?conference=' + conference.id + '&year=' + rankingPair.value.referenceYear})]",
+      elementNameCallback: () => { return "[(${rankingPair.value.referenceYear})]"; },
+      questionTitle: "[(#{html.DeleteConferenceRanking})]",
+      questionText: "[(#{html.AreYouSureToDeleteConferenceRanking(${conference.conferenceName}, ${rankingPair.value.referenceYear})})]",
+      successText: "[(#{html.ConferenceRankingDeleted})]",
+      failureText: "[(#{html.CannotDeleteConferenceRanking(${conference.conferenceName}, ${rankingPair.value.referenceYear})})]",
+    });
+    /*[/]*/
+    /*[/]*/
+  });
+</script>
+</html>
