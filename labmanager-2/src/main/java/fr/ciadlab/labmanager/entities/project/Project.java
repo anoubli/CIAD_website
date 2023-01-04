@@ -52,7 +52,7 @@ import fr.ciadlab.labmanager.entities.member.Person;
 @Table(name = "Projects")
 @Inheritance(strategy = InheritanceType.JOINED)
 @Polymorphism(type = PolymorphismType.IMPLICIT)
-public abstract class Project
+public class Project
 		implements Serializable, JsonSerializable, Comparable<Project>, AttributeProvider, IdentifiableEntity {
 	
 	private static final long serialVersionUID = 2713078763828551628L;
@@ -104,7 +104,10 @@ public abstract class Project
 
 	/** List of the reference Person of the project.
 	 */
-	@OneToMany(mappedBy = "referenceProjects", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@ManyToMany(mappedBy = "referenceProjects", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinTable( name = "PERSONS_PROJECTS", 
+				joinColumns = @JoinColumn(name ="idProjects"),
+				inverseJoinColumns = @JoinColumn(name = "idPersons"))
 	private Set<Person> referencePersons;
 	
 	/**
@@ -257,10 +260,16 @@ public abstract class Project
 		this.type = type;
 	}
 
+	/**
+	 * @return the referencePersons
+	 */
 	public Set<Person> getReferencePersons() {
 		return referencePersons;
 	}
 
+	/**
+	 * @param referencePersons the referencePersons to set
+	 */
 	public void setReferencePersons(Set<Person> referencePersons) {
 		this.referencePersons = referencePersons;
 	}

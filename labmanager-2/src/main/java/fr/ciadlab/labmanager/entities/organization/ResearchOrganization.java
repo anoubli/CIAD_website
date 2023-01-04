@@ -566,4 +566,47 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 		}
 	}
 
+	/**
+	 * @return the owningProjects
+	 */
+	public Set<Project> getOwningProjects() {
+		return owningProjects;
+	}
+
+	/**
+	 * @param owningProjects the owningProjects to set
+	 */
+	public void setOwningProjects(Set<Project> owningProjects) {
+		this.owningProjects = owningProjects;
+	}
+
+	/**
+	 * @return the partnerProjects
+	 */
+	public Set<Project> getPartnerProjects() {
+		return partnerProjects;
+	}
+
+	/**
+	 * @param partnerProjects the partnerProjects to set
+	 */
+	public void setPartnerProjects(Set<Project> partnerProjects) {
+		this.partnerProjects = partnerProjects;
+	}
+
+	/**
+	 * @return the manageProjects
+	 */
+	public Set<Project> getManageProjects() {
+		return manageProjects;
+	}
+
+	/**
+	 * @param manageProjects the manageProjects to set
+	 */
+	public void setManageProjects(Set<Project> manageProjects) {
+		this.manageProjects = manageProjects;
+	}
+	
+
 }

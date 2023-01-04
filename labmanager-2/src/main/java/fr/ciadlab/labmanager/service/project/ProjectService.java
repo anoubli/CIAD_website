@@ -3,13 +3,15 @@ package fr.ciadlab.labmanager.service.project;
 import org.springframework.stereotype.Service;
 import org.springframework.context.support.MessageSourceAccessor;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.Optional;
 
 import org.apache.jena.ext.com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import fr.ciadlab.labmanager.repository.member.PersonRepository;
+import fr.ciadlab.labmanager.repository.organization.ResearchOrganizationRepository;
 import fr.ciadlab.labmanager.repository.project.ProjectRepository;
 import fr.ciadlab.labmanager.service.AbstractService;
 import fr.ciadlab.labmanager.configuration.Constants;
@@ -26,6 +28,10 @@ public class ProjectService extends AbstractService {
 	
 	private final ProjectRepository projectRepository;
 	
+	private final ResearchOrganizationRepository researchOrganizationRepository;
+	
+	private final PersonRepository personRepository;
+	
 	/**
 	 * 
 	 * @param messages
@@ -35,9 +41,13 @@ public class ProjectService extends AbstractService {
 	public ProjectService(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
-			@Autowired ProjectRepository projectRepository) {
+			@Autowired ProjectRepository projectRepository,
+			@Autowired ResearchOrganizationRepository researchOrganizationRepository,
+			@Autowired PersonRepository personRepository) {
 		super(messages, constants);
 		this.projectRepository = projectRepository;
+		this.researchOrganizationRepository = researchOrganizationRepository;
+		this.personRepository = personRepository;
 	}
 	
 	/**
@@ -88,6 +98,17 @@ public class ProjectService extends AbstractService {
 		return res;
 	}
 	
+	public Project getProjectById(int identifier) {
+		final Optional<Project> byId = this.projectRepository.findById(Integer.valueOf(identifier));
+		return byId.orElse(null);
+	}
+	
+	public List<Project> getProjectByName(String name) {
+		if (Strings.isNullOrEmpty(name)) {
+			return Collections.emptyList();
+		}
+		return this.projectRepository.findAllByNameIgnoreCase(name);
+	}
 	/**
 	 * 
 	 * @param identifier
@@ -97,9 +118,28 @@ public class ProjectService extends AbstractService {
 		final Optional<Project> projectRef = this.projectRepository.findById(id);
 		if (projectRef.isPresent()) {
 			final Project project = projectRef.get();
-			//TODO
-			// Delete all the relations : 
-			// - managerOrganization - owningOrganisation - PartnerOrganization - referencePerson
+			ResearchOrganization managerOrga = project.getManagerOrganization();
+			ResearchOrganization owningOrga = project.getOwningOrganization();
+			if (managerOrga != null) {
+				managerOrga.getManageProjects().remove(project);
+				project.setManagerOrganization(null);
+				this.researchOrganizationRepository.save(managerOrga);
+			}
+			if (owningOrga != null) {
+				owningOrga.getOwningProjects().remove(project);
+				project.setOwningOrganization(null);
+				this.researchOrganizationRepository.save(owningOrga);
+			}
+			for (Person referencePerson : project.getReferencePersons()) {
+				referencePerson.getReferenceProjects().remove(project);
+				project.getReferencePersons().remove(referencePerson);
+				this.personRepository.save(referencePerson);
+			}
+			for (ResearchOrganization partnerOrganization : project.getPartnerOrganizations()) {
+				partnerOrganization.getPartnerProjects().remove(project);
+				project.getPartnerOrganizations().remove(partnerOrganization);
+				this.researchOrganizationRepository.save(partnerOrganization);
+			}
 			this.projectRepository.deleteById(id);
 		}	
 	}

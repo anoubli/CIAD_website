@@ -41,6 +41,9 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.transaction.Transactional;
@@ -245,7 +248,10 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 	/**
 	 * Reference to the references projects 
 	 */
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinTable( name = "PERSONS_PROJECTS", 
+				joinColumns = @JoinColumn(name ="idPersons"),
+				inverseJoinColumns = @JoinColumn(name = "idProjects"))
 	private Set<Project> referenceProjects;
 	
 	/** Construct a person with the given values.
@@ -1504,5 +1510,20 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 		}
 		return null;
 	}
+
+	/**
+	 * @return the referenceProjects
+	 */
+	public Set<Project> getReferenceProjects() {
+		return referenceProjects;
+	}
+
+	/**
+	 * @param referenceProjects the referenceProjects to set
+	 */
+	public void setReferenceProjects(Set<Project> referenceProjects) {
+		this.referenceProjects = referenceProjects;
+	}
+	
 
 }

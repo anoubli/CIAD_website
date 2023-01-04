@@ -22,6 +22,8 @@ import java.util.Set;
 
 import fr.ciadlab.labmanager.entities.member.MemberStatus;
 import fr.ciadlab.labmanager.entities.member.Person;
+import fr.ciadlab.labmanager.entities.organization.ResearchOrganization;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /** JPA Repository for the persons.
@@ -88,5 +90,4 @@ public interface PersonRepository extends JpaRepository<Person, Integer> {
 	 * @return the persons.
 	 */
 	List<Person> findByAuthorshipsPublicationIdOrderByAuthorshipsAuthorRank(int id);
-
 }
