@@ -27,7 +27,11 @@ import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.controller.view.AbstractViewController;
 import fr.ciadlab.labmanager.entities.journal.Journal;
 import fr.ciadlab.labmanager.entities.journal.JournalQualityAnnualIndicators;
+import fr.ciadlab.labmanager.service.conference.ConferenceService;
 import fr.ciadlab.labmanager.service.journal.JournalService;
+import fr.ciadlab.labmanager.service.member.MembershipService;
+import fr.ciadlab.labmanager.service.organization.ResearchOrganizationService;
+import fr.ciadlab.labmanager.service.publication.PublicationService;
 import fr.ciadlab.labmanager.utils.ranking.QuartileRanking;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -51,6 +55,13 @@ import org.springframework.web.servlet.ModelAndView;
 @CrossOrigin
 public class DashboardViewController extends AbstractViewController {
 
+
+	ConferenceService conferenceService;
+	JournalService journalService;
+	MembershipService membershipService;
+	ResearchOrganizationService researchOrganizationService;
+	PublicationService publicationService;
+
 	/** Constructor for injector.
 	 * This constructor is defined for being invoked by the IOC injector.
 	 *
@@ -61,8 +72,17 @@ public class DashboardViewController extends AbstractViewController {
 	public DashboardViewController(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
-			@Autowired JournalService journalService) {
+			@Autowired JournalService journalService,
+			@Autowired ConferenceService conferenceService,
+			@Autowired MembershipService membershipService,
+			@Autowired ResearchOrganizationService researchOrganizationService,
+			@Autowired PublicationService publicationService) {
 		super(messages, constants);
+		this.conferenceService = conferenceService;
+		this.journalService = journalService;
+		this.membershipService = membershipService;
+		this.researchOrganizationService = researchOrganizationService;
+		this.publicationService = publicationService;
 	}
 
 	/** Replies the model-view component for managing the journals.
@@ -76,6 +96,12 @@ public class DashboardViewController extends AbstractViewController {
 		getLogger().info("Opening /" + "dashboard" + " by " + username); //$NON-NLS-1$ //$NON-NLS-2$
 		readCredentials(username);
 		final ModelAndView modelAndView = new ModelAndView("dashboard");
+		initModelViewWithInternalProperties(modelAndView);
+		modelAndView.addObject("journals", this.journalService.getAllJournals());
+		modelAndView.addObject("conferences", this.journalService.getAllJournals());
+		modelAndView.addObject("members", this.journalService.getAllJournals());
+		modelAndView.addObject("organizations", this.journalService.getAllJournals());
+		modelAndView.addObject("publications", this.publicationService.getNumberOfPublicationPerYear(this.publicationService.getAllPublications()));
 		//initModelViewWithInternalProperties(modelAndView);
 		return modelAndView;
 	}

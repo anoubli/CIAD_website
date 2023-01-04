@@ -10,39 +10,30 @@
 
   <script src="https://www.gstatic.com/charts/loader.js"></script>
   <script type="text/javascript" >
-  
+
   google.charts.load('current', {'packages':['corechart']});
   google.charts.setOnLoadCallback(drawChart1);
   google.charts.setOnLoadCallback(drawChart2);
   google.charts.setOnLoadCallback(drawChart3);
   google.charts.setOnLoadCallback(drawChart4);
 
-  
+
   function drawChart1() {
-	  // Récupérez les données de la liste des journaux via l'API REST
-	  fetch("http://localhost:8080/LabManagerApi/hello")
-	    .then(response => response.json())
-		.then(data => {  	
-	    	
-	      var array = JSON.parse(data);
-	      // Définissez les données du graphique en utilisant les données de la liste des journaux
-	      var chartData = google.visualization.arrayToDataTable(array);
-			 })
-			
-	      // Définissez les options du graphique
-	      var options = {
-	        title: 'Liste des journaux',
-	        curveType: 'function',
-	        legend: { position: 'bottom' }
-	      };
 
-	      // Créez le graphique
-	      var chart = new google.visualization.LineChart(document.getElementById('chart1'));
+      // Create the data table.
+      var data = new google.visualization.DataTable();
+      data.addColumn('number', 'année');
+      data.addColumn('number', 'nombre de papier publié');
+      console.log([[${publications}]]);
+      data.addRows([[${publications}]]);
 
-	      // Dessinez le graphique
-	      chart.draw(chartData, options);    
-	  
-	} 
+      // Set chart options
+      var options = {'title':'How many paper published by year'};
+
+      // Instantiate and draw our chart, passing in some options.
+      var chart = new google.visualization.ColumnChart(document.getElementById('chart1'));
+      chart.draw(data, options);
+  }
 
   function drawChart2() {
     // Définissez les données du graphique
@@ -152,7 +143,7 @@
 
 <body style="background-color:#dcdaf0;">
 
-<h1 style="font-family:verdana;color:#6a578a;text-align:center;font-size:300%">Dashboard ALLLAIENT</h1>
+<h1 style="font-family:verdana;color:#6a578a;text-align:center;font-size:300%">Dashboard</h1>
 
 <table style="width: 100%;height: 100%">
     <tr style="width: 50%; height: 50%">

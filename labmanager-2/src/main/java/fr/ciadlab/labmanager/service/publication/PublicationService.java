@@ -20,15 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -1310,6 +1302,35 @@ public class PublicationService extends AbstractService {
 		}
 		this.publicationRepository.save(publication);
 		this.authorshipRepository.flush();
+	}
+
+	public List<List> getNumberOfPublicationPerYear( List<Publication> publications){
+		List<Integer> counter = new ArrayList<>();
+		List<Integer> yearArray = new ArrayList<>();
+		int currentYear;
+		int currentIndex;
+
+		for(Publication publication : publications){
+			currentYear = publication.getPublicationYear();
+			if(yearArray.contains(currentYear)){
+				currentIndex = yearArray.indexOf(currentYear);
+				counter.set(currentIndex, counter.get(currentIndex)+1);
+			}else{
+				yearArray.add(currentYear);
+				counter.add(1);
+			}
+		}
+
+		List<List> ListOfPublicationPerYear = new ArrayList<>();
+
+		for(int i=0; i<yearArray.size();i++){
+			List<Integer> intermediateList = new ArrayList<>();
+			intermediateList.add(yearArray.get(i));
+			intermediateList.add(counter.get(i));
+			ListOfPublicationPerYear.add(intermediateList);
+		}
+
+		return ListOfPublicationPerYear;
 	}
 	
 }
