@@ -51,6 +51,12 @@ public class ProjectApiController extends AbstractApiController {
 		this.projectService = projectService;
 	}
 	
+	/**
+	 * 
+	 * @param name
+	 * @param id
+	 * @return
+	 */
 	@GetMapping(value = "/getProjectData", produces = "application/json; charset=UTF-8")
 	@ResponseBody
 	public Object getProjectData(@RequestParam(required = false) String name, @RequestParam(required = false) Integer id) {
@@ -73,12 +79,15 @@ public class ProjectApiController extends AbstractApiController {
 	 * @param globalBudget
 	 * @param budgetCIADLabOnly
 	 * @param type
-	 * @param pathImage
 	 * @param videoUrl
 	 * @param websiteUrl
 	 * @param pathToDownloadPowerpoint
 	 * @param expectedTRL
 	 * @param confidential
+	 * @param owningOrga
+	 * @param managerOrga
+	 * @param partnerOrga
+	 * @param person
 	 * @param username
 	 * @throws Exception
 	 */
@@ -116,6 +125,11 @@ public class ProjectApiController extends AbstractApiController {
 	
 	}
 	
+	/**
+	 * 
+	 * @param project
+	 * @param username
+	 */
 	@DeleteMapping("/deleteProject")
 	public void deleteProject(
 			@RequestParam Integer project,

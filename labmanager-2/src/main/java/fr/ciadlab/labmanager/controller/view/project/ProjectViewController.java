@@ -19,6 +19,11 @@ import fr.ciadlab.labmanager.service.member.PersonService;
 import fr.ciadlab.labmanager.service.organization.ResearchOrganizationService;
 import fr.ciadlab.labmanager.service.project.ProjectService;
 
+/**
+ * 
+ * @author baptiste
+ *
+ */
 @RestController
 @CrossOrigin
 public class ProjectViewController extends AbstractViewController {
@@ -29,6 +34,14 @@ public class ProjectViewController extends AbstractViewController {
 	
 	private ResearchOrganizationService researchOrganizationService;
 	
+	/**
+	 * 
+	 * @param messages
+	 * @param constants
+	 * @param projectService
+	 * @param personService
+	 * @param researchOrganizationService
+	 */
 	public ProjectViewController(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
@@ -41,6 +54,11 @@ public class ProjectViewController extends AbstractViewController {
 		this.researchOrganizationService = researchOrganizationService;
 	}
 	
+	/**
+	 * 
+	 * @param username
+	 * @return
+	 */
 	@GetMapping("/" + Constants.PROJECT_LIST_ENDPOINT)
 	public ModelAndView showBackProjectList(
 			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
@@ -53,6 +71,12 @@ public class ProjectViewController extends AbstractViewController {
 		return modelAndView;
 	}
 	
+	/**
+	 * 
+	 * @param project
+	 * @param username
+	 * @return
+	 */
 	@GetMapping(value = "/" + Constants.PROJECT_EDITING_ENDPOINT)
 	public ModelAndView showProjectEditor(
 			@RequestParam(required = false) Integer project,

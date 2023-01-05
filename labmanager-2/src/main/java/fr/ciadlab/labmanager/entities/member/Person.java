@@ -246,7 +246,7 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 	private Set<Authorship> authorships;
 
 	/**
-	 * Reference to the references projects 
+	 * List of references projects 
 	 */
 	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JoinTable( name = "PERSONS_PROJECTS", 

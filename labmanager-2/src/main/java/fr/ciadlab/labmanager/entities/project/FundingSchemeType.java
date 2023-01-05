@@ -2,13 +2,10 @@ package fr.ciadlab.labmanager.entities.project;
 
 /**
  * 
- * @author $Author: bperrat-dit-janton$
- * @version $Name$ $Revision$ $Date$
- * @mavengroupid $GroupId$
- * @mavenartifactid $ArtifactId$
+ * @author baptiste
+ *
  */
 public enum FundingSchemeType {
-//TODO add description with getDescritpion
 	H2020 {
 		@Override 
 		public String toString() {

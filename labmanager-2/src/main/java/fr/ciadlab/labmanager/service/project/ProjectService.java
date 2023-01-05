@@ -24,7 +24,11 @@ import fr.ciadlab.labmanager.entities.project.Project;
 import fr.ciadlab.labmanager.entities.project.ProjectType;
 import fr.ciadlab.labmanager.entities.project.TRLGrade;
 
-
+/**
+ * 
+ * @author baptiste
+ *
+ */
 @Service
 public class ProjectService extends AbstractService {
 	
@@ -39,6 +43,8 @@ public class ProjectService extends AbstractService {
 	 * @param messages
 	 * @param constants
 	 * @param projectRepository
+	 * @param researchOrganizationRepository
+	 * @param personRepository
 	 */
 	public ProjectService(
 			@Autowired MessageSourceAccessor messages,
@@ -167,17 +173,28 @@ public class ProjectService extends AbstractService {
 		return res;
 	}
 	
+	/**
+	 * 
+	 * @param identifier
+	 * @return
+	 */
 	public Project getProjectById(int identifier) {
 		final Optional<Project> byId = this.projectRepository.findById(Integer.valueOf(identifier));
 		return byId.orElse(null);
 	}
 	
+	/**
+	 * 
+	 * @param name
+	 * @return
+	 */
 	public List<Project> getProjectByName(String name) {
 		if (Strings.isNullOrEmpty(name)) {
 			return Collections.emptyList();
 		}
 		return this.projectRepository.findAllByNameIgnoreCase(name);
 	}
+	
 	/**
 	 * 
 	 * @param identifier

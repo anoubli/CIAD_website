@@ -1,5 +1,10 @@
 package fr.ciadlab.labmanager.entities.project;
 
+/**
+ * 
+ * @author baptiste
+ *
+ */
 public enum TRLGrade {
 	
 	UN(1),
