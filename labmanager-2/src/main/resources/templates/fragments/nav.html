@@ -59,6 +59,7 @@
 			<a id="lab-nav-journalList-item" th:href="@{/journalList}" th:utext="#{html.JournalsList}"></a><
 		</th:block>
 	</th:block>
+
 	
 	<th:block th:fragment="projectListBar">
 		<th:block th:replace="fragments/nav :: simpleBar(#{html.ProjectsList})"></th:block>
@@ -69,4 +70,16 @@
 			<a id="lab-nav-projectList-item" th:href="@{/projectList}" th:utext="#{html.ProjectsList}"></a><
 		</th:block>
 	</th:block>
+
+
+	<th:block th:fragment="conferenceListBar">
+		<th:block th:replace="fragments/nav :: simpleBar(#{html.ConferencesList})"></th:block>
+	</th:block>
+
+	<th:block th:fragment="conferenceListBar*(current)">
+		<th:block th:replace="fragments/nav :: standardBar(~{::a#lab-nav-conferenceList-item}, ${current})">
+			<a id="lab-nav-conferenceList-item" th:href="@{/conferenceList}" th:utext="#{html.ConferencesList}"></a><
+		</th:block>
+	</th:block>
+
 </html>

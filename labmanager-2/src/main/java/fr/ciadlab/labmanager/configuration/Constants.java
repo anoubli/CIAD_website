@@ -152,6 +152,24 @@ public class Constants {
 	 * @see #JOURNAL_EDITING_ENDPOINT
 	 */
 	public static final String JOURNAL_SAVING_ENDPOINT = "journalSave"; //$NON-NLS-1$
+	
+	/** Name of the endpoint for list of CONFERENCE.
+	 *
+	 * @see #JOURNAL_SAVING_ENDPOINT
+	 */
+	public static final String CONFERENCE_LIST_ENDPOINT = "conferenceList"; //$NON-NLS-1$
+
+	/** Name of the endpoint for editing a CONFERENCE.
+	 *
+	 * @see #JOURNAL_SAVING_ENDPOINT
+	 */
+	public static final String CONFERENCE_EDITING_ENDPOINT = "conferenceEditor"; //$NON-NLS-1$
+
+	/** Name of the endpoint for saving a CONFERENCE.
+	 *
+	 * @see #JOURNAL_EDITING_ENDPOINT
+	 */
+	public static final String CONFERENCE_SAVING_ENDPOINT = "conferenceSave"; //$NON-NLS-1$
 
 	/** Name of the endpoint for list of publications.
 	 */
@@ -209,6 +227,15 @@ public class Constants {
 	/** Name of the endpoint for deleting a jorunal ranking.
 	 */
 	public static final String DELETE_JOURNAL_RANKING_ENDPOINT = "deleteJournalRanking"; //$NON-NLS-1$
+	
+	/** Name of the endpoint for saving a conference ranking.
+	 */
+	public static final String SAVE_CONFERENCE_RANKING_ENDPOINT = "saveConferenceRanking"; //$NON-NLS-1$
+
+	/** Name of the endpoint for deleting a conference ranking.
+	 */
+	public static final String DELETE_CONFERENCE_RANKING_ENDPOINT = "deleteConferenceRanking"; //$NON-NLS-1$
+
 
 	private static final String DEFAULT_SERVER_NAME = "LabManagerApi"; //$NON-NLS-1$
 
