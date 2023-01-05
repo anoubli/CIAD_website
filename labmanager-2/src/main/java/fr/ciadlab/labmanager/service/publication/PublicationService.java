@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.entities.journal.Journal;
+import fr.ciadlab.labmanager.entities.member.Membership;
 import fr.ciadlab.labmanager.entities.member.Person;
 import fr.ciadlab.labmanager.entities.publication.Authorship;
 import fr.ciadlab.labmanager.entities.publication.JournalBasedPublication;
@@ -72,11 +73,14 @@ import fr.ciadlab.labmanager.utils.ComposedException;
 import fr.ciadlab.labmanager.utils.names.PersonNameParser;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.jena.ext.com.google.common.base.Strings;
+import org.apache.maven.model.Organization;
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /** Service for managing the publications.
  * 
@@ -1332,5 +1336,45 @@ public class PublicationService extends AbstractService {
 
 		return ListOfPublicationPerYear;
 	}
+
+	public Map<String, Integer> getPublicationPerOrganisation(){
+		Map<String,Integer> listPublicationPerOrganisation = new TreeMap<>();
+		List<Publication> allPublication = getAllPublications();
+		List<Authorship> tempAuthorshipList;
+		List<String> organisation = new ArrayList<>();
+		List<Integer> numberOfPublication = new ArrayList<>();
+
+		for(Publication publication : allPublication){
+			tempAuthorshipList = publication.getAuthorships();
+			Set<Membership> membership = tempAuthorshipList.get(0).getPerson().getMemberships();
+			boolean vrfy = true;
+			for(Membership membership1 : membership){
+				if(organisation.contains(membership1.getResearchOrganization().getAcronym())){
+					if(vrfy){
+						numberOfPublication.set(organisation.indexOf(membership1.getResearchOrganization().getAcronym()),numberOfPublication.get(organisation.indexOf(membership1.getResearchOrganization().getAcronym()))+1);
+					}
+				}else {
+					organisation.add(membership1.getResearchOrganization().getAcronym());
+					numberOfPublication.add(1);
+					vrfy=false;
+				}
+			}
+
+		}
+
+		for(String orga : organisation){
+			listPublicationPerOrganisation.put(orga, numberOfPublication.get(organisation.indexOf(orga)));
+		}
+
+
+
+
+
+
+
+		return listPublicationPerOrganisation;
+	}
+
+
 	
 }
