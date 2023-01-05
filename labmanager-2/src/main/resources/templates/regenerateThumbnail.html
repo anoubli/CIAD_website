@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs"/>
+
+<th:block th:replace="fragments/nav :: publicationListBar"/>
+
+<div class="progress">
+  <div id="bar1" class="progress-bar bg-info" role="progressbar" style="width:0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+  <div id="bar2" class="progress-bar bg-success" role="progressbar" style="width:0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+</div>
+
+<div id="message"></div>
+
+<script type="text/javascript" th:inline="javascript">
+var eventSource = null;
+$(document).ready(() => {
+    var $bar1 = $("#bar1");
+    var $bar2 = $("#bar2");
+    var $msg = $("#message");
+    eventSource = new EventSource("[(${batchUrl})]");
+    eventSource.onmessage = (e) => {
+        var notification = JSON.parse(e.data);
+        var step = notification.step;
+        var percent = notification.percent;
+        var terminated = notification.terminated;
+        var message = notification.message;
+        var $bb = null;
+        if (1 === step) {
+            $bb = $bar1;
+        } else if (2 === step) {
+        	$bb = $bar2;
+        }
+        if ($bb) {
+        	if (percent < 0) {
+        		percent = 0;
+        	} else if (percent > 100) {
+        		percent = 100;
+        	}
+        	$bb.css('width', percent + '%');
+            $bb.attr('aria-valuenow', percent);
+            $bb.html(percent + '%');
+        }
+        $msg.html(message);
+        if (terminated) {
+        	window.location.href = "[(${terminationUrl})]";
+        }
+    };
+});
+$(document).on("unload", () => {
+	if (eventSource) {
+	    eventSource.close();
+	}	
+});
+</script>
+
+</html>

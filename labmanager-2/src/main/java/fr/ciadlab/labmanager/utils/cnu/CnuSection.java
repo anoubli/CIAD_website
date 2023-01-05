@@ -485,6 +485,726 @@ public enum CnuSection {
 			return 37;
 		}
 	},
+	/** CNU 4201.
+	 */
+	CNU_4201 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4201;
+		}
+	},
+	/** CNU 4202.
+	 */
+	CNU_4202 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4202;
+		}
+	},
+	/** CNU 4203.
+	 */
+	CNU_4203 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4203;
+		}
+	},
+	/** CNU 4301.
+	 */
+	CNU_4301 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4301;
+		}
+	},
+	/** CNU 4302.
+	 */
+	CNU_4302 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4302;
+		}
+	},
+	/** CNU 4401.
+	 */
+	CNU_4401 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4401;
+		}
+	},
+	/** CNU 4402.
+	 */
+	CNU_4402 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4402;
+		}
+	},
+	/** CNU 4403.
+	 */
+	CNU_4403 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4403;
+		}
+	},
+	/** CNU 4404.
+	 */
+	CNU_4404 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4404;
+		}
+	},
+	/** CNU 4501.
+	 */
+	CNU_4501 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4501;
+		}
+	},
+	/** CNU 4502.
+	 */
+	CNU_4502 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4502;
+		}
+	},
+	/** CNU 4503.
+	 */
+	CNU_4503 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4503;
+		}
+	},
+	/** CNU 4601.
+	 */
+	CNU_4601 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4601;
+		}
+	},
+	/** CNU 4602.
+	 */
+	CNU_4602 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4602;
+		}
+	},
+	/** CNU 4603.
+	 */
+	CNU_4603 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4603;
+		}
+	},
+	/** CNU 4604.
+	 */
+	CNU_4604 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4604;
+		}
+	},
+	/** CNU 4701.
+	 */
+	CNU_4701 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4701;
+		}
+	},
+	/** CNU 4702.
+	 */
+	CNU_4702 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4702;
+		}
+	},
+	/** CNU 4703.
+	 */
+	CNU_4703 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4703;
+		}
+	},
+	/** CNU 4704.
+	 */
+	CNU_4704 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4704;
+		}
+	},
+	/** CNU 4801.
+	 */
+	CNU_4801 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4801;
+		}
+	},
+	/** CNU 4802.
+	 */
+	CNU_4802 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4802;
+		}
+	},
+	/** CNU 4803.
+	 */
+	CNU_4803 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4803;
+		}
+	},
+	/** CNU 4804.
+	 */
+	CNU_4804 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4804;
+		}
+	},
+	/** CNU 4901.
+	 */
+	CNU_4901 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4901;
+		}
+	},
+	/** CNU 4902.
+	 */
+	CNU_4902 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4902;
+		}
+	},
+	/** CNU 4903.
+	 */
+	CNU_4903 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4903;
+		}
+	},
+	/** CNU 4904.
+	 */
+	CNU_4904 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4904;
+		}
+	},
+	/** CNU 4905.
+	 */
+	CNU_4905 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 4905;
+		}
+	},
+	/** CNU 5001.
+	 */
+	CNU_5001 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5001;
+		}
+	},
+	/** CNU 5002.
+	 */
+	CNU_5002 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5002;
+		}
+	},
+	/** CNU 5003.
+	 */
+	CNU_5003 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5003;
+		}
+	},
+	/** CNU 5004.
+	 */
+	CNU_5004 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5004;
+		}
+	},
+	/** CNU 5101.
+	 */
+	CNU_5101 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5101;
+		}
+	},
+	/** CNU 5102.
+	 */
+	CNU_5102 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5102;
+		}
+	},
+	/** CNU 5103.
+	 */
+	CNU_5103 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5103;
+		}
+	},
+	/** CNU 5104.
+	 */
+	CNU_5104 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5104;
+		}
+	},
+	/** CNU 5201.
+	 */
+	CNU_5201 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5201;
+		}
+	},
+	/** CNU 5202.
+	 */
+	CNU_5202 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5202;
+		}
+	},
+	/** CNU 5203.
+	 */
+	CNU_5203 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5203;
+		}
+	},
+	/** CNU 5204.
+	 */
+	CNU_5204 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5204;
+		}
+	},
+	/** CNU 5301.
+	 */
+	CNU_5301 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5301;
+		}
+	},
+	/** CNU 5302.
+	 */
+	CNU_5302 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5302;
+		}
+	},
+	/** CNU 5401.
+	 */
+	CNU_5401 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5401;
+		}
+	},
+	/** CNU 5402.
+	 */
+	CNU_5402 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5402;
+		}
+	},
+	/** CNU 5403.
+	 */
+	CNU_5403 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5403;
+		}
+	},
+	/** CNU 5404.
+	 */
+	CNU_5404 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5404;
+		}
+	},
+	/** CNU 5405.
+	 */
+	CNU_5405 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5405;
+		}
+	},
+	/** CNU 5501.
+	 */
+	CNU_5501 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5501;
+		}
+	},
+	/** CNU 5502.
+	 */
+	CNU_5502 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5502;
+		}
+	},
+	/** CNU 5503.
+	 */
+	CNU_5503 {
+		@Override
+		public int getGroup() {
+			return 13;
+		}
+		@Override
+		public int getNumber() {
+			return 5503;
+		}
+	},
+	/** CNU 5601.
+	 */
+	CNU_5601 {
+		@Override
+		public int getGroup() {
+			return 14;
+		}
+		@Override
+		public int getNumber() {
+			return 5601;
+		}
+	},
+	/** CNU 5602.
+	 */
+	CNU_5602 {
+		@Override
+		public int getGroup() {
+			return 14;
+		}
+		@Override
+		public int getNumber() {
+			return 5602;
+		}
+	},
+	/** CNU 5603.
+	 */
+	CNU_5603 {
+		@Override
+		public int getGroup() {
+			return 14;
+		}
+		@Override
+		public int getNumber() {
+			return 5603;
+		}
+	},
+	/** CNU 5701.
+	 */
+	CNU_5701 {
+		@Override
+		public int getGroup() {
+			return 14;
+		}
+		@Override
+		public int getNumber() {
+			return 5701;
+		}
+	},
+	/** CNU 5702.
+	 */
+	CNU_5702 {
+		@Override
+		public int getGroup() {
+			return 14;
+		}
+		@Override
+		public int getNumber() {
+			return 5702;
+		}
+	},
+	/** CNU 5703.
+	 */
+	CNU_5703 {
+		@Override
+		public int getGroup() {
+			return 14;
+		}
+		@Override
+		public int getNumber() {
+			return 5703;
+		}
+	},
+	/** CNU 5801.
+	 */
+	CNU_5801 {
+		@Override
+		public int getGroup() {
+			return 14;
+		}
+		@Override
+		public int getNumber() {
+			return 5801;
+		}
+	},
+	/** CNU 5802.
+	 */
+	CNU_5802 {
+		@Override
+		public int getGroup() {
+			return 14;
+		}
+		@Override
+		public int getNumber() {
+			return 5802;
+		}
+	},
+	/** CNU 5803.
+	 */
+	CNU_5803 {
+		@Override
+		public int getGroup() {
+			return 14;
+		}
+		@Override
+		public int getNumber() {
+			return 5803;
+		}
+	},
 	/** CNU 60.
 	 */
 	CNU_60 {

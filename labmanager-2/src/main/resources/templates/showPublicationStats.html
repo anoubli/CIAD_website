@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<th:block th:replace="fragments/general :: allBaseLibs"/>
+<th:block th:unless="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs"/>
+</th:block>
+<th:block th:if="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs-embedded"/>
+</th:block>
 <th:block th:replace="fragments/libs :: bootstrap-datatable"/>
 
 <table th:replace="fragments/table :: adminTable(~{::thead}, ~{::tbody})">
@@ -47,7 +52,7 @@
 		</tr>
 	</tbody>
 </table>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
 $(document).ready(function() {
     var table = $("#table[(${uuid})]:first").DataTable({
         dom: '',

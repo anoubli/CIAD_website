@@ -287,7 +287,7 @@ public class JBibtexBibTeXTest {
 	private Stream<Publication> getPublicationStreamFromTest(String filename) throws Exception {
 		URL url = Resources.getResource(JBibtexBibTeXTest.class.getPackageName().replaceAll("\\.", "/") + "/" + filename);
 		try (Reader r = new InputStreamReader(url.openStream())) {
-			return this.test.getPublicationStreamFrom(r, false, false, false);
+			return this.test.getPublicationStreamFrom(r, false, false, false, false);
 		}
 	}
 
@@ -427,6 +427,7 @@ public class JBibtexBibTeXTest {
 
 		lenient().when(pub.getAbstractText()).thenReturn("Abs 1");
 		lenient().when(pub.getAuthors()).thenReturn(Arrays.asList(p1, p0));
+		lenient().when(pub.getCategory()).thenCallRealMethod();
 		lenient().when(pub.getDblpURL()).thenReturn("DBLP/1");
 		lenient().when(pub.getDOI()).thenReturn("doi/1");
 		lenient().when(pub.getExtraURL()).thenReturn("url/1");

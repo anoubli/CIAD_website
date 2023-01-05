@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<link rel="stylesheet" th:href="@{/css/labmanager/showOrganizationAddresses.css}"/>
+
+<div class="orga_addresses_row"><div class="orga_addresses_row_flex">
+	<th:block th:each="address, iAddress : ${addresses}"
+	          th:if="${address.pathToBackgroundImage != null}"
+	          th:with="urlroot = @{/} + ${address.pathToBackgroundImage}">
+		<div class="orga_addresses_cell"
+		     th:id="${'orga_addresses_block_' + iAddress.index}" 
+		     th:style="${'background-image:url(' + urlroot + ');width:' + (100 / addresses.size) + '%;' + (address.googleMapLink != null ? 'cursor:pointer;' : '')}">
+		    <div class="orga_addresses_cellcontent">
+				<div class="orga_addresses_titlebox">
+					<div class="orga_addresses_title"><p th:utext="${address.name}"></p></div>
+				</div>
+				<div class="orga_addresses_contentbox">
+					<div class="orga_addresses_content"><p>
+					<th:block th:if="${address.complement != null}"
+					          th:with="eutils = ${T(fr.ciadlab.labmanager.entities.EntityUtils)}">
+						<th:block th:each="component : ${eutils.getAddressComplementComponents(address.complement)}">
+							<th:block th:utext="${component}"></th:block><br>
+						</th:block>
+					</th:block>
+					<th:block th:utext="${address.street}"></th:block><br>
+					<th:block th:utext="${address.zipCode}"></th:block>&nbsp;<th:block th:utext="${address.city}"></th:block></p></div>
+				</div>
+		    </div>
+		</div>
+	</th:block>
+</div></div>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(() => {
+	/*[# th:each="address, iAddress : ${addresses}" th:if="${address.googleMapLink != null}"]*/
+	$(document).on('click', "[(${'#orga_addresses_block_' + iAddress.index})]", (event) => {
+		window.location.href = "[(${address.googleMapURL.toExternalForm})]";
+	});
+	/*[/]*/ 
+});
+</script>
+</html>

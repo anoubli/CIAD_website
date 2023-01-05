@@ -63,6 +63,7 @@ public class ResearchOrganizationTypeTest {
 		assertSame(cons(ResearchOrganizationType.LABORATORY), ResearchOrganizationType.valueOfCaseInsensitive("lAbOratory"));
 		assertSame(cons(ResearchOrganizationType.FACULTY), ResearchOrganizationType.valueOfCaseInsensitive("FaculTy"));
 		assertSame(cons(ResearchOrganizationType.UNIVERSITY), ResearchOrganizationType.valueOfCaseInsensitive("UnivErsIty"));
+		assertSame(cons(ResearchOrganizationType.HIGH_SCHOOL), ResearchOrganizationType.valueOfCaseInsensitive("High_school"));
 		assertSame(cons(ResearchOrganizationType.COMMUNITY), ResearchOrganizationType.valueOfCaseInsensitive("commUnitY"));
 		assertSame(cons(ResearchOrganizationType.OTHER), ResearchOrganizationType.valueOfCaseInsensitive("oTher"));
 		assertAllTreated();
@@ -77,6 +78,7 @@ public class ResearchOrganizationTypeTest {
 		assertEquals("Research Laboratory", cons(ResearchOrganizationType.LABORATORY).getLabel());
 		assertEquals("Faculty", cons(ResearchOrganizationType.FACULTY).getLabel());
 		assertEquals("University", cons(ResearchOrganizationType.UNIVERSITY).getLabel());
+		assertEquals("High School", cons(ResearchOrganizationType.HIGH_SCHOOL).getLabel());
 		assertEquals("Community of universities", cons(ResearchOrganizationType.COMMUNITY).getLabel());
 		assertEquals("Other type of organization", cons(ResearchOrganizationType.OTHER).getLabel());
 		assertAllTreated();
@@ -91,6 +93,7 @@ public class ResearchOrganizationTypeTest {
 		assertEquals("Research Laboratory", cons(ResearchOrganizationType.LABORATORY).getLabel());
 		assertEquals("Faculty", cons(ResearchOrganizationType.FACULTY).getLabel());
 		assertEquals("University", cons(ResearchOrganizationType.UNIVERSITY).getLabel());
+		assertEquals("High School", cons(ResearchOrganizationType.HIGH_SCHOOL).getLabel());
 		assertEquals("Community of universities", cons(ResearchOrganizationType.COMMUNITY).getLabel());
 		assertEquals("Other type of organization", cons(ResearchOrganizationType.OTHER).getLabel());
 		assertAllTreated();
@@ -103,6 +106,7 @@ public class ResearchOrganizationTypeTest {
 		assertEquals("Research Laboratory", cons(ResearchOrganizationType.LABORATORY).getLabel(Locale.US));
 		assertEquals("Faculty", cons(ResearchOrganizationType.FACULTY).getLabel(Locale.US));
 		assertEquals("University", cons(ResearchOrganizationType.UNIVERSITY).getLabel(Locale.US));
+		assertEquals("High School", cons(ResearchOrganizationType.HIGH_SCHOOL).getLabel(Locale.US));
 		assertEquals("Community of universities", cons(ResearchOrganizationType.COMMUNITY).getLabel(Locale.US));
 		assertEquals("Other type of organization", cons(ResearchOrganizationType.OTHER).getLabel(Locale.US));
 		assertAllTreated();
@@ -115,6 +119,7 @@ public class ResearchOrganizationTypeTest {
 		assertEquals("Laboratoire de recherche", cons(ResearchOrganizationType.LABORATORY).getLabel(Locale.FRANCE));
 		assertEquals("Faculté", cons(ResearchOrganizationType.FACULTY).getLabel(Locale.FRANCE));
 		assertEquals("Université", cons(ResearchOrganizationType.UNIVERSITY).getLabel(Locale.FRANCE));
+		assertEquals("Collège ou Lycée", cons(ResearchOrganizationType.HIGH_SCHOOL).getLabel(Locale.FRANCE));
 		assertEquals("Communauté d'universités", cons(ResearchOrganizationType.COMMUNITY).getLabel(Locale.FRANCE));
 		assertEquals("Autre type d'organisation", cons(ResearchOrganizationType.OTHER).getLabel(Locale.FRANCE));
 		assertAllTreated();

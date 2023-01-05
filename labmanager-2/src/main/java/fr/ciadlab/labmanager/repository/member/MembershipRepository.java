@@ -16,6 +16,7 @@
 
 package fr.ciadlab.labmanager.repository.member;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -47,5 +48,19 @@ public interface MembershipRepository extends JpaRepository<Membership, Integer>
 	 * @return the memberships.
 	 */
 	Set<Membership> findByResearchOrganizationIdAndPersonId(int researchoOrganizationId, int personId);
+
+	/** Replies the list of memberships for the given member.
+	 *
+	 * @param memberId the identifier of the member.
+	 * @return the list of memberships.
+	 */
+	List<Membership> findAllByPersonId(int memberId);
+
+	/** Count the number of memberships for the person with the given id.
+	 *
+	 * @param id the identifier of the person.
+	 * @return the count of memberships.
+	 */
+	int countDistinctByPersonId(int id);
 
 }

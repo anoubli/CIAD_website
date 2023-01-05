@@ -35,6 +35,7 @@ import fr.ciadlab.labmanager.entities.publication.type.MiscDocument;
 import fr.ciadlab.labmanager.entities.publication.type.Patent;
 import fr.ciadlab.labmanager.entities.publication.type.Report;
 import fr.ciadlab.labmanager.entities.publication.type.Thesis;
+import fr.ciadlab.labmanager.io.AbstractPublicationExporter;
 import fr.ciadlab.labmanager.io.ExportedAuthorStatus;
 import fr.ciadlab.labmanager.io.ExporterConfigurator;
 import fr.ciadlab.labmanager.utils.doi.DoiTools;
@@ -49,7 +50,7 @@ import org.springframework.context.support.MessageSourceAccessor;
  * @mavenartifactid $ArtifactId$
  * @since 2.0.0
  */
-public abstract class AbstractHtmlExporter implements HtmlExporter {
+public abstract class AbstractHtmlExporter extends AbstractPublicationExporter implements HtmlExporter {
 
 	private static final String MESSAGES_PREFIX = "abstractHtmlExporter."; //$NON-NLS-1$
 

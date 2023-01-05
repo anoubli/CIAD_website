@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <th:block th:replace="fragments/general :: allBaseLibs" />
 <th:block th:replace="fragments/form :: formLibs" />
+<th:block th:replace="fragments/buttons :: interactiveDeletionProcess" />
 
 <th:block th:if="${organization != null}">
 	<th:block th:replace="fragments/nav :: organizationListBar*(#{html.EditOrganization1(${organization.acronymOrName})})"/>
@@ -13,6 +14,7 @@
 <form th:replace="fragments/form :: entityForm(organization, ${organization == null ? '' : organization.id}, ${formActionUrl}, ${formRedirectUrl}, #{html.OrganizationSavingError}, ~{::.form-group})">
 	<div class="form-group" th:replace="fragments/form :: textInput*(acronym, #{html.Acronym}, #{html.PlaceHolderOrganizationAcronym}, ${organization != null ? organization.acronym : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: textInput*(name, #{html.Name}, #{html.PlaceHolderOrganizationName}, ${organization != null ? organization.name : ''})"></div>
+	<div class="form-group" th:replace="fragments/form :: checkInput(major, #{html.MajorOrganization}, #{html.MajorOrganization}, ${organization != null ? organization.isMajorOrganization : false})"></div>
 	<div class="form-group" th:replace="fragments/form :: comboInput*(type, #{html.Type}, ~{::option#option-type})">
 		<option id="option-type"
 		        th:each="type : ${T(fr.ciadlab.labmanager.entities.organization.ResearchOrganizationType).values}"
@@ -20,12 +22,42 @@
 		        th:value="${type.name}"
 		        th:utext="${type.getLabel()}"></option>
 	</div>
+	<div class="form-group" th:replace="fragments/form :: textInput*(nationalIdentifier, #{html.NationalIdentifier}, #{html.PlaceHolderNationalIdentifier}, ${organization != null ? organization.nationalIdentifier : ''})"></div>
+	<div class="form-group" th:replace="fragments/form :: textInput*(rnsr, #{html.RnsrNumber}, #{html.PlaceHolderRnsrNumber}, ${organization != null ? organization.rnsr : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: comboInput*(country, #{html.Country}, ~{::option#option-country})">
 		<option id="option-country"
 		        th:each="country : ${T(org.arakhne.afc.util.CountryCode).values}"
 		        th:selected="${(organization == null && country == defaultCountry) || (organization != null && organization.country == country)}"
 		        th:value="${country.name}"
 		        th:utext="#{html.CountryNameInList(${countryLabels.get(country)},${country.code})}"></option>
+	</div>
+	<div class="form-group">
+		<label for="addressTable" class="col-form-label" th:utext="#{html.AddressOfOrganization}"></label>
+		<table id="addressTable" class="regularTable table-responsive">
+			<tbody>
+				<tr th:each="address : ${organizationAddresses}" th:id="${'organizationAddress_' + address.id}">
+					<td>
+						<input class="form-control" type="hidden" name="organizationAddress" th:value="${address.id}"/>
+						<button th:if="${changeEnabled}" class="fa-solid fa-trash"
+						      th:id="${'TheDeleteButton_organizationAddress_' + address.id}"
+						      th:title="#{html.DeleteAddress1(${address.name})}"
+						      style="font-size:14pt;cursor: pointer;"></button>
+					</td>
+					<td th:utext="${address.name}" class="dataCell addressName"></td>
+					<td th:utext="${address.fullAddress}" class="dataCell addressFullName"></td>
+				</tr>
+				<tr id="addressAdditionRow" th:if="${changeEnabled}">
+					<td>
+						<button class="fa-solid fa-add"
+						      id="TheAddButton_organizationAddress"
+						      th:title="#{html.AddAddress}"
+						      style="font-size:14pt;cursor: pointer;"></button>
+					</td>
+					<td></td>
+					<td></td>
+				</tr>
+			</tbody>
+		</table>
 	</div>
 	<div class="form-group" th:replace="fragments/form :: textInput(organizationURL, #{html.WebsiteAddress}, #{html.PlaceHolderOrganizationURL}, ${organization != null ? organization.organizationURL : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: comboInput(superOrganization, #{html.SuperOrganization}, ~{::option#option-sorg})">
@@ -39,7 +71,43 @@
 		        th:utext="${otherOrganization.acronym + ' - ' + otherOrganization.name}"></option>
 	</div>
 </form>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
+/*[# th:if="${changeEnabled}"]*/
+var ALL_ADDRESSES_LABELS = {
+    /*[# th:each="address : ${availableAddresses}"]*/
+    [(${address.id})]: [[${address.name}]],
+    /*[/]*/		
+};
+var ALL_ADDRESSES_DATA = {
+	    /*[# th:each="address : ${availableAddresses}"]*/
+	    [(${address.id})]: {
+	    	name: [[${address.name}]],
+	    	full: [[${address.fullAddress}]],
+	    },
+	    /*[/]*/		
+	};
+function attachAddressDeletionHandler(id, name) {
+	attachDeletionHandlerNoAjax({
+		selector: "#TheDeleteButton_organizationAddress_" + id,
+		name: name,
+		questionTitle: [[#{html.DeleteAddress1}]].format(name),
+		questionText: [[#{html.AreYouSureToDelete}]].format(name),
+		onDeletion: () => {
+			var $row = $("table[id='addressTable'] tr[id='organizationAddress_" + id + "']");
+			var $nametd = $row.find("td.addressName");
+			var $fullnametd = $row.find("td.addressFullName");
+			var name = $nametd.text();
+			var fullName = $fullnametd.text();
+			$row.remove();
+			ALL_ADDRESSES_LABELS[id] = name;
+			ALL_ADDRESSES_DATA[id] = {
+				name: name,
+				full: fullName,
+			};
+		},
+	});
+}
+/*[/]*/		
 $(document).ready(function () {
     $('#form:first').validate({
         rules: {
@@ -66,6 +134,55 @@ $(document).ready(function () {
             }
         }
     });
+    /*[# th:if="${changeEnabled}"]*/
+    	/*[# th:each="address : ${organizationAddresses}"]*/
+	attachAddressDeletionHandler([[${address.id}]], [[${address.name}]]);
+    	/*[/]*/
+    $(document).on('click', "#TheAddButton_organizationAddress", (event) => {
+    	const boxOptions = {
+			title: [[#{html.AddAddress}]],
+			icon: 'question',
+			showCancelButton: true,
+			confirmButtonColor: '#d33',
+			cancelButtonColor: '#99cc00',
+			confirmButtonText: [[#{html.Add}]],
+			input: 'select',
+    		inputOptions: ALL_ADDRESSES_LABELS,
+    		inputPlaceholder: [[#{html.PlaceHolderAddressInList}]],
+    		inputValidator: (value) => {
+				return new Promise((resolve) => {
+					if (value) {
+						resolve();
+					} else {
+						resolve([[#{html.MustSelectAddressInList}]]);
+					};
+				});
+			},
+		};
+		Swal.fire(boxOptions).then(result => {
+	  		if (result.isConfirmed) {
+				var selectedKey = result.value;
+				var selectedData = ALL_ADDRESSES_DATA[selectedKey];
+				delete ALL_ADDRESSES_LABELS[selectedKey];
+				delete ALL_ADDRESSES_DATA[selectedKey];
+				var $input = $("<input/>").addClass('form-control').attr('type', 'hidden')
+				$input = $input.attr('name', 'organizationAddress').attr('value', selectedKey);
+				var $button = $("<button/>").addClass('fa-solid').addClass('fa-trash').attr('id', 'TheDeleteButton_organizationAddress_' + selectedKey);
+				$button = $button.attr('title', [[#{html.DeleteAddress1}]].format(selectedData['name']));
+				$button = $button.attr('style', 'font-size:14pt;cursor: pointer;');
+				var $col0 = $("<td/>");
+				$col0.append($input).append($button);
+				var $col1 = $("<td/>").addClass('dataCell').addClass('addressName').text(selectedData['name']);
+				var $col2 = $("<td/>").addClass('dataCell').addClass('addressFullName').text(selectedData['full']);
+				var $row = $("<tr/>").attr('id', 'organizationAddress_' + selectedKey);
+				$row.append($col0).append($col1).append($col2);
+				var $body = $("table[id='addressTable'] tr[id='addressAdditionRow']");
+				$body.before($row);
+				attachAddressDeletionHandler(selectedKey, selectedData['name']);
+			}
+		});
+	});
+	/*[/]*/
 });
 </script>
 </html>

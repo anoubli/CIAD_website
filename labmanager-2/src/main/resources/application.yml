@@ -34,6 +34,11 @@ spring:
 server:
   servlet:
     context-path: /LabManagerApi
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: never
+    include-exception: false
 
 management:
   endpoint:
@@ -57,6 +62,8 @@ labmanager:
     data-source: /var/www/ciad-lab.fr/
   file:
     upload-directory: /var/www/ciad-lab.fr/
+    temp-directory: /tmp/ciadlab/
   web:
     publish-resources: /var/www/ciad-lab.fr/Downloadables/
+    help-url: https://www.ciad-lab.fr/docs/
   debug: false

@@ -81,11 +81,12 @@
 		</div>
 	</th:block>
 </form>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
 function addSavingButtonCallback(year, isNewRankingGroup) {
 	attachSpinnerAjaxHandler({
 		id: 'btSave_' + year,
 		url: "[(${savingUrl})]",
+		requestMethod: 'put',
 		text: "[(#{html.Submit})]",
 		prepareData: ($bt, formData) => {
 			formData.append("journal", parseInt("[(${journal.id})]"));

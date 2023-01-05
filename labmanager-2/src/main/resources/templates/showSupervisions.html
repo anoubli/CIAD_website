@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:unless="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs-with-bundles"/>
+</th:block>
+<th:block th:if="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs-embedded"/>
+</th:block>
+<th:block th:replace="fragments/table :: publicTable"/>
+<th:block th:if="${organization != null}">
+	<span class="dropdown">
+    	<button type="button" class="btn btn-labeled btn-warning dropdown-toggle" data-bs-toggle="dropdown"
+   	            id="dropdownAddSupervision" aria-expanded="false">
+    	<span class="fa-solid fa-pen"></span>&nbsp;<th:block th:utext="#{html.AddSupervisionIn(${organization.acronymOrName})}"></th:block></button>
+    	<ul class="dropdown-menu" aria-labelledby="dropdownAddSupervision">
+			<li><a th:each="membership : ${#lists.sort(organization.memberships, T(fr.ciadlab.labmanager.entities.EntityUtils).preferredPersonNameBasedMembershipComparator)}"
+			       th:if="${!membership.isFuture && membership.isMainPosition && membership.memberStatus.isSupervisable}"
+			       class="dropdown-item"
+			       th:href="@{/showSupervisions(dbId=${membership.person.id})}"
+			       th:utext="${membership.person.fullNameWithLastNameFirst}"></a></li>
+		</ul>
+	</span>
+</th:block>
+<!-- <th:block th:if="${personAdditionUrl != null}">
+	<a th:href="${personAdditionUrl}" class="btn btn-danger mt-4 pr-4 pl-4"><span class="fa-solid fa-pen"></span><th:block th:utext="#{html.AddMissedPerson}"></th:block></a>
+</th:block> -->
+<div class="table table-responsive">
+    <table class="data-tables datatable-primary" th:id="${'table'+uuid}" style="width: 100%">
+        <thead>
+	        <th>Rank</th>
+	        <th th:utext="#{html.SupervisionLevel}"></th>
+	        <th th:utext="#{html.Year}"></th>
+	        <th th:utext="#{html.SupervisedPerson}"></th>
+	        <th th:utext="#{html.Description}"></th>
+        </thead>
+        <tbody>
+        <tr th:each="supervision : ${supervisions}"
+            th:with="typeLabelKey = ${supervision.getLongTypeLabelKey(person)}">
+            <td>
+            	<th:block th:utext="${typeLabelKeyOrdering.get(typeLabelKey)}"></th:block>
+            </td>
+            <td>
+            	<th:block th:utext="#{${typeLabelKey}}"></th:block>
+            </td>
+            <td>
+            	<th:block th:utext="${supervision.year}"></th:block>
+            </td>
+            <td>
+            	<a th:href="${supervision.supervisedPerson.person.webPageURI}"
+            	   th:if="${supervision.supervisedPerson.person.webPageURI != null}"
+            	   class="simpleLink"
+            	   th:utext="${supervision.supervisedPerson.person.fullNameWithLastNameFirst}"></a>
+            	<th:block th:unless="${supervision.supervisedPerson.person.webPageURI != null}"
+            	          th:utext="${supervision.supervisedPerson.person.fullNameWithLastNameFirst}"></th:block>
+            	<th:block th:if="${editionUrl != null}"><a th:href="${editionUrl + supervision.supervisedPerson.person + '&goto=' + supervision.id}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
+            </td>
+            <td>
+            	<div class="supervisionTitle" th:utext="${supervision.title}"></div>
+            	<div class="supervisionDetails"
+            	     th:with="utils = ${T(fr.ciadlab.labmanager.entities.EntityUtils)}">
+	            	<th:block th:utext="${utils.getNameInUniversity(supervision, ', ') + ', ' + countryLabels.get(supervision.supervisedPerson.researchOrganization.country)}"></th:block>
+	            	<br/>
+	            	<th:block th:if="${supervision.supervisors.size > 1}" th:utext="#{html.Supervisors0}"></th:block>
+	            	<th:block th:if="${supervision.supervisors.size == 1}" th:utext="#{html.Supervisor}"></th:block>
+	            	<th:block th:each="supervisor, iSupervisor : ${supervision.supervisors.stream.sorted(preferredSupervisorComparator).toArray}">
+		            	<a th:href="${supervisor.supervisor.webPageURI}"
+		            	   th:if="${supervisor.supervisor.webPageURI != null}"
+		            	   class="simpleLink"
+		            	   th:utext="${supervisor.supervisor.fullName}"></a>
+		            	<th:block th:unless="${supervisor.supervisor.webPageURI != null}"
+		            	          th:utext="${supervisor.supervisor.fullName}"></th:block>
+		            	<th:block th:utext="${utils.getUniversityOrSchoolOrCompany(supervision, supervisor.supervisor, '(', ')', true)}"></th:block>
+	            		<th:block th:unless="${iSupervisor.last}">,</th:block>
+	            	</th:block>
+            	</div>
+            </td>
+        </tbody>
+    </table>
+</div>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(() => {
+	var $dtable = initFrontTable( {
+		id: [[${'table'+uuid}]],
+		dom: 't',
+		columns: [
+        	{
+                "orderable": false,
+        	},
+        	{
+        		data: 'type',
+                "orderable": false,
+        	},
+        	{
+        		data: 'year',
+                "orderable": false,
+			},
+        	{
+                "orderable": false,
+        	},
+        	{
+                "orderable": false,
+            }
+		],
+		order: [ [0, 'asc'], [2, 'desc'], [3, 'asc'] ],
+		tableParams: {
+			rowGroup: {
+				startRender: (rows, group) => {
+					return group;
+				},
+				endRender: null,
+				dataSrc: ['type', 'year'],
+			},
+		},
+	});
+	$dtable.column(0).visible(false);
+	$dtable.column(1).visible(false);
+	$dtable.column(2).visible(false);
+});
+</script>
+</html>

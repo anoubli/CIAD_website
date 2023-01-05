@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -33,12 +34,9 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinTable;
-import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -50,7 +48,6 @@ import fr.ciadlab.labmanager.entities.AttributeProvider;
 import fr.ciadlab.labmanager.entities.EntityUtils;
 import fr.ciadlab.labmanager.entities.IdentifiableEntity;
 import fr.ciadlab.labmanager.entities.member.Membership;
-import fr.ciadlab.labmanager.entities.project.Project;
 import fr.ciadlab.labmanager.io.json.JsonUtils;
 import fr.ciadlab.labmanager.io.json.JsonUtils.CachedGenerator;
 import fr.ciadlab.labmanager.utils.CountryCodeUtils;
@@ -69,15 +66,13 @@ import org.arakhne.afc.util.CountryCode;
 @Table(name = "ResearchOrgs")
 public class ResearchOrganization implements Serializable, JsonSerializable, Comparable<ResearchOrganization>, AttributeProvider, IdentifiableEntity {
 
-	/** Default country for research organizations.
-	 */
-	public static final CountryCode DEFAULT_COUNTRY = CountryCode.FRANCE;
+	private static final long serialVersionUID = -450531251083286848L;
 
 	/** Default type for research organizations.
 	 */
 	public static final ResearchOrganizationType DEFAULT_TYPE = ResearchOrganizationType.LABORATORY;
 
-	private static final long serialVersionUID = -450531251083286848L;
+	private static final String RNSR_URL = "https://appliweb.dgri.education.fr/rnsr/PresenteStruct.jsp?PUBLIC=OK&numNatStruct="; //$NON-NLS-1$
 
 	/** Identifier of the organization.
 	 */
@@ -102,11 +97,33 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 	@Lob
 	private String description;
 
+	/** Indicates if the organization is marked as a major organization on the server.
+	 *
+	 * @since 2.2
+	 */
+	@Column
+	private boolean majorOrganization;
+
+	/** Number of the organization in the "Repertoire National des Structures de Recherche"
+	 * of the French Ministry of Research.
+	 *
+	 * @since 2.2
+	 */
+	@Column
+	private String rnsr;
+
+	/** Identifier of the organization for the French Ministry of Research.
+	 *
+	 * @since 2.2
+	 */
+	@Column
+	private String nationalIdentifier;
+
 	/** The country of the organization.
 	 */
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
-	private CountryCode country = DEFAULT_COUNTRY;
+	private CountryCode country = CountryCodeUtils.DEFAULT;
 
 	/** The type of organization.
 	 */
@@ -121,39 +138,23 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 
 	/** Members of the organization.
 	 */
-	@OneToMany(mappedBy = "researchOrganization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "researchOrganization", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<Membership> memberships = new HashSet<>();
 
 	/** Reference to the super organization.
 	 */
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	private ResearchOrganization superOrganization;
 
 	/** References to the sub organizations.
 	 */
-	@OneToMany(mappedBy = "superOrganization")
+	@OneToMany(mappedBy = "superOrganization", fetch = FetchType.LAZY)
 	private Set<ResearchOrganization> subOrganizations = new HashSet<>();
-	
-	/**
-	 * Reference to the projects owned
+
+	/** References to the postal addresses of the organization.
 	 */
-	@OneToMany(mappedBy = "owningOrganization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	private Set<Project> owningProjects;
-	
-	/**
-	 * Reference to the partner projects 
-	 */
-	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinTable( name = "RESEARCH_ORGS_PARTNER_PROJECTS",
-				joinColumns = @JoinColumn(name = "idResearchOrgs"),
-				inverseJoinColumns = @JoinColumn( name = "idProjects"))
-	private Set<Project> partnerProjects;
-	
-	/**
-	 * Reference to the projects managed
-	 */
-	@OneToMany(mappedBy = "managerOrganization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	private Set<Project> manageProjects;
+	@OneToMany(fetch = FetchType.LAZY)
+	private Set<OrganizationAddress> addresses = new HashSet<>();
 
 	/** Construct a research organization from the given values.
 	 * 
@@ -191,16 +192,14 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 	}
 
 	@Override
-	public String toString() {
-		return getAcronymOrName() + ":" + this.id; //$NON-NLS-1$
-	}
-
-	@Override
 	public int hashCode() {
 		int h = HashCodeUtils.start();
 		h = HashCodeUtils.add(h, this.acronym);
 		h = HashCodeUtils.add(h, this.country);
 		h = HashCodeUtils.add(h, this.description);
+		h = HashCodeUtils.add(h, this.majorOrganization);
+		h = HashCodeUtils.add(h, this.rnsr);
+		h = HashCodeUtils.add(h, this.nationalIdentifier);
 		h = HashCodeUtils.add(h, this.id);
 		h = HashCodeUtils.add(h, this.name);
 		h = HashCodeUtils.add(h, this.organizationUrl);
@@ -230,6 +229,15 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 			return false;
 		}
 		if (!Objects.equals(this.name, other.name)) {
+			return false;
+		}
+		if (this.majorOrganization != other.majorOrganization) {
+			return false;
+		}
+		if (!Objects.equals(this.rnsr, other.rnsr)) {
+			return false;
+		}
+		if (!Objects.equals(this.nationalIdentifier, other.nationalIdentifier)) {
 			return false;
 		}
 		if (!Objects.equals(this.organizationUrl, other.organizationUrl)) {
@@ -264,12 +272,20 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 		}
 		if (getCountry() != null) {
 			consumer.accept("country", getCountry()); //$NON-NLS-1$
+			consumer.accept("countryLabel", getCountryDisplayName()); //$NON-NLS-1$
 		}
 		if (!Strings.isNullOrEmpty(getDescription())) {
 			consumer.accept("description", getDescription()); //$NON-NLS-1$
 		}
 		if (!Strings.isNullOrEmpty(getName())) {
 			consumer.accept("name", getName()); //$NON-NLS-1$
+		}
+		consumer.accept("majorOrganization", Boolean.valueOf(isMajorOrganization())); //$NON-NLS-1$
+		if (!Strings.isNullOrEmpty(getRnsr())) {
+			consumer.accept("rnsr", getRnsr()); //$NON-NLS-1$
+		}
+		if (!Strings.isNullOrEmpty(getNationalIdentifier())) {
+			consumer.accept("nationalIdentifier", getNationalIdentifier()); //$NON-NLS-1$
 		}
 		if (!Strings.isNullOrEmpty(getOrganizationURL())) {
 			consumer.accept("organizationURL", getOrganizationURL()); //$NON-NLS-1$
@@ -288,6 +304,14 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 		//
 		final CachedGenerator organizations = JsonUtils.cache(generator);
 		final CachedGenerator persons = JsonUtils.cache(generator);
+		//
+		generator.writeArrayFieldStart("addresses"); //$NON-NLS-1$
+		for (final OrganizationAddress address : getAddresses()) {
+			organizations.writeReferenceOrObject(address, () -> {
+				JsonUtils.writeObjectAndAttributes(generator, address);
+			});
+		}
+		generator.writeEndArray();
 		//
 		organizations.writeReferenceOrObjectField("superOrganization", getSuperOrganization(), () -> { //$NON-NLS-1$
 			JsonUtils.writeObjectAndAttributes(generator, getSuperOrganization());
@@ -394,12 +418,26 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 		this.superOrganization = orga;
 	}
 
-	/** Replies the acronym or the name of the research organization.
+	/** Replies the acronym or the name of the research organization, that order.
 	 *
 	 * @return the acronym or name.
+	 * @see #getNameOrAcronym()
+	 * @see #getAcronym()
+	 * @see #getName()
 	 */
 	public String getAcronymOrName() {
 		return Strings.isNullOrEmpty(this.acronym) ? this.name : this.acronym;
+	}
+
+	/** Replies the name or the acronym of the research organization, that order.
+	 *
+	 * @return the name or acronym.
+	 * @see #getAcronymOrName()
+	 * @see #getAcronym()
+	 * @see #getName()
+	 */
+	public String getNameOrAcronym() {
+		return Strings.isNullOrEmpty(this.name) ? this.acronym: this.name;
 	}
 
 	/** Replies the acronym of the research organization.
@@ -473,7 +511,7 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 	 */
 	public void setCountry(CountryCode country) {
 		if (country == null) {
-			this.country = DEFAULT_COUNTRY;
+			this.country = CountryCodeUtils.DEFAULT;
 		} else {
 			this.country = country;
 		}
@@ -566,47 +604,113 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 		}
 	}
 
-	/**
-	 * @return the owningProjects
+	/** Replies the addresses of this organization.
+	 *
+	 * @return the addresses.
+	 * @since 2.0
 	 */
-	public Set<Project> getOwningProjects() {
-		return owningProjects;
+	public Set<OrganizationAddress> getAddresses() {
+		if (this.addresses == null) {
+			this.addresses = new TreeSet<>(EntityUtils.getPreferredOrganizationAddressComparator());
+		}
+		return this.addresses;
 	}
 
-	/**
-	 * @param owningProjects the owningProjects to set
+	/** Change the addresses of this organization.
+	 *
+	 * @param addresses the addresses.
+	 * @since 2.0
 	 */
-	public void setOwningProjects(Set<Project> owningProjects) {
-		this.owningProjects = owningProjects;
+	public void setAddresses(Set<OrganizationAddress> addresses) {
+		if (this.addresses == null) {
+			this.addresses = new TreeSet<>(EntityUtils.getPreferredOrganizationAddressComparator());
+		} else {
+			this.addresses.clear();
+		}
+		if (addresses != null) {
+			this.addresses.addAll(addresses);
+		}
 	}
 
-	/**
-	 * @return the partnerProjects
+	/** Replies the number of the organization in the
+	 * "Repertoire National des Structures de Recherche" (RNSR).
+	 *
+	 * @return the RNSR number.
+	 * @see #getRnsrUrl()
 	 */
-	public Set<Project> getPartnerProjects() {
-		return partnerProjects;
+	public String getRnsr() {
+		return this.rnsr;
 	}
 
-	/**
-	 * @param partnerProjects the partnerProjects to set
+	/** change the number of the organization in the
+	 * "Repertoire National des Structures de Recherche" (RNSR).
+	 *
+	 * @param rnsr the RNSR number.
 	 */
-	public void setPartnerProjects(Set<Project> partnerProjects) {
-		this.partnerProjects = partnerProjects;
+	public void setRnsr(String rnsr) {
+		this.rnsr = Strings.emptyToNull(rnsr);
 	}
 
-	/**
-	 * @return the manageProjects
+	/** Replies the URL of the page of the organization on the
+	 * "Repertoire National des Structures de Recherche" (RNSR).
+	 *
+	 * @return the URL to the RNSR, or {@code null} if the organization has no RNSR number.
+	 * @see #getRnsr()
 	 */
-	public Set<Project> getManageProjects() {
-		return manageProjects;
+	public URL getRnsrUrl() {
+		final String number = getRnsr();
+		if (!Strings.isNullOrEmpty(number)) {
+			try {
+				return new URL(RNSR_URL + number);
+			} catch (MalformedURLException ex) {
+				return null;
+			}
+		}
+		return null;
 	}
 
-	/**
-	 * @param manageProjects the manageProjects to set
+	/** Replies the number of the organization for the national ministry of research.
+	 *
+	 * @return the national identifier.
 	 */
-	public void setManageProjects(Set<Project> manageProjects) {
-		this.manageProjects = manageProjects;
+	public String getNationalIdentifier() {
+		return this.nationalIdentifier;
 	}
-	
+
+	/** Change the number of the organization for the national ministry of research.
+	 *
+	 * @param identifier the national identifier.
+	 */
+	public void setNationalIdentifier(String identifier) {
+		this.nationalIdentifier = Strings.emptyToNull(identifier);
+	}
+
+	/** Replies if this organization is mared as a major organization.
+	 *
+	 * @return {@code true} if this organization is major.
+	 */
+	public boolean isMajorOrganization() {
+		return this.majorOrganization;
+	}
+
+	/** Change if this organization is mared as a major organization.
+	 *
+	 * @param major {@code true} if this organization is major.
+	 */
+	public void setMajorOrganization(boolean major) {
+		this.majorOrganization = major;
+	}
+
+	/** Change if this organization is mared as a major organization.
+	 *
+	 * @param major {@code true} if this organization is major.
+	 */
+	public final void setMajorOrganization(Boolean major) {
+		if (major == null) {
+			setMajorOrganization(false);
+		} else {
+			setMajorOrganization(major.booleanValue());
+		}
+	}
 
 }

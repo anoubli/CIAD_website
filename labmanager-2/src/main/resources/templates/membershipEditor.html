@@ -20,6 +20,8 @@
 				        th:value="${organization.id}"
 				        th:utext="${organization.acronymOrName}"></option>
 			</div>
+			<div class="form-group" th:replace="fragments/form :: comboInputEmpty*(${'organizationAddress_' + minMembershipId}, #{html.OrganizationAddress})">
+			</div>
 			<div class="form-group" th:replace="fragments/form :: comboInput*(${'status_' + minMembershipId}, #{html.Status}, ~{::option#option-status-new})">
 				<option id="option-status-new"
 				        th:each="status : ${T(fr.ciadlab.labmanager.entities.member.MemberStatus).values}"
@@ -27,6 +29,7 @@
 				        th:value="${status.name}"
 				        th:utext="${status.getLabel(person.gender) + (status.isPhDOwner() ? ' (PhD)' : '')}"></option>
 			</div>
+			<div class="form-group" th:replace="fragments/form :: checkInput*(${'permanentPosition_' + minMembershipId}, #{html.PermanentPosition}, #{html.PermanentPosition}, false)"></div>
 			<div class="form-group" th:replace="fragments/form :: checkInput*(${'isMainPosition_' + minMembershipId}, #{html.MainPositionMembership}, #{html.MainPositionMembership2}, true)"></div>
 			<div class="form-group" th:replace="fragments/form :: dateInput(${'memberSinceWhen_' + minMembershipId}, #{html.MemberSince}, '')"></div>
 			<div class="form-group" th:replace="fragments/form :: dateInput(${'memberToWhen_' + minMembershipId}, #{html.MemberTo}, '')"></div>
@@ -68,13 +71,16 @@
 		</div>
 	</th:block>
 	<th:block th:each="membership : ${sortedMemberships}">
-		<div th:class="${'form-super-group ' + (membership.former ? 'form-super-group-finished' : ((membership.future ? 'form-super-group-future' : 'form-super-group-active')))}">
+		<div th:id="${'editorblock' + membership.id}"
+		     th:class="${'form-super-group ' + (membership.former ? 'form-super-group-finished' : ((membership.future ? 'form-super-group-future' : 'form-super-group-active')))}">
 			<div class="form-group" th:replace="fragments/form :: comboInput*(${'organization_' + membership.id}, #{html.Organization}, ~{::option#option-organization})">
 				<option id="option-organization"
 				        th:each="organization : ${organizations}"
 				        th:selected="${membership != null && membership.researchOrganization.id == organization.id}"
 				        th:value="${organization.id}"
 				        th:utext="${organization.acronymOrName}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: comboInputEmpty*(${'organizationAddress_' + membership.id}, #{html.OrganizationAddress})">
 			</div>
 			<div class="form-group" th:replace="fragments/form :: comboInput*(${'status_' + membership.id}, #{html.Status}, ~{::option#option-status})">
 				<option id="option-status"
@@ -83,6 +89,7 @@
 				        th:value="${status.name}"
 				        th:utext="${status.getLabel() + (status.isPhDOwner() ? ' (PhD)' : '')}"></option>
 			</div>
+			<div class="form-group" th:replace="fragments/form :: checkInput*(${'permanentPosition_' + membership.id}, #{html.PermanentPosition}, #{html.PermanentPosition}, ${membership.isPermanentPosition})"></div>
 			<div class="form-group" th:replace="fragments/form :: checkInput*(${'isMainPosition_' + membership.id}, #{html.MainPositionMembership}, #{html.MainPositionMembership2}, ${membership.isMainPosition})"></div>
 			<div class="form-group" th:replace="fragments/form :: dateInput(${'memberSinceWhen_' + membership.id}, #{html.MemberSince}, ${membership.memberSinceWhen == null ? '' : membership.memberSinceWhen.toString})"></div>
 			<div class="form-group" th:replace="fragments/form :: dateInput(${'memberToWhen_' + membership.id}, #{html.MemberTo}, ${membership.memberToWhen == null ? '' : membership.memberToWhen.toString})"></div>
@@ -127,11 +134,12 @@
 		</div>
 	</th:block>
 </form>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
 function addSavingButtonCallback(membershipId, isNewMembership) {
 	attachSpinnerAjaxHandler({
 		id: 'btSave_' + membershipId,
 		url: "[(${savingUrl})]",
+		requestMethod: 'put',
 		text: "[(#{html.Submit})]",
 		prepareData: ($bt, formData) => {
 			formData.append("person", parseInt("[(${person.id})]"));
@@ -139,8 +147,11 @@ function addSavingButtonCallback(membershipId, isNewMembership) {
 				formData.append("membership", membershipId);
 			}
 			formData.append("organization", $('#comboInput_organization_' + membershipId + ' option:selected').attr('value'));
+			formData.append("organizationAddress", $('#comboInput_organizationAddress_' + membershipId + ' option:selected').attr('value'));
 			formData.append("status", $('#comboInput_status_' + membershipId + ' option:selected').attr('value'));
-			var checked = $('#checkInput_isMainPosition_' + membershipId).is(':checked');
+			var checked = $('#checkInput_permanentPosition_' + membershipId).is(':checked');
+			formData.append("permanentPosition", checked);
+			checked = $('#checkInput_isMainPosition_' + membershipId).is(':checked');
 			formData.append("isMainPosition", checked);
 			formData.append("memberSinceWhen", $('#dateInput_memberSinceWhen_' + membershipId).val());
 			formData.append("memberToWhen", $('#dateInput_memberToWhen_' + membershipId).val());
@@ -164,7 +175,36 @@ function addSavingButtonCallback(membershipId, isNewMembership) {
 function getOrganizationName(id) {
 	return $('comboInput_organization_' + id + " option:selected").text();
 }
-
+var ALL_ADDRESSES_PER_ORGANIZATION = {
+    /*[# th:each="organization : ${organizations}"]*/
+    "[(${organization.id})]": {
+        /*[# th:each="address : ${organization.addresses}"]*/
+        "[(${address.id})]": [[${address.name}]],
+        /*[/]*/		
+    },
+    /*[/]*/		
+};
+function updateAddressCombo(id, selectAddress) {
+	var orga = $('#comboInput_organization_' + id + ' option:selected').attr('value');
+	var $combo = $('#comboInput_organizationAddress_' + id);
+	$combo.empty();
+	var $option0 = $("<option/>").attr('value', '').text([[#{html.NotSpecified}]]);
+	$combo.append($option0);
+	var addresses = ALL_ADDRESSES_PER_ORGANIZATION[orga];
+	$.each(addresses, (index, value) => {
+		var $option1 = $("<option/>").attr('value', index).text(value);
+		if (selectAddress && selectAddress == index) {
+			$option1 = $option1.attr('selected', 'true');
+		}
+		$combo.append($option1);
+	});
+}
+function addOrganizationChangeCallback(id) {
+	var $combo = $('#comboInput_organization_' + id);
+	$combo.change(() => {
+		updateAddressCombo(id, null);
+	});
+}
 
 $(document).ready(function () {
     /*[# th:if="${changeEnabled}"]*/
@@ -173,10 +213,13 @@ $(document).ready(function () {
 		$('#new-membership-input-area').show();
 	    addSavingButtonCallback("[(${minMembershipId})]", true);
 	});
-
+	updateAddressCombo("[(${minMembershipId})]", null);
+	addOrganizationChangeCallback("[(${minMembershipId})]");
 	    /*[# th:each="membership : ${sortedMemberships}"]*/
+	updateAddressCombo("[(${membership.id})]",
+		"[(${membership.organizationAddress != null ? membership.organizationAddress.id : ''})]");
+	addOrganizationChangeCallback("[(${membership.id})]");
     addSavingButtonCallback("[(${membership.id})]", false);
-
 	attachDeletionHandler({
 		id: "[(${membership.id})]",
 		url: "[(${deletionUrl + '?id=' + membership.id})]",
@@ -189,5 +232,13 @@ $(document).ready(function () {
     	/*[/]*/
     /*[/]*/
 });
+/*[# th:if="${gotoName != null}"]*/
+$(window).on('load', () => {
+	setTimeout( () => {
+	    const gotoElement = document.getElementById("[(${'editorblock' + gotoName})]");
+	    gotoElement.scrollIntoView();
+	}, 200);
+});
+/*[/]*/
 </script>
 </html>

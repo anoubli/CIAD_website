@@ -31,6 +31,7 @@ import java.util.function.Predicate;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -70,10 +71,6 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 
 	private static final long serialVersionUID = -2046765660549008074L;
 
-	/** Base URL for obtaining the details on a journal on Scimago website.
-	 */
-	public static final String SCIMAGO_URL = "https://www.scimagojr.com/journalsearch.php?tip=sid&clean=0&q="; //$NON-NLS-1$
-
 	/** Identifier of the journal in the database.
 	 * 
 	 * <p>Using this instead of {@link GenerationType#IDENTITY} allows for JOINED or TABLE_PER_CLASS inheritance types to work.
@@ -108,10 +105,20 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 	@Column
 	private String scimagoId;
 
+	/** Name of the Scimago category that should be used for retrieving the quartile.
+	 */
+	@Column
+	private String scimagoCategory;
+
 	/** Identifier of the journal on the Web-Of-Science website.
 	 */
 	@Column
 	private String wosId;
+
+	/** Name of the WoS category that should be used for retrieving the quartile.
+	 */
+	@Column
+	private String wosCategory;
 
 	/** ISBN number if the journal has one.
 	 */
@@ -129,14 +136,19 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 	@Column(nullable = true)
 	private Boolean openAccess;
 
+	/** Indicates if the journal was validated by an authority.
+	 */
+	@Column(nullable = false)
+	private boolean validated;
+
 	/** List of papers that are published in this journal.
 	 */
-	@OneToMany(mappedBy = "journal")
+	@OneToMany(mappedBy = "journal", fetch = FetchType.LAZY)
 	private Set<JournalPaper> publishedPapers;
 
 	/** History of the quality indicators for this journal.
 	 */
-	@OneToMany(cascade = CascadeType.ALL)
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinTable(name = "journal_journal_annual_indicators_mapping", 
 	joinColumns = {
 			@JoinColumn(name = "journal_id", referencedColumnName = "id")
@@ -147,67 +159,30 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 	@MapKey(name = "referenceYear")
 	private Map<Integer, JournalQualityAnnualIndicators> qualityIndicators;
 
-	/** Construct a journal with the given values.
-	 * 
-	 * @param identifier the identifier of the journal in the database.
-	 * @param papers the set of papers that were published in this journal.
-	 * @param name the name of the journal.
-	 * @param publisher the name of the publisher of the journal.
-	 * @param address the address of the publisher.
-	 * @param publisherUrl the URL to the page of the journal on the publisher website.
-	 * @param scimagoId the identifier of the journal on the Scimago website.
-	 * @param wosId the identifier of the journal on the Web-Of-Science website.
-	 * @param isbn the ISBN of the journal.
-	 * @param issn the ISSN of the journal.
-	 * @param indicators the history of the quality indicators for the journal.
-	 */
-	public Journal(int identifier, Set<JournalPaper> papers, String name,
-			String publisher, String address, String publisherUrl, String scimagoId, String wosId,
-			String isbn, String issn, Map<Integer, JournalQualityAnnualIndicators> indicators) {
-		this.id = identifier;
-		this.publishedPapers = papers;
-		this.journalName = name;
-		this.publisher = publisher;
-		this.address = address;
-		this.journalUrl = publisherUrl;
-		this.scimagoId = scimagoId;
-		this.wosId = wosId;
-		this.isbn = isbn;
-		this.issn = issn;
-		this.qualityIndicators = indicators;
-	}
-
-	/** Construct a journal with the given values.
-	 * 
-	 * @param identifier the identifier of the journal in the database.
-	 * @param papers the set of papers that were published in this journal.
-	 * @param name the name of the journal.
-	 * @param publisher the name of the publisher of the journal.
-	 * @param address the address of the publisher.
-	 * @param publisherUrl the URL to the page of the journal on the publisher website.
-	 * @param scimagoId the identifier of the journal on the Scimago website.
-	 * @param wosId the identifier of the journal on the Web-Of-Science website.
-	 * @param isbn the ISBN of the journal.
-	 * @param issn the ISSN of the journal.
-	 * @param indicators the history of the quality indicators for the journal.
-	 */
-	public Journal(int identifier, Set<JournalPaper> papers, String name,
-			String publisher, String address, URL publisherUrl, String scimagoId, String wosId,
-			String isbn, String issn, Map<Integer, JournalQualityAnnualIndicators> indicators) {
-		this(identifier, papers, name, publisher, address,
-				publisherUrl != null ? publisherUrl.toExternalForm() : null,
-						scimagoId, wosId, isbn, issn, indicators);
-	}
-
 	/** Construct an empty journal.
 	 */
 	public Journal() {
 		//
 	}
 
-	@Override
-	public String toString() {
-		return getJournalName() + ":" + getId(); //$NON-NLS-1$
+	/** Construct by copying the given journal (exception id, published papers and quality indicators).
+	 *
+	 * @param journal the journal to be copied.
+	 */
+	public Journal(Journal journal) {
+		assert journal != null;
+		this.journalName = journal.getJournalName();
+		this.publisher = journal.getPublisher();
+		this.address = journal.getAddress();
+		this.journalUrl = journal.getJournalURL();
+		this.scimagoId = journal.getScimagoId();
+		this.scimagoCategory = journal.getScimagoCategory();
+		this.wosId = journal.getWosId();
+		this.wosCategory = journal.getWosCategory();
+		this.isbn = journal.getISBN();
+		this.issn = journal.getISSN();
+		this.openAccess = journal.getOpenAccess();
+		this.validated = journal.isValidated();
 	}
 
 	@Override
@@ -219,10 +194,13 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 		h = HashCodeUtils.add(h, this.address);
 		h = HashCodeUtils.add(h, this.journalUrl);
 		h = HashCodeUtils.add(h, this.scimagoId);
+		h = HashCodeUtils.add(h, this.scimagoCategory);
 		h = HashCodeUtils.add(h, this.wosId);
+		h = HashCodeUtils.add(h, this.wosCategory);
 		h = HashCodeUtils.add(h, this.isbn);
 		h = HashCodeUtils.add(h, this.issn);
 		h = HashCodeUtils.add(h, this.openAccess);
+		h = HashCodeUtils.add(h, this.validated);
 		return h;
 	}
 
@@ -253,7 +231,13 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 		if (!Objects.equals(this.scimagoId, other.scimagoId)) {
 			return false;
 		}
+		if (!Objects.equals(this.scimagoCategory, other.scimagoCategory)) {
+			return false;
+		}
 		if (!Objects.equals(this.wosId, other.wosId)) {
+			return false;
+		}
+		if (!Objects.equals(this.wosCategory, other.wosCategory)) {
 			return false;
 		}
 		if (!Objects.equals(this.isbn, other.isbn)) {
@@ -263,6 +247,9 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 			return false;
 		}
 		if (!Objects.equals(this.openAccess, other.openAccess)) {
+			return false;
+		}
+		if (this.validated != other.validated) {
 			return false;
 		}
 		return true;
@@ -295,8 +282,14 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 		if (!Strings.isNullOrEmpty(getScimagoId())) {
 			consumer.accept("scimagoId", getScimagoId()); //$NON-NLS-1$
 		}
+		if (!Strings.isNullOrEmpty(getScimagoCategory())) {
+			consumer.accept("scimagoCategory", getScimagoCategory()); //$NON-NLS-1$
+		}
 		if (!Strings.isNullOrEmpty(getWosId())) {
 			consumer.accept("wosId", getWosId()); //$NON-NLS-1$
+		}
+		if (!Strings.isNullOrEmpty(getWosCategory())) {
+			consumer.accept("wosCategory", getWosCategory()); //$NON-NLS-1$
 		}
 		if (!Strings.isNullOrEmpty(getISBN())) {
 			consumer.accept("isbn", getISBN()); //$NON-NLS-1$
@@ -304,9 +297,10 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 		if (!Strings.isNullOrEmpty(getISSN())) {
 			consumer.accept("issn", getISSN()); //$NON-NLS-1$
 		}
-		if (!Strings.isNullOrEmpty(getISSN())) {
+		if (getOpenAccess() != null) {
 			consumer.accept("openAccess", getOpenAccess()); //$NON-NLS-1$
 		}
+		consumer.accept("validated", Boolean.valueOf(isValidated())); //$NON-NLS-1$
 	}
 
 	@Override
@@ -436,24 +430,30 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 		return this.scimagoId;
 	}
 
-	/** Replies the URL of the journal on the Scimago website.
-	 *
-	 * @return the URL.
-	 */
-	public URL getScimagoURL() {
-		try {
-			return new URL(SCIMAGO_URL + getScimagoId());
-		} catch (Throwable ex) {
-			return null;
-		}
-	}
-
 	/** Change the identifier of the journal on the Scimago website.
 	 *
 	 * @param id the identifier.
 	 */
 	public void setScimagoId(String id) {
 		this.scimagoId = Strings.emptyToNull(id);
+	}
+
+	/** Replies the name of the Scimago category that should be used for retrieving the quartile.
+	 *
+	 * @return the name.
+	 * @since 2.5
+	 */
+	public String getScimagoCategory() {
+		return this.scimagoCategory;
+	}
+
+	/** Change the name of the Scimago category that should be used for retrieving the quartile.
+	 *
+	 * @param category the category name.
+	 * @since 2.5
+	 */
+	public void setScimagoCategory(String category) {
+		this.scimagoCategory = Strings.emptyToNull(category);
 	}
 
 	/** Replies the identifier of the journal on the Web-Of-Science website.
@@ -470,6 +470,24 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 	 */
 	public void setWosId(String id) {
 		this.wosId = Strings.emptyToNull(id);
+	}
+
+	/** Replies the name of the WoS category that should be used for retrieving the quartile.
+	 *
+	 * @return the name.
+	 * @since 2.5
+	 */
+	public String getWosCategory() {
+		return this.wosCategory;
+	}
+
+	/** Change the name of the WoS category that should be used for retrieving the quartile.
+	 *
+	 * @param category the category name.
+	 * @since 2.5
+	 */
+	public void setWosCategory(String category) {
+		this.wosCategory = Strings.emptyToNull(category);
 	}
 
 	/** Replies if the journal is open access. If it is not known, this functio returns {@code null}.
@@ -585,14 +603,17 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 	 * the Q-Index for the highest year that is below the given one. 
 	 *
 	 * @param year the year to search for.
-	 * @return the Q-Index of the journal for the given year, or {@code null} if not defined.
+	 * @return the Q-Index of the journal for the given year, never {@code null}.
 	 */
 	public QuartileRanking getScimagoQIndexByYear(int year) {
 		final JournalQualityAnnualIndicators indicators = getQualityIndicatorsFor(year, it -> it.getScimagoQIndex() != null);
 		if (indicators != null) {
-			return indicators.getScimagoQIndex();
+			final QuartileRanking ranking = indicators.getScimagoQIndex();
+			if (ranking != null) {
+				return ranking;
+			}
 		}
-		return null;
+		return QuartileRanking.NR;
 	}
 
 	/** Change the Q-Index of the journal from the Scimago source.
@@ -623,7 +644,8 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 	 * @return {@code true} if the journal has Q-Index.
 	 */
 	public boolean hasScimagoQIndexForYear(int year) {
-		return getScimagoQIndexByYear(year) != null;
+		final QuartileRanking qindex = getScimagoQIndexByYear(year);
+		return qindex != QuartileRanking.NR;
 	}
 
 	/** Replies the Q-Index of the journal from the JCR/WOS source.
@@ -631,14 +653,17 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 	 * the Q-Index for the highest year that is below the given one. 
 	 *
 	 * @param year the year to search for.
-	 * @return the Q-Index of the journal for the given year, or {@code null} if not defined.
+	 * @return the Q-Index of the journal for the given year, never {@code null}.
 	 */
 	public QuartileRanking getWosQIndexByYear(int year) {
 		final JournalQualityAnnualIndicators indicators = getQualityIndicatorsFor(year, it -> it.getWosQIndex() != null);
 		if (indicators != null) {
-			return indicators.getWosQIndex();
+			QuartileRanking ranking = indicators.getWosQIndex();
+			if (ranking != null) {
+				return ranking;
+			}
 		}
-		return null;
+		return QuartileRanking.NR;
 	}
 
 	/** Change the Q-Index of the journal from the Web-Of-Science source.
@@ -669,7 +694,7 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 	 * @return {@code true} if the journal has Q-Index.
 	 */
 	public boolean hasWosQIndexForYear(int year) {
-		return getWosQIndexByYear(year) != null;
+		return getWosQIndexByYear(year) != QuartileRanking.NR;
 	}
 
 	/** Replies the impact factor of the journal.
@@ -753,6 +778,34 @@ public class Journal implements Serializable, JsonSerializable, AttributeProvide
 	 */
 	public void setISSN(String issn) {
 		this.issn = Strings.emptyToNull(issn);
+	}
+
+	/** Replies if this journal was validated by an authority.
+	 *
+	 * @return {@code true} if the journal is validated.
+	 */
+	public boolean isValidated() {
+		return this.validated;
+	}
+
+	/** Change the flag that indicates if this journal was validated by an authority.
+	 *
+	 * @param validated {@code true} if the journal is validated.
+	 */
+	public void setValidated(boolean validated) {
+		this.validated = validated;
+	}
+
+	/** Change the flag that indicates if this journal was validated by an authority.
+	 *
+	 * @param validated {@code true} if the journal is validated.
+	 */
+	public final void setValidated(Boolean validated) {
+		if (validated == null) {
+			setValidated(false);
+		} else {
+			setValidated(validated.booleanValue());
+		}
 	}
 
 }

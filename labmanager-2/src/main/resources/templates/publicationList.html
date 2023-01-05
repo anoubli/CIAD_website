@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <th:block th:replace="fragments/general :: allBaseLibs"/>
+<th:block th:replace="fragments/buttons :: interactiveDeletionProcess" />
 <th:block th:replace="fragments/libs :: bootstrap-datatable"/>
 
 <th:block th:replace="fragments/table :: adminTableDefinition(${changeEnabled})"/>
 
 <th:block th:replace="fragments/nav :: publicationListBar"/>
+
+<button id="btDeleteDisplayedPapers" class="btn btn-danger mt-4 pr-4 pl-4"
+	th:if="${changeEnabled}" th:utext="#{html.DeleteDisplayedPublications}"></button>
 
 <table th:replace="fragments/table :: adminTable(~{::thead}, ~{::tbody})">
     <thead>
@@ -15,7 +19,9 @@
         <th th:utext="#{html.Type}"></th>
         <th th:utext="#{html.Year}"></th>
         <th th:utext="#{html.WherePublished}"></th>
+        <th th:utext="#{html.OpenAccess}"></th>
         <th th:utext="#{html.Files}"></th>
+        <th th:utext="#{html.Validated}"></th>
         <th th:text="#{html.Actions}"></th>
     </thead>
     <tbody>
@@ -56,6 +62,12 @@
             <td>
             	<th:block th:utext="${publication.wherePublishedShortDescription}"></th:block>
             </td>
+            <td th:with="oa = ${publication.openAccess}">
+            	<th:block th:if="${oa != null && oa.booleanValue}"
+            	          th:utext="#{html.yes}"></th:block>
+            	<th:block th:if="${oa != null && !oa.booleanValue}"
+            	          th:utext="#{html.no}"></th:block>
+            </td>
             <td>
 				<a th:href="@{/} + ${publication.pathToDownloadablePDF}"
 				   class="noLink"
@@ -70,6 +82,10 @@
 					        th:title="#{html.AwardDocumentFor}"
 					        style="font-size:14pt"></button></a>
             </td>
+            <td>
+            	<th:block th:if="${publication.validated}"><i style="color:green" class="fa-solid fa-check-circle">B</i></th:block>
+            	<th:block th:unless="${publication.validated}"><i style="color:red"  class="fa-solid fa-triangle-exclamation">A</i></th:block>
+            </td>
             <td th:replace="fragments/table :: adminToolButtons(${publication.id}, ${publication.title},
             		#{html.EditPublication1(${publication.title})},
             		#{html.DeletePublication1(${publication.title})},
@@ -79,10 +95,10 @@
         </tr>
     </tbody>
 </table>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
     $(document).ready(() => {
-    	initAdministrationTable({
-    		columns: 7,
+    	const dtable = initAdministrationTable({
+    		columns: 9,
     		order: [ [4, 'desc'], [2, 'asc'], [1, 'asc'] ],
     	});
         /*[# th:if="${changeEnabled}" th:each="publication : ${publications}"]*/
@@ -95,6 +111,29 @@
 			successText: [[#{html.PublicationDeleted}]],
 			failureText: [[#{html.CannotDeletePublication}]],
 	    });
+        /*[/]*/
+        /*[# th:if="${changeEnabled}"]*/
+		attachDeletionHandler({
+			selector: "#btDeleteDisplayedPapers",
+			name: "all",
+			questionTitle: [[#{html.DeleteDisplayedPublications}]],
+			questionText: [[#{html.AreYouSureToDeleteAllDisplayedPublications}]],
+			confirmButtonText: [[#{html.YesDeleteThem}]],
+			failureText: [[#{html.ErrorAllPublicationDeletion}]],
+			urlBuilder: () => {
+				var list = "";
+				dtable.rows( { filter : 'applied'} ).data().each((r) => {
+					if (list) {
+						list += ",";
+					}
+					list += r[0];
+				});
+				var utext = [[@{/deletePublications(id)}]] + '=' + list;
+				var hostURL = new URL(window.location.href);
+				var u = new URL(utext, hostURL.origin);
+				return u.toString();
+			}
+		});
         /*[/]*/
     });
 </script>

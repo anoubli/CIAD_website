@@ -63,9 +63,9 @@ public class DefaultPersonNameParser implements PersonNameParser {
 
 	private static final Pattern NAME_SEPARATOR_PATTERN_0 = Pattern.compile(NAME_SEPARATOR_0, Pattern.CASE_INSENSITIVE);
 
-	private static final String AND_SEPARATED_FORMAT = NAME_FORMAT_0 + "(?:" + NAME_SEPARATOR_0 + NAME_FORMAT_0 + ")*"; //$NON-NLS-1$ //$NON-NLS-2$
+	private static final String AND_SEPARATED_FORMAT_0 = NAME_FORMAT_0 + "(?:" + NAME_SEPARATOR_0 + NAME_FORMAT_0 + ")*"; //$NON-NLS-1$ //$NON-NLS-2$
 
-	private static final Pattern AND_SEPARATED_PATTERN = Pattern.compile(AND_SEPARATED_FORMAT, Pattern.CASE_INSENSITIVE);
+	private static final Pattern AND_WITH_COMMA_SEPARATED_PATTERN = Pattern.compile(AND_SEPARATED_FORMAT_0, Pattern.CASE_INSENSITIVE);
 
 	private static final String NAME_FORMAT_1 = "([^,]+?)\\s+([^,]+?)"; //$NON-NLS-1$
 
@@ -78,6 +78,10 @@ public class DefaultPersonNameParser implements PersonNameParser {
 	private static final String COMMA_SEPARATED_FORMAT = NAME_FORMAT_1 + "(?:" + NAME_SEPARATOR_1 + NAME_FORMAT_1 + ")*"; //$NON-NLS-1$ //$NON-NLS-2$
 
 	private static final Pattern COMMA_SEPARATED_PATTERN = Pattern.compile(COMMA_SEPARATED_FORMAT);
+
+	private static final String AND_SEPARATED_FORMAT_1 = NAME_FORMAT_1 + "(?:" + NAME_SEPARATOR_0 + NAME_FORMAT_1 + ")*"; //$NON-NLS-1$ //$NON-NLS-2$
+
+	private static final Pattern AND_WITHOUT_COMMA_SEPARATED_PATTERN = Pattern.compile(AND_SEPARATED_FORMAT_1, Pattern.CASE_INSENSITIVE);
 
 	private static int extractNames(String text, NameCallback callback, Pattern nameSeparator) {
 		int nb = 0;
@@ -120,15 +124,20 @@ public class DefaultPersonNameParser implements PersonNameParser {
 		assert callback != null;
 		int nb = 0;
 		if (!Strings.isNullOrEmpty(text)) {
-			final Matcher m0 = AND_SEPARATED_PATTERN.matcher(text);
-			if (m0.matches()) {
+			Matcher matcher = AND_WITH_COMMA_SEPARATED_PATTERN.matcher(text);
+			if (matcher.matches()) {
 				nb = extractNames(text, callback, NAME_SEPARATOR_PATTERN_0);
 			} else {
-				final Matcher m1 = COMMA_SEPARATED_PATTERN.matcher(text);
-				if (m1.matches()) {
-					nb = extractNames(text, callback, NAME_SEPARATOR_PATTERN_1);
+				matcher = AND_WITHOUT_COMMA_SEPARATED_PATTERN.matcher(text);
+				if (matcher.matches()) {
+					nb = extractNames(text, callback, NAME_SEPARATOR_PATTERN_0);
 				} else {
-					throw new IllegalArgumentException("Invalid format of the list of names: " + text); //$NON-NLS-1$
+					matcher = COMMA_SEPARATED_PATTERN.matcher(text);
+					if (matcher.matches()) {
+						nb = extractNames(text, callback, NAME_SEPARATOR_PATTERN_1);
+					} else {
+						throw new IllegalArgumentException("Invalid format of the list of names: " + text); //$NON-NLS-1$
+					}
 				}
 			}
 		}

@@ -51,6 +51,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.ext.com.google.common.base.Strings;
 import org.arakhne.afc.vmutil.FileSystem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -97,6 +98,7 @@ public class PublicationViewController extends AbstractViewController {
 	 * @param personComparator the comparator of persons.
 	 * @param fileManager the manager of local files.
 	 * @param journalService the tools for manipulating journals.
+	 * @param usernameKey the key string for encrypting the usernames.
 	 */
 	public PublicationViewController(
 			@Autowired MessageSourceAccessor messages,
@@ -106,8 +108,9 @@ public class PublicationViewController extends AbstractViewController {
 			@Autowired ResearchOrganizationService organizationService,
 			@Autowired PersonComparator personComparator,
 			@Autowired DownloadableFileManager fileManager,
-			@Autowired JournalService journalService) {
-		super(messages, constants);
+			@Autowired JournalService journalService,
+			@Value("${labmanager.security.username-key}") String usernameKey) {
+		super(messages, constants, usernameKey);
 		this.publicationService = publicationService;
 		this.personService = personService;
 		this.organizationService = organizationService;
@@ -127,11 +130,10 @@ public class PublicationViewController extends AbstractViewController {
 	@GetMapping("/" + Constants.PUBLICATION_LIST_ENDPOINT)
 	public ModelAndView showBackPublicationList(
 			@RequestParam(required = false) Integer journal,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
-		getLogger().info("Opening /" + Constants.PUBLICATION_LIST_ENDPOINT + " by " + username + " for journal " + journal); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		readCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		readCredentials(username, Constants.PUBLICATION_LIST_ENDPOINT, journal);
 		final ModelAndView modelAndView = new ModelAndView(Constants.PUBLICATION_LIST_ENDPOINT);
-		initModelViewWithInternalProperties(modelAndView);
+		initModelViewWithInternalProperties(modelAndView, false);
 		initAdminTableButtons(modelAndView, endpoint(Constants.PUBLICATION_EDITING_ENDPOINT, "publication")); //$NON-NLS-1$
 		Collection<? extends Publication> pubs = null;
 		if (journal != null) {
@@ -166,6 +168,7 @@ public class PublicationViewController extends AbstractViewController {
 	 * @param enableYearFilter indicates if the filter dedicated to years is enabled.
 	 * @param enableTypeFilter indicates if the filter dedicated to types/categories is enabled.
 	 * @param enableAuthorFilter indicates if the filter dedicated to authors is enabled.
+	 * @param embedded indicates if the view will be embedded into a larger page, e.g., WordPress page. 
 	 * @param username the name of the logged-in user.
 	 * @return the model-view of the list of publications.
 	 * @see #showBackPublicationList()
@@ -185,16 +188,19 @@ public class PublicationViewController extends AbstractViewController {
 			@RequestParam(required = false, defaultValue = "true") boolean enableYearFilter,
 			@RequestParam(required = false, defaultValue = "true") boolean enableTypeFilter,
 			@RequestParam(required = false, defaultValue = "true") boolean enableAuthorFilter,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
-		readCredentials(username);
+			@RequestParam(required = false, defaultValue = "false") boolean embedded,
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		final String inWebId = inString(webId);
+		final String inOrganizationAcronym = inString(organizationAcronym);
+		readCredentials(username, "showPublications", dbId, inWebId, organization, inOrganizationAcronym, journal); //$NON-NLS-1$
 		final ModelAndView modelAndView = new ModelAndView("showPublications"); //$NON-NLS-1$
-		initModelViewWithInternalProperties(modelAndView);
+		initModelViewWithInternalProperties(modelAndView, embedded);
 		//
 		final Integer organizationIdObj;
 		if (organization != null && organization.intValue() != 0) {
 			organizationIdObj = Integer.valueOf(organization.intValue());
-		} else if (!Strings.isNullOrEmpty(organizationAcronym)) {
-			final ResearchOrganization org = getOrganizationWith(organizationAcronym, this.organizationService);
+		} else if (!Strings.isNullOrEmpty(inOrganizationAcronym)) {
+			final ResearchOrganization org = getOrganizationWith(inOrganizationAcronym, this.organizationService);
 			if (org != null) {
 				organizationIdObj = Integer.valueOf(org.getId());
 			} else {
@@ -204,7 +210,7 @@ public class PublicationViewController extends AbstractViewController {
 			organizationIdObj = null;
 		}
 		//
-		addUrlToPublicationListEndPoint(modelAndView, dbId, webId, organizationIdObj, journal);
+		addUrlToPublicationListEndPoint(modelAndView, dbId, inWebId, organizationIdObj, journal);
 		//
 		modelAndView.addObject("enableFilters", Boolean.valueOf(enableFilters)); //$NON-NLS-1$
 		modelAndView.addObject("enableYearFilter", Boolean.valueOf(enableYearFilter)); //$NON-NLS-1$
@@ -212,26 +218,32 @@ public class PublicationViewController extends AbstractViewController {
 		modelAndView.addObject("enableAuthorFilter", Boolean.valueOf(enableAuthorFilter)); //$NON-NLS-1$
 		if (enableFilters && enableAuthorFilter) {
 			final List<Person> persons = this.personService.getAllPersons();
-			modelAndView.addObject("authorsMap", persons.parallelStream() //$NON-NLS-1$
-					.filter(it -> !it.getAuthorships().isEmpty())
-					.collect(Collectors.toConcurrentMap(
+			final Map<Integer, String> personMap = persons.stream()
+					.collect(Collectors.toMap(
 							it -> Integer.valueOf(it.getId()),
-							it -> it.getFullNameWithLastNameFirst())));
+							it -> it.getFullNameWithLastNameFirst()));
+			modelAndView.addObject("authorsMap", personMap); //$NON-NLS-1$
 		}
 		//
 		modelAndView.addObject("enableExports", Boolean.valueOf(enableExports)); //$NON-NLS-1$
 		if (enableExports) {
 			final UriBuilderFactory factory = new DefaultUriBuilderFactory();
 			modelAndView.addObject("endpoint_export_bibtex", //$NON-NLS-1$
-					buildUri(factory, dbId, webId, organizationIdObj, journal, Constants.EXPORT_BIBTEX_ENDPOINT));
+					buildUri(factory, dbId, inWebId, organizationIdObj, journal, Constants.EXPORT_BIBTEX_ENDPOINT));
 			modelAndView.addObject("endpoint_export_odt", //$NON-NLS-1$
-					buildUri(factory, dbId, webId, organizationIdObj, journal, Constants.EXPORT_ODT_ENDPOINT));
+					buildUri(factory, dbId, inWebId, organizationIdObj, journal, Constants.EXPORT_ODT_ENDPOINT));
 			modelAndView.addObject("endpoint_export_html", //$NON-NLS-1$
-					buildUri(factory, dbId, webId, organizationIdObj, journal, Constants.EXPORT_HTML_ENDPOINT));
+					buildUri(factory, dbId, inWebId, organizationIdObj, journal, Constants.EXPORT_HTML_ENDPOINT));
 		}
 		//
 		modelAndView.addObject("enableSearch", Boolean.valueOf(enableSearch)); //$NON-NLS-1$
 		modelAndView.addObject("enableSortChanges", Boolean.valueOf(enableSortChanges)); //$NON-NLS-1$
+		if (isLoggedIn()) {
+			modelAndView.addObject("editionUrl", endpoint(Constants.PUBLICATION_EDITING_ENDPOINT, //$NON-NLS-1$
+					Constants.PUBLICATION_ENDPOINT_PARAMETER));
+			modelAndView.addObject("bibtexImportUrl", endpoint(Constants.IMPORT_BIBTEX_VIEW_ENDPOINT)); //$NON-NLS-1$
+			modelAndView.addObject("additionUrl", endpoint(Constants.PUBLICATION_EDITING_ENDPOINT)); //$NON-NLS-1$
+		}
 		return modelAndView;
 	}
 
@@ -260,6 +272,7 @@ public class PublicationViewController extends AbstractViewController {
 	 * @param name the name of the person. You should provide one of {@code dbId}, {@code webId} or {@code name}.
 	 * @param annual indicates if the stats for each year are provided. Default is {@code true}.
 	 * @param global indicates if the global stats are provided. Default is {@code true}.
+	 * @param embedded indicates if the view will be embedded into a larger page, e.g., WordPress page. 
 	 * @param username the name of the logged-in user.
 	 * @return the model-view with the statistics.
 	 */
@@ -269,10 +282,11 @@ public class PublicationViewController extends AbstractViewController {
 			@RequestParam(required = false) String webId,
 			@RequestParam(required = false, defaultValue = "true") boolean annual,
 			@RequestParam(required = false, defaultValue = "true") boolean global,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
-		readCredentials(username);
+			@RequestParam(required = false, defaultValue = "true") boolean embedded,
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		readCredentials(username, "showPublicationStats", dbId, webId); //$NON-NLS-1$
 		final ModelAndView modelAndView = new ModelAndView("showPublicationStats"); //$NON-NLS-1$
-		initModelViewWithInternalProperties(modelAndView);
+		initModelViewWithInternalProperties(modelAndView, embedded);
 
 		final List<Publication> publications;
 		if (dbId != null && dbId.intValue() != 0) {
@@ -316,11 +330,10 @@ public class PublicationViewController extends AbstractViewController {
 	@GetMapping(value = "/" + Constants.PUBLICATION_EDITING_ENDPOINT)
 	public ModelAndView showPublicationEditor(
 			@RequestParam(required = false, name = Constants.PUBLICATION_ENDPOINT_PARAMETER) Integer publication,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws IOException {
-		getLogger().info("Opening /" + Constants.PUBLICATION_EDITING_ENDPOINT + " by " + username + " for publication " + publication); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		ensureCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws IOException {
+		ensureCredentials(username, Constants.PUBLICATION_EDITING_ENDPOINT, publication);
 		final ModelAndView modelAndView = new ModelAndView("publicationEditor"); //$NON-NLS-1$
-		initModelViewWithInternalProperties(modelAndView);
+		initModelViewWithInternalProperties(modelAndView, false);
 		//
 		final Publication publicationObj;
 		if (publication != null && publication.intValue() != 0) {
@@ -462,11 +475,10 @@ public class PublicationViewController extends AbstractViewController {
 	 */
 	@GetMapping(value = "/" + Constants.IMPORT_BIBTEX_VIEW_ENDPOINT)
 	public ModelAndView showBibTeXImporter(
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws IOException {
-		getLogger().info("Opening /" + Constants.IMPORT_BIBTEX_VIEW_ENDPOINT + " by " + username); //$NON-NLS-1$ //$NON-NLS-2$
-		ensureCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws IOException {
+		ensureCredentials(username, Constants.IMPORT_BIBTEX_VIEW_ENDPOINT);
 		final ModelAndView modelAndView = new ModelAndView("importBibTeX"); //$NON-NLS-1$
-		initModelViewWithInternalProperties(modelAndView);
+		initModelViewWithInternalProperties(modelAndView, false);
 		//
 		modelAndView.addObject("bibtexJsonActionUrl", endpoint(Constants.GET_JSON_FROM_BIBTEX_ENDPOINT, //$NON-NLS-1$
 				Constants.CHECKINDB_ENDPOINT_PARAMETER, Boolean.TRUE));
@@ -505,4 +517,21 @@ public class PublicationViewController extends AbstractViewController {
 		modelAndView.addObject("url", url); //$NON-NLS-1$
 	}
 
+	/** Regenerate the picture files and show the list on a view.
+	 *
+	 * @param username the name of the logged-in user.
+	 * @return the model-view object.
+	 */
+	@GetMapping(value = "/regenerateThumbnail")
+	public ModelAndView regenerateThumbnail(
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		ensureCredentials(username, "regenerateThumbnail"); //$NON-NLS-1$
+		final ModelAndView modelAndView = new ModelAndView("regenerateThumbnail"); //$NON-NLS-1$
+		initModelViewWithInternalProperties(modelAndView, false);
+		//
+		modelAndView.addObject("batchUrl", endpoint(Constants.REGENERATE_THUMBNAIL_ASYNC_ENDPOINT)); //$NON-NLS-1$
+		modelAndView.addObject("terminationUrl", endpoint(Constants.ADMIN_ENDPOINT)); //$NON-NLS-1$
+		//
+		return modelAndView;
+	}
 }

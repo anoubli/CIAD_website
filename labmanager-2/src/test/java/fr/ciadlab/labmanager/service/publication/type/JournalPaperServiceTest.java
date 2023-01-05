@@ -41,6 +41,7 @@ import fr.ciadlab.labmanager.entities.publication.PublicationType;
 import fr.ciadlab.labmanager.entities.publication.type.JournalPaper;
 import fr.ciadlab.labmanager.io.filemanager.DownloadableFileManager;
 import fr.ciadlab.labmanager.repository.publication.type.JournalPaperRepository;
+import fr.ciadlab.labmanager.service.member.MembershipService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,6 +73,8 @@ public class JournalPaperServiceTest {
 
 	private JournalPaperRepository repository;
 
+	private MembershipService membershipService;
+
 	private JournalPaperService test;
 
 	@BeforeEach
@@ -79,7 +82,8 @@ public class JournalPaperServiceTest {
 		this.messages = mock(MessageSourceAccessor.class);
 		this.downloadableFileManager = mock(DownloadableFileManager.class);
 		this.repository = mock(JournalPaperRepository.class);
-		this.test = new JournalPaperService(this.messages, new Constants(), this.downloadableFileManager, this.repository);
+		this.membershipService = mock(MembershipService.class);
+		this.test = new JournalPaperService(this.messages, new Constants(), this.downloadableFileManager, this.repository, this.membershipService);
 
 		// Prepare some publications to be inside the repository
 		// The lenient configuration is used to configure the mocks for all the tests

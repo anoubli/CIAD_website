@@ -52,9 +52,10 @@ public abstract class AbstractViewController extends AbstractCredentialControlle
 	 *
 	 * @param messages the provider of messages.
 	 * @param constants the accessor to the constants.
+	 * @param usernameKey the key string for encrypting the usernames.
 	 */
-	public AbstractViewController(MessageSourceAccessor messages, Constants constants) {
-		super(messages, constants);
+	public AbstractViewController(MessageSourceAccessor messages, Constants constants, String usernameKey) {
+		super(messages, constants, usernameKey);
 	}
 
 	/** Build the URL for accessing an endpoint with the given parameter name, but without setting the parameter value. 
@@ -65,6 +66,16 @@ public abstract class AbstractViewController extends AbstractCredentialControlle
 	 */
 	protected String endpoint(String endpointName, String parameterName) {
 		return endpoint(endpointName, parameterName, ""); //$NON-NLS-1$
+	}
+
+	/** Build the URL for accessing an endpoint. 
+	 *
+	 * @param endpointName the name of the endpoint.
+	 * @return the endpoint URL.
+	 */
+	protected String endpoint(String endpointName) {
+		final UriBuilder b = endpointUriBuilder(endpointName);
+		return b.build().toASCIIString();
 	}
 
 	/** Build the URL for accessing an endpoint with the given parameter name, but without setting the parameter value. 
@@ -125,10 +136,12 @@ public abstract class AbstractViewController extends AbstractCredentialControlle
 	 * The added object in the model are: {@code uuid} and {@code changeEnabled}.
 	 *
 	 * @param modelAndView the model-view
+	 * @param embedded indicates if the view will be embedded into a larger page, e.g., WordPress page. 
 	 */
-	protected void initModelViewWithInternalProperties(ModelAndView modelAndView) {
+	protected void initModelViewWithInternalProperties(ModelAndView modelAndView, boolean embedded) {
 		modelAndView.addObject("uuid", generateUUID()); //$NON-NLS-1$
 		modelAndView.addObject("changeEnabled", Boolean.valueOf(isLoggedIn())); //$NON-NLS-1$
+		modelAndView.addObject("isEmbeddedPage", Boolean.valueOf(embedded)); //$NON-NLS-1$
 	}
 
 	/** Fill the attributes that are needed to build up the buttons in an admin table.

@@ -31,6 +31,7 @@ import fr.ciadlab.labmanager.service.publication.PublicationService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.jena.ext.com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -59,12 +60,14 @@ public class PublicationImporterApiController extends AbstractApiController {
 	 * @param messages the provider of messages.
 	 * @param constants the constants of the app.
 	 * @param publicationService the publication service.
+	 * @param usernameKey the key string for encrypting the usernames.
 	 */
 	public PublicationImporterApiController(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
-			@Autowired PublicationService publicationService) {
-		super(messages, constants);
+			@Autowired PublicationService publicationService,
+			@Value("${labmanager.security.username-key}") String usernameKey) {
+		super(messages, constants, usernameKey);
 		this.publicationService = publicationService;
 	}
 
@@ -76,6 +79,8 @@ public class PublicationImporterApiController extends AbstractApiController {
 	 *     imported or not (with boolean value), and the key {@code type} is the string representation of the type of
 	 *     publication to be considered for the BibTeX entry. If this expected publication type does not corresponds
 	 *     to the type of BibTeX entry, an exception is thrown.
+	 * @param createMissedJournals indicates if the missed journals in the database should be created on-the-fly from
+	 *     the BibTeX data.
 	 * @param username the name of the logged-in user.
 	 * @throws Exception if it is impossible to import the BibTeX file in the database.
 	 */
@@ -83,31 +88,34 @@ public class PublicationImporterApiController extends AbstractApiController {
 	public void saveBibTeX(
 			@RequestParam(required = false) MultipartFile bibtexFile,
 			@RequestParam(required = false) String changes,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
-		getLogger().info("Opening /" + Constants.SAVE_BIBTEX_ENDPOINT + " by " + username); //$NON-NLS-1$ //$NON-NLS-2$
-		ensureCredentials(username);
+			@RequestParam(required = false, defaultValue = "true") boolean createMissedJournals,
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws Exception {
+		ensureCredentials(username, Constants.SAVE_BIBTEX_ENDPOINT);
 		try {
 			// Pass the changes string as JSON to extract the expected types of publications. 
 			final ObjectMapper json = new ObjectMapper();
-			final Map<String, Object> jsonChanges;
-			try (final ByteArrayInputStream sis = new ByteArrayInputStream(changes.getBytes())) {
-				jsonChanges = json.readerForMapOf(Map.class).readValue(sis);
-			}
+			final String inChanges = inString(changes);
 			final Map<String, PublicationType> expectedTypes = new TreeMap<>();
-			for (final Entry<String, Object> entry : jsonChanges.entrySet()) {
-				@SuppressWarnings("unchecked")
-				final Map<String, Object> sub = (Map<String, Object>) entry.getValue();
-				if (sub != null && BooleanUtils.toBoolean(sub.getOrDefault("import", Boolean.FALSE).toString())) { //$NON-NLS-1$
-					final Object expectedTypeStr = sub.get("type"); //$NON-NLS-1$
-					if (expectedTypeStr != null && !Strings.isNullOrEmpty(expectedTypeStr.toString())) {
-						final PublicationType type = PublicationType.valueOfCaseInsensitive(expectedTypeStr.toString());
-						expectedTypes.put(entry.getKey(), type);
+			if (inChanges != null) {
+				final Map<String, Object> jsonChanges;
+				try (final ByteArrayInputStream sis = new ByteArrayInputStream(inChanges.getBytes())) {
+					jsonChanges = json.readerForMapOf(Map.class).readValue(sis);
+				}
+				for (final Entry<String, Object> entry : jsonChanges.entrySet()) {
+					@SuppressWarnings("unchecked")
+					final Map<String, Object> sub = (Map<String, Object>) entry.getValue();
+					if (sub != null && BooleanUtils.toBoolean(sub.getOrDefault("import", Boolean.FALSE).toString())) { //$NON-NLS-1$
+						final Object expectedTypeStr = sub.get("type"); //$NON-NLS-1$
+						if (expectedTypeStr != null && !Strings.isNullOrEmpty(expectedTypeStr.toString())) {
+							final PublicationType type = PublicationType.valueOfCaseInsensitive(expectedTypeStr.toString());
+							expectedTypes.put(entry.getKey(), type);
+						}
 					}
 				}
 			}
 			// Import the publications that are specified in the map of expected types.
 			try (final Reader reader = new InputStreamReader(bibtexFile.getInputStream())) {
-				this.publicationService.importPublications(reader, expectedTypes);
+				this.publicationService.importPublications(reader, expectedTypes, createMissedJournals);
 			}
 		} catch (Throwable ex) {
 			getLogger().error(ex.getLocalizedMessage(), ex);

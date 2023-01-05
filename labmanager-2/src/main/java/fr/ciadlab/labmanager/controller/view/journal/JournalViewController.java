@@ -30,6 +30,7 @@ import fr.ciadlab.labmanager.entities.journal.JournalQualityAnnualIndicators;
 import fr.ciadlab.labmanager.service.journal.JournalService;
 import fr.ciadlab.labmanager.utils.ranking.QuartileRanking;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -59,12 +60,14 @@ public class JournalViewController extends AbstractViewController {
 	 * @param messages the accessor to the localized messages.
 	 * @param constants the constants of the app.
 	 * @param journalService the journal service.
+	 * @param usernameKey the key string for encrypting the usernames.
 	 */
 	public JournalViewController(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
-			@Autowired JournalService journalService) {
-		super(messages, constants);
+			@Autowired JournalService journalService,
+			@Value("${labmanager.security.username-key}") String usernameKey) {
+		super(messages, constants, usernameKey);
 		this.journalService = journalService;
 	}
 
@@ -74,12 +77,11 @@ public class JournalViewController extends AbstractViewController {
 	 * @return the model-view component.
 	 */
 	@GetMapping("/" + Constants.JOURNAL_LIST_ENDPOINT)
-	public ModelAndView showJournalList(
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
-		getLogger().info("Opening /" + Constants.JOURNAL_LIST_ENDPOINT + " by " + username); //$NON-NLS-1$ //$NON-NLS-2$
-		readCredentials(username);
+	public ModelAndView journalList(
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		readCredentials(username, Constants.JOURNAL_LIST_ENDPOINT);
 		final ModelAndView modelAndView = new ModelAndView(Constants.JOURNAL_LIST_ENDPOINT);
-		initModelViewWithInternalProperties(modelAndView);
+		initModelViewWithInternalProperties(modelAndView, false);
 		initAdminTableButtons(modelAndView, endpoint(Constants.JOURNAL_EDITING_ENDPOINT, "journal")); //$NON-NLS-1$
 		modelAndView.addObject("journals", this.journalService.getAllJournals()); //$NON-NLS-1$
 		modelAndView.addObject("currentYear", Integer.valueOf(LocalDate.now().getYear())); //$NON-NLS-1$
@@ -94,13 +96,12 @@ public class JournalViewController extends AbstractViewController {
 	 * @return the model-view object.
 	 */
 	@GetMapping(value = "/" + Constants.JOURNAL_EDITING_ENDPOINT)
-	public ModelAndView showJournalEditor(
+	public ModelAndView journalEditor(
 			@RequestParam(required = false) Integer journal,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
-		getLogger().info("Opening /" + Constants.JOURNAL_EDITING_ENDPOINT + " by " + username + " for journal " + journal); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		ensureCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		ensureCredentials(username, Constants.JOURNAL_EDITING_ENDPOINT);
 		final ModelAndView modelAndView = new ModelAndView("journalEditor"); //$NON-NLS-1$
-		initModelViewWithInternalProperties(modelAndView);
+		initModelViewWithInternalProperties(modelAndView, false);
 		//
 		final Journal journalObj;
 		if (journal != null && journal.intValue() != 0) {
@@ -115,7 +116,7 @@ public class JournalViewController extends AbstractViewController {
 		modelAndView.addObject("journal", journalObj); //$NON-NLS-1$
 		modelAndView.addObject("formActionUrl", rooted(Constants.JOURNAL_SAVING_ENDPOINT)); //$NON-NLS-1$
 		modelAndView.addObject("formRedirectUrl", rooted(Constants.JOURNAL_LIST_ENDPOINT)); //$NON-NLS-1$
-		modelAndView.addObject("scimagoQIndex_imageUrl", JournalService.SCIMAGO_URL_PREFIX + "{0}"); //$NON-NLS-1$ //$NON-NLS-2$
+		modelAndView.addObject("scimagoQIndex_imageUrl", this.journalService.getScimagoURLByJournalId("{0}")); //$NON-NLS-1$ //$NON-NLS-2$
 		//
 		return modelAndView;
 	}
@@ -127,13 +128,12 @@ public class JournalViewController extends AbstractViewController {
 	 * @return the model-view object.
 	 */
 	@GetMapping(value = "/journalRankingEditor")
-	public ModelAndView showJournalEditor(
+	public ModelAndView journalRankingEditor(
 			@RequestParam(required = true) int id,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
-		getLogger().info("Opening /journalRankingEditor by " + username + " for journal " + id); //$NON-NLS-1$ //$NON-NLS-2$
-		ensureCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		ensureCredentials(username, "journalRankingEditor", Integer.valueOf(id)); //$NON-NLS-1$
 		final ModelAndView modelAndView = new ModelAndView("journalRankingEditor"); //$NON-NLS-1$
-		initModelViewWithInternalProperties(modelAndView);
+		initModelViewWithInternalProperties(modelAndView, false);
 		//
 		final Journal journal = this.journalService.getJournalById(id);
 		if (journal == null) {
@@ -178,6 +178,12 @@ public class JournalViewController extends AbstractViewController {
 				impactFactor = indicators.getImpactFactor();
 			}
 		}
+		if (scimago == QuartileRanking.NR) {
+			scimago = null;
+		}
+		if (wos == QuartileRanking.NR) {
+			wos = null;
+		}
 		final int currentYear = LocalDate.now().getYear();
 		modelAndView.addObject("currentYear", Integer.valueOf(currentYear)); //$NON-NLS-1$
 		modelAndView.addObject("lastReferenceYear", year); //$NON-NLS-1$
@@ -202,6 +208,25 @@ public class JournalViewController extends AbstractViewController {
 			}
 		}
 		modelAndView.addObject("years", years); //$NON-NLS-1$
+		//
+		return modelAndView;
+	}
+
+	/** Show the updater for a journal rankings.
+	 *
+	 * @param username the name of the logged-in user.
+	 * @return the model-view object.
+	 */
+	@GetMapping(value = "/journalRankingUpdater")
+	public ModelAndView journalRankingUpdater(
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		ensureCredentials(username, "journalRankingUpdater"); //$NON-NLS-1$
+		final ModelAndView modelAndView = new ModelAndView("journalRankingUpdater"); //$NON-NLS-1$
+		initModelViewWithInternalProperties(modelAndView, false);
+		//
+		modelAndView.addObject("getJournalUpdateJsonUrl", endpoint(Constants.JOURNAL_INDICATOR_UPDATES_ENDPOINT)); //$NON-NLS-1$
+		modelAndView.addObject("referenceYear", Integer.valueOf(LocalDate.now().getYear() - 1)); //$NON-NLS-1$
+		modelAndView.addObject("formActionUrl", endpoint(Constants.SAVE_JOURNAL_INDICATOR_UPDATES_ENDPOINT)); //$NON-NLS-1$
 		//
 		return modelAndView;
 	}

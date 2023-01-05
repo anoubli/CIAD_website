@@ -33,9 +33,10 @@ public abstract class AbstractApiController extends AbstractCredentialController
 	 *
 	 * @param messages the provider of messages.
 	 * @param constants the accessor to the constants.
+	 * @param usernameKey the key string for encrypting the usernames.
 	 */
-	public AbstractApiController(MessageSourceAccessor messages, Constants constants) {
-		super(messages, constants);
+	public AbstractApiController(MessageSourceAccessor messages, Constants constants, String usernameKey) {
+		super(messages, constants, usernameKey);
 	}
 
 }

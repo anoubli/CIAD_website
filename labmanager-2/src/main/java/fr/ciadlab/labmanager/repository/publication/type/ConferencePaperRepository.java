@@ -16,6 +16,8 @@
 
 package fr.ciadlab.labmanager.repository.publication.type;
 
+import java.util.Set;
+
 import fr.ciadlab.labmanager.entities.publication.type.ConferencePaper;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -28,6 +30,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @mavenartifactid $ArtifactId$
  */
 public interface ConferencePaperRepository extends JpaRepository<ConferencePaper, Integer> {
-	//
+
+	/** Replies the list of conference papers for the persons with the given identifiers.
+	 *
+	 * @param personIds the list of identifiers of the authors.
+	 * @return the list of journal papers.
+	 */
+	Set<ConferencePaper> findAllByAuthorshipsPersonIdIn(Set<Integer> personIds);
+
 }
 

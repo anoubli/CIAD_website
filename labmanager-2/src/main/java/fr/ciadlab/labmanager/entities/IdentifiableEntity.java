@@ -32,4 +32,15 @@ public interface IdentifiableEntity {
 	 */
 	int getId();
 
+	/** Replies if the given entity is a fake entity or not.
+	 * A fake entity is created for being provided by the JPA to the front-end.
+	 * It is not supposed to be saved into the JPA database.
+	 *
+	 * @return {@code true} if the entity is a fake entity.
+	 * @since 2.4
+	 */
+	default boolean isFakeEntity() {
+		return false;
+	}
+
 }

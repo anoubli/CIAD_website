@@ -30,6 +30,7 @@ function setButtonStandardState($bt, text) {
  *      * `obj` the button that is used for obtaining the button with jQuery. If this `obj` is not
  *        provided, the `selector` or `id` must be provided.
  *      * `url` the URL to pass to Ajax.
+ *      * `requestMethod` the type of request, by default 'post'.
  *      * `timeout` the timeout to cinsider after launching the Ajax query. Default value is `100000`.
  *      * `text` the text of the button.
  *      * `prepareData` the function that is invoked for initializing the form data to pass to Ajax. This function takes
@@ -45,9 +46,9 @@ function setButtonStandardState($bt, text) {
 function attachSpinnerAjaxHandler_base( config ) {
 	if ('prepareData' in config && config['prepareData']) {
 		const prev = config['prepareData'];
-		config['prepareData'] = ($bt, formData) => {
+		config['prepareData'] = ($bt, formData, userData) => {
 			setButtonWaitState($bt, config['text']);
-			prev($bt, formData);
+			prev($bt, formData, userData);
 		};
 	} else {
 		config['prepareData'] = ($bt, formData) => {

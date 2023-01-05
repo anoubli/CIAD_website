@@ -22,15 +22,20 @@ import java.util.Locale;
 import javax.annotation.PostConstruct;
 
 import fr.ciadlab.labmanager.controller.api.member.GeneralMemberType;
+import fr.ciadlab.labmanager.entities.jury.JuryMembershipType;
+import fr.ciadlab.labmanager.entities.jury.JuryType;
 import fr.ciadlab.labmanager.entities.member.Gender;
 import fr.ciadlab.labmanager.entities.member.MemberStatus;
 import fr.ciadlab.labmanager.entities.member.Responsibility;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganizationType;
 import fr.ciadlab.labmanager.entities.publication.PublicationCategory;
 import fr.ciadlab.labmanager.entities.publication.PublicationType;
+import fr.ciadlab.labmanager.entities.supervision.SupervisorType;
 import fr.ciadlab.labmanager.utils.bap.FrenchBap;
 import fr.ciadlab.labmanager.utils.cnu.CnuSection;
 import fr.ciadlab.labmanager.utils.conrs.ConrsSection;
+import fr.ciadlab.labmanager.utils.funding.FundingScheme;
+import fr.ciadlab.labmanager.utils.ranking.JournalRankingSystem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -166,7 +171,22 @@ public class BaseMessageSource {
 			for (FrenchBap item : EnumSet.allOf(FrenchBap.class)) {
 				item.setMessageSourceAccessor(this.messages);
 			}
+			for (FundingScheme item : EnumSet.allOf(FundingScheme.class)) {
+				item.setMessageSourceAccessor(this.messages);
+			}
 			for (GeneralMemberType item : EnumSet.allOf(GeneralMemberType.class)) {
+				item.setMessageSourceAccessor(this.messages);
+			}
+			for (JuryMembershipType item : EnumSet.allOf(JuryMembershipType.class)) {
+				item.setMessageSourceAccessor(this.messages);
+			}
+			for (JuryType item : EnumSet.allOf(JuryType.class)) {
+				item.setMessageSourceAccessor(this.messages);
+			}
+			for (SupervisorType item : EnumSet.allOf(SupervisorType.class)) {
+				item.setMessageSourceAccessor(this.messages);
+			}
+			for (JournalRankingSystem item : EnumSet.allOf(JournalRankingSystem.class)) {
 				item.setMessageSourceAccessor(this.messages);
 			}
 		}

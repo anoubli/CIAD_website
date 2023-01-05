@@ -14,6 +14,7 @@
  *      * `prepareData` the function that is invoked for initializing the form data to pass to Ajax. This function takes
  *        the two arguments, the button object, and the form-data object.
  *      * `url` the URL to pass to Ajax.
+ *      * `requestMethod` the type of request, by default 'post'.
  *      * `timeout` the timeout to cinsider after launching the Ajax query. Default value is `100000`.
  *      * `dataType` the type of data that is expected inthe answer. Default is `null`.
  *      * `failureTitle` the title of the dialog box that indicates the deletion is a failure.
@@ -26,6 +27,7 @@
 function attachAjaxHandler_base( config ) {
 	(!('timeout' in config)) && (config['timeout'] = 100000);
 	(!('dataType' in config)) && (config['dataType'] = null);
+	(!('requestMethod' in config)) && (config['requestMethod'] = 'post');
 
     var handler = (event) => {
 		const $bt = $(event.target);
@@ -36,7 +38,7 @@ function attachAjaxHandler_base( config ) {
 		$.ajax({
 			url: config['url'],
 			timeout: config['timeout'],
-			type: 'post',
+			type: config['requestMethod'],
 			data: formData,
 			dataType: config['dataType'],
 			contentType: false,

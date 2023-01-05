@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<th:block th:replace="fragments/general :: allBaseLibs"/>
+<th:block th:unless="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs"/>
+</th:block>
+<th:block th:if="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs-embedded"/>
+</th:block>
 <th:block th:replace="fragments/libs :: sweetalert"/>
 <th:block th:if="${enableQrcode}" th:replace="fragments/libs :: qrcode-js"/>
 <div class="row">
@@ -15,7 +20,9 @@
 				     class="person-card-lastname"
 				     th:utext="${person.lastName}"></span><th:block th:if="${person.getCivilTitle(false)}">, <span
 				     class="person-card-civiltitle"
-				     th:utext="${person.getCivilTitle(false)}"></span></th:block></div>
+				     th:utext="${person.getCivilTitle(false)}"></span></th:block>
+            	<th:block th:if="${personEditionUrl != null}"><a th:href="${personEditionUrl}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
+		     </div>
 			<div th:if="${enableStatus && (!memberships.isEmpty() || !#strings.isEmpty(introText) || !responsibilities.isEmpty())}"
 			     class="person-card-positions">
 				<div class="person-card-membership person-card-membership-emph"
@@ -23,16 +30,22 @@
 				     th:utext="${introText}"></div>
 				<div class="person-card-membership person-card-membership-emph"
 				     th:each="resp : ${responsibilities}"
-				     th:if="${T(fr.ciadlab.labmanager.utils.TextUtils).isApostrophable(resp.researchOrganization.acronymOrName)}"
-				     th:utext="#{html.ResponsabilityInApos(${resp.responsibility.getLabel(person.gender)},${resp.researchOrganization.acronymOrName})}"></div>
+				     th:if="${T(fr.ciadlab.labmanager.utils.TextUtils).isApostrophable(resp.researchOrganization.acronymOrName)}">
+				    <th:block th:utext="#{html.ResponsabilityInApos(${resp.responsibility.getLabel(person.gender)},${resp.researchOrganization.acronymOrName})}"></th:block>
+                	<th:block th:if="${membershipEditionUrl != null}"><a th:href="${membershipEditionUrl + '&goto=' + resp.id}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
+				</div>
 				<div class="person-card-membership person-card-membership-emph"
 				     th:each="resp : ${responsibilities}"
-				     th:unless="${T(fr.ciadlab.labmanager.utils.TextUtils).isApostrophable(resp.researchOrganization.acronymOrName)}"
-				     th:utext="#{html.ResponsabilityInNotApos(${resp.responsibility.getLabel(person.gender)},${resp.researchOrganization.acronymOrName})}"></div>
+				     th:unless="${T(fr.ciadlab.labmanager.utils.TextUtils).isApostrophable(resp.researchOrganization.acronymOrName)}">
+				    <th:block th:utext="#{html.ResponsabilityInNotApos(${resp.responsibility.getLabel(person.gender)},${resp.researchOrganization.acronymOrName})}"></th:block>
+                	<th:block th:if="${membershipEditionUrl != null}"><a th:href="${membershipEditionUrl + '&goto=' + resp.id}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
+			    </div>
 				<div class="person-card-membership"
 				     th:each="membership : ${memberships}"
-				     th:title="${membership.researchOrganization.acronymOrName}"
-				     th:utext="${membership.memberStatus.getLabel(person.gender)}"></div>
+				     th:title="${membership.researchOrganization.acronymOrName}">
+					<th:block th:utext="${membership.memberStatus.getLabel(person.gender, isFormerMember)}"></th:block>
+                	<th:block th:if="${membershipEditionUrl != null}"><a th:href="${membershipEditionUrl + '&goto=' + membership.id}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
+				</div>
 			</div>
 			<div class="person-card-contact"
 			     th:if="${enableEmail || enableOfficePhone || enableMobilePhone}">
@@ -40,27 +53,51 @@
 				     th:unless="${!enableEmail || #strings.isEmpty(person.email)}">
 					<span class="fa-solid fa-at"></span>
 					<th:block th:replace="fragments/general :: obfuscatedEmail(person-card-contact-obfemail,null)"/>
+	            	<th:block th:if="${personEditionUrl != null}"><a th:href="${personEditionUrl}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
 				</div>
 				<div class="person-card-phone person-card-officephone"
 				     th:unless="${!enableOfficePhone || #strings.isEmpty(person.officePhone)}">
 				     <span class="fa-solid fa-phone"></span>
 					<th:block th:replace="fragments/general :: obfuscatedPhone(person-card-contact-obfophone,o)"/>
+	            	<th:block th:if="${personEditionUrl != null}"><a th:href="${personEditionUrl}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
 				</div>
 				<div class="person-card-phone person-card-mobilephone"
 				     th:unless="${!enableMobilePhone || #strings.isEmpty(person.mobilePhone)}">
 				     <span class="fa-solid fa-mobile"></span>
 					<th:block th:replace="fragments/general :: obfuscatedPhone(person-card-contact-obfmphone,m)"/>
+	            	<th:block th:if="${personEditionUrl != null}"><a th:href="${personEditionUrl}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
+				</div>
+			</div>
+			<div class="person-card-addresses"
+			     th:if="${enableOfficeRoom || enablePostalAddress}">
+				<div class="person-card-officeroom"
+				     th:if="${enableOfficeRoom && !#strings.isEmpty(person.officeRoom)}">
+					<span class="fa-solid fa-door-closed"></span>
+					<th:block th:utext="${person.officeRoom}"/>
+	            	<th:block th:if="${personEditionUrl != null}"><a th:href="${personEditionUrl}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
+				</div>
+				<div class="person-card-postaladdress"
+				     th:if="${enablePostalAddress && postalAddress != null}">
+					<span class="fa-solid fa-mail-bulk"></span>
+					<th:block th:if="${postalAddress.googleMapLink == null}" th:utext="${postalAddress.fullAddress}"/>
+					<th:block th:unless="${postalAddress.googleMapLink == null}">
+						<a th:href="${postalAddress.googleMapURL.toExternalForm}" th:utext="${postalAddress.fullAddress}"></a>
+					</th:block>
+                	<th:block th:if="${membershipEditionUrl != null}"><a th:href="${membershipEditionUrl}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
 				</div>
 			</div>
 			<div class="person-card-indexes"
 			     th:if="${enableQindexes && (person.googleScholarHindex > 0 || person.wosHindex > 0)}">
 			     <th:block th:utext="#{html.CardIndex}"></th:block>
 			     <span class="person-card-index person-card-googlescholar-index"
-			           th:title="#{html.GoogleScholarHindexSource}">
+			           th:title="#{html.GoogleScholarHindexSource}"
+			           th:if="${person.googleScholarHindex > 0}">
 			           <a th:href="${person.googleScholarURL}" th:utext="${person.googleScholarHindex}"></a></span>
 			     <span class="person-card-index person-card-wos-index"
-			           th:title="#{html.WosHindexSource}">
+			           th:title="#{html.WosHindexSource}"
+			           th:if="${person.wosHindex > 0}">
 			           <a th:href="${person.researcherIdURL}" th:utext="${person.wosHindex}"></a></span>
+            	<th:block th:if="${personEditionUrl != null}"><a th:href="${personEditionUrl}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
 			</div>
 			<div class="person-card-links"
 			     th:if="${enableLinks}">
@@ -104,13 +141,14 @@
 			           th:unless="${#strings.isEmpty(person.facebookId)}"
 			           th:title="#{html.LinksGithubTitle(${person.facebookId})}">
 			           <a th:href="${person.facebookURL}"><span class="person-card-facebook-link"></span></a></span>
+            	<th:block th:if="${personEditionUrl != null}"><a th:href="${personEditionUrl}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
 			</div>
 			<div class="person-card-qrcode" th:if="${enableQrcode}">
 			     <div class="person-qrcode" id="person-card-qrcode"></div></div>
            </div>
        </div>
 </div>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
 $(document).ready(() => {
 /*[# th:if="${enableQrcode}"]*/
 	const PERSON_VCARD = "[(${vcardURL})]";

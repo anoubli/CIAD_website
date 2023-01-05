@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs"/>
+
+<th:block th:replace="fragments/nav :: simpleBar(#{html.SaveDatabaseToServerZip})"/>
+
+<div class="progress">
+  <div id="progress-bar" class="progress-bar" role="progressbar" style="width:0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+</div>	
+<div id="progress-message"></div>
+<script type="text/javascript" th:inline="javascript">
+/*[# th:if="${changeEnabled}"]*/
+var eventSource = null;
+$(document).on("unload", () => {
+	if (eventSource) {
+	    eventSource.close();
+	}	
+});
+/*[/]*/
+$(document).ready(() => {
+    /*[# th:if="${changeEnabled}"]*/
+    var $jbar = $("#progress-bar");
+    var $jmsg = $("#progress-message");
+    eventSource = new EventSource("[(${batchUrl})]");
+    eventSource.onmessage = (e) => {
+        var notification = JSON.parse(e.data);
+        var terminated = notification.terminated;
+        if (terminated){
+        	eventSource.close();
+        	eventSource = null;
+	        var duplicates = notification.duplicates;
+	        window.location.href = "[(${finishingUrl})]";
+        	installInteractionElements(duplicates);
+        }else{
+	        var message = notification.message;
+	        var percent = notification.percent;
+	       	$jbar.css('width', percent + '%');
+	       	$jbar.attr('aria-valuenow', percent);
+	        $jmsg.html(message);
+		}
+    };
+    /*[/]*/
+});
+</script>
+</html>

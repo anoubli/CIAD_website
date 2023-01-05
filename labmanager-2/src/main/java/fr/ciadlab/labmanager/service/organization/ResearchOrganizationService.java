@@ -16,12 +16,16 @@
 
 package fr.ciadlab.labmanager.service.organization;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import com.google.common.base.Strings;
 import fr.ciadlab.labmanager.configuration.Constants;
+import fr.ciadlab.labmanager.entities.organization.OrganizationAddress;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganization;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganizationType;
+import fr.ciadlab.labmanager.repository.organization.OrganizationAddressRepository;
 import fr.ciadlab.labmanager.repository.organization.ResearchOrganizationRepository;
 import fr.ciadlab.labmanager.service.AbstractService;
 import org.arakhne.afc.util.CountryCode;
@@ -40,6 +44,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class ResearchOrganizationService extends AbstractService {
 
+	private final OrganizationAddressRepository addressRepository;
+
 	private final ResearchOrganizationRepository organizationRepository;
 
 	/** Constructor for injector.
@@ -47,13 +53,16 @@ public class ResearchOrganizationService extends AbstractService {
 	 *
 	 * @param messages the provider of localized messages.
 	 * @param constants the accessor to the live constants.
+	 * @param addressRepository the address repository.
 	 * @param organizationRepository the organization repository.
 	 */
 	public ResearchOrganizationService(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
+			@Autowired OrganizationAddressRepository addressRepository,
 			@Autowired ResearchOrganizationRepository organizationRepository) {
 		super(messages, constants);
+		this.addressRepository = addressRepository;
 		this.organizationRepository = organizationRepository;
 	}
 
@@ -105,15 +114,21 @@ public class ResearchOrganizationService extends AbstractService {
 	 *
 	 * @param acronym the new acronym for the research organization.
 	 * @param name the new name for the research organization.
+	 * @param isMajor indicates if the organization is a major organization.
+	 * @param rnsr the number of the organization in the RNSR.
+	 * @param nationalIdentifier the number of the organization for the national minitry of research.
 	 * @param description the new description for the research organization.
 	 * @param type the type of the research organization.
 	 * @param organizationURL the web-site URL of the research organization.
 	 * @param country the country of the research organization.
+	 * @param addresses the identifiers of the addresses of the organization.
 	 * @param superOrganization the identifier of the super organization, or {@code null} or {@code 0} if none.
 	 * @return the created organization in the database.
 	 */
-	public Optional<ResearchOrganization> createResearchOrganization(String acronym, String name, String description,
-			ResearchOrganizationType type, String organizationURL, CountryCode country, Integer superOrganization) {
+	public Optional<ResearchOrganization> createResearchOrganization(String acronym, String name,
+			boolean isMajor,
+			String rnsr, String nationalIdentifier, String description,
+			ResearchOrganizationType type, String organizationURL, CountryCode country, List<Integer> addresses, Integer superOrganization) {
 		final Optional<ResearchOrganization> sres;
 		if (superOrganization != null && superOrganization.intValue() != 0) {
 			sres = this.organizationRepository.findById(superOrganization);
@@ -123,13 +138,27 @@ public class ResearchOrganizationService extends AbstractService {
 		} else {
 			sres = Optional.empty();
 		}
+		//
+		final Set<OrganizationAddress> adrs;
+		if (addresses != null && !addresses.isEmpty()) {
+			adrs = this.addressRepository.findAllByIdIn(addresses);
+		} else {
+			adrs = null;
+		}
+		//
 		final ResearchOrganization res = new ResearchOrganization();
 		res.setAcronym(Strings.emptyToNull(acronym));
 		res.setName(Strings.emptyToNull(name));
+		res.setMajorOrganization(isMajor);
+		res.setRnsr(Strings.emptyToNull(rnsr));
+		res.setNationalIdentifier(Strings.emptyToNull(nationalIdentifier));
 		res.setDescription(Strings.emptyToNull(description));
 		res.setType(type);
 		res.setOrganizationURL(Strings.emptyToNull(organizationURL));
 		res.setCountry(country);
+		if (adrs != null && !adrs.isEmpty()) {
+			res.setAddresses(adrs);
+		}
 		if (sres.isPresent()) {
 			res.setSuperOrganization(sres.get());
 		}
@@ -165,15 +194,21 @@ public class ResearchOrganizationService extends AbstractService {
 	 * @param identifier the identifier of the research organization to be updated.
 	 * @param acronym the new acronym for the research organization.
 	 * @param name the new name for the research organization.
+	 * @param isMajor indicates if the organization is a major organization.
+	 * @param rnsr the number of the organization in the RNSR.
+	 * @param nationalIdentifier the identifier of the organization for the national ministry of research.
 	 * @param description the new description for the research organization.
 	 * @param type the type of the research organization.
 	 * @param organizationURL the web-site URL of the research organization.
 	 * @param country the country of the research organization.
+	 * @param addresses the identifiers of the addresses of the organization.
 	 * @param superOrganization the identifier of the super organization, or {@code null} or {@code 0} if none.
 	 * @return the organization object that was updated.
 	 */
-	public Optional<ResearchOrganization> updateResearchOrganization(int identifier, String acronym, String name, String description,
-			ResearchOrganizationType type, String organizationURL, CountryCode country, Integer superOrganization) {
+	public Optional<ResearchOrganization> updateResearchOrganization(int identifier, String acronym, String name,
+			boolean isMajor,
+			String rnsr, String nationalIdentifier, String description,
+			ResearchOrganizationType type, String organizationURL, CountryCode country, List<Integer> addresses, Integer superOrganization) {
 		final Optional<ResearchOrganization> res = this.organizationRepository.findById(Integer.valueOf(identifier));
 		if (res.isPresent()) {
 			final Optional<ResearchOrganization> sres;
@@ -186,6 +221,13 @@ public class ResearchOrganizationService extends AbstractService {
 				sres = Optional.empty();
 			}
 			//
+			final Set<OrganizationAddress> adrs;
+			if (addresses != null && !addresses.isEmpty()) {
+				adrs = this.addressRepository.findAllByIdIn(addresses);
+			} else {
+				adrs = null;
+			}
+			//
 			final ResearchOrganization organization = res.get();
 			if (!Strings.isNullOrEmpty(acronym)) {
 				organization.setAcronym(acronym);
@@ -193,10 +235,14 @@ public class ResearchOrganizationService extends AbstractService {
 			if (!Strings.isNullOrEmpty(name)) {
 				organization.setName(name);
 			}
+			organization.setMajorOrganization(isMajor);
+			organization.setRnsr(Strings.emptyToNull(rnsr));
+			organization.setNationalIdentifier(Strings.emptyToNull(nationalIdentifier));
 			organization.setDescription(Strings.emptyToNull(description));
 			organization.setType(type);
 			organization.setOrganizationURL(Strings.emptyToNull(organizationURL));
 			organization.setCountry(country);
+			organization.setAddresses(adrs);
 			if (sres.isPresent()) {
 				organization.setSuperOrganization(sres.get());
 			}
@@ -258,30 +304,6 @@ public class ResearchOrganizationService extends AbstractService {
 			}
 		}
 		return false;
-	}
-
-	public Map<String, Integer> getMembershipPerOrganization(){
-		Map<String, Integer> map = new TreeMap<>();
-		List<ResearchOrganization>  reseachOrganisations = getAllResearchOrganizations();
-
-		for( ResearchOrganization organization : reseachOrganisations){
-			map.put(organization.getAcronym(), organization.getMemberships().size());
-		}
-
-		return map;
-	}
-
-	public Map<String, Integer> getProjectByOrganization(){
-		Map<String,Integer> map = new TreeMap<>();
-		List<ResearchOrganization>  organizations = getAllResearchOrganizations();
-
-		for(ResearchOrganization organization : organizations){
-			map.put(organization.getAcronym(), organization.getOwningProjects().size());
-		}
-
-		return map;
-
-
 	}
 
 }

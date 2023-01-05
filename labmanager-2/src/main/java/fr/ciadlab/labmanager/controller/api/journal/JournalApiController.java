@@ -16,13 +16,15 @@
 
 package fr.ciadlab.labmanager.controller.api.journal;
 
+import java.io.InputStream;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.http.MediaType;
 
-import javax.enterprise.inject.Produces;
-
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.controller.api.AbstractApiController;
 import fr.ciadlab.labmanager.entities.journal.Journal;
@@ -31,18 +33,18 @@ import fr.ciadlab.labmanager.service.journal.JournalService;
 import fr.ciadlab.labmanager.utils.ranking.QuartileRanking;
 import org.apache.jena.ext.com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.web.multipart.MultipartFile;
 
 /** REST Controller for journals.
  * 
@@ -65,12 +67,14 @@ public class JournalApiController extends AbstractApiController {
 	 * @param messages the accessor to the localized messages.
 	 * @param constants the constants of the app.
 	 * @param journalService the journal service.
+	 * @param usernameKey the key string for encrypting the usernames.
 	 */
 	public JournalApiController(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
-			@Autowired JournalService journalService) {
-		super(messages, constants);
+			@Autowired JournalService journalService,
+			@Value("${labmanager.security.username-key}") String usernameKey) {
+		super(messages, constants, usernameKey);
 		this.journalService = journalService;
 	}
 
@@ -84,21 +88,14 @@ public class JournalApiController extends AbstractApiController {
 	@GetMapping(value = "/getJournalData", produces = "application/json; charset=UTF-8")
 	@ResponseBody
 	public Journal getJournalData(@RequestParam(required = false) String name, @RequestParam(required = false) Integer id) {
-		if (id == null && Strings.isNullOrEmpty(name)) {
+		final String inName = inString(name);
+		if (id == null && Strings.isNullOrEmpty(inName)) {
 			throw new IllegalArgumentException("Name and identifier parameters are missed"); //$NON-NLS-1$
 		}
 		if (id != null) {
 			return this.journalService.getJournalById(id.intValue());
 		}
-		return this.journalService.getJournalByName(name);
-	}
-		
-	
-	@GetMapping(value = "/hello", produces = "application/json; charset=UTF-8")
-	@ResponseBody 
-	public List<Journal> getAllJournal()
-	{		
-		return this.journalService.getAllJournals();
+		return this.journalService.getJournalByName(inName);
 	}
 
 	/** Replies the quality indicators for a specific journal.
@@ -116,16 +113,17 @@ public class JournalApiController extends AbstractApiController {
 	public Map<Integer, JournalQualityAnnualIndicators> getJournalQualityIndicators(
 			@RequestParam(required = true) String journal,
 			@RequestParam(required = false, name = "year") List<Integer> years) {
-		final Journal journalObj = getJournalWith(journal, this.journalService);
+		final String inJournal = inString(journal);
+		final Journal journalObj = getJournalWith(inJournal, this.journalService);
 		if (journalObj == null) {
-			throw new IllegalArgumentException("Journal not found with: " + journal); //$NON-NLS-1$
+			throw new IllegalArgumentException("Journal not found with: " + inJournal); //$NON-NLS-1$
 		}
 		if (years != null && !years.isEmpty()) {
 			final Map<Integer, JournalQualityAnnualIndicators> indicators = new HashMap<>();
 			for (final Integer year : years) {
 				if (year != null) {
 					indicators.computeIfAbsent(year, it -> {
-						return journalObj.getQualityIndicatorsFor(year.intValue(), null);
+						return journalObj.getQualityIndicatorsForYear(year.intValue());
 					});
 				}
 			}
@@ -147,10 +145,11 @@ public class JournalApiController extends AbstractApiController {
 	 * @param journalUrl the URL to the page of the journal on the publisher website.
 	 * @param scimagoId the identifier to the page of the journal on the Scimago website.
 	 * @param wosId the identifier to the page of the journal on the Web-Of-Science website.
+	 * @param validated indicates if the journal is validated by a local authority.
 	 * @param username the name of the logged-in user.
 	 * @throws Exception in case the journal cannot be saved
 	 */
-	@PostMapping(value = "/" + Constants.JOURNAL_SAVING_ENDPOINT)
+	@PutMapping(value = "/" + Constants.JOURNAL_SAVING_ENDPOINT)
 	public void saveJournal(
 			@RequestParam(required = false) Integer journal,
 			@RequestParam(required = false) String name,
@@ -162,19 +161,28 @@ public class JournalApiController extends AbstractApiController {
 			@RequestParam(required = false) String journalUrl,
 			@RequestParam(required = false) String scimagoId,
 			@RequestParam(required = false) String wosId,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
-		getLogger().info("Opening /" + Constants.JOURNAL_SAVING_ENDPOINT + " by " + username + " for journal " + journal); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		ensureCredentials(username);
+			@RequestParam(required = false, defaultValue = "false") boolean validated,
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws Exception {
+		ensureCredentials(username, Constants.JOURNAL_SAVING_ENDPOINT, journal);
 		final Journal optJournal;
+		//
+		final String inName = inString(name);
+		final String inAddress = inString(address);
+		final String inPublisher = inString(publisher);
+		final String inIsbn = inString(isbn);
+		final String inIssn = inString(issn);
+		final String inJournalUrl = inString(journalUrl);
+		final String inScimagoId = inString(scimagoId);
+		final String inWosId = inString(wosId);
 		//
 		if (journal == null) {
 			optJournal = this.journalService.createJournal(
-					name, address, publisher, isbn, issn,
-					openAccess, journalUrl, scimagoId, wosId);
+					validated, inName, inAddress, inPublisher, inIsbn, inIssn,
+					openAccess, inJournalUrl, inScimagoId, inWosId);
 		} else {
 			optJournal = this.journalService.updateJournal(journal.intValue(),
-					name, address, publisher, isbn, issn,
-					openAccess, journalUrl, scimagoId, wosId);
+					validated, inName, inAddress, inPublisher, inIsbn, inIssn,
+					openAccess, inJournalUrl, inScimagoId, inWosId);
 		}
 		if (optJournal == null) {
 			throw new IllegalStateException("Journal not found"); //$NON-NLS-1$
@@ -190,9 +198,8 @@ public class JournalApiController extends AbstractApiController {
 	@DeleteMapping("/deleteJournal")
 	public void deleteJournal(
 			@RequestParam Integer journal,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
-		getLogger().info("Opening /deleteJournal by " + username + " for journal " + journal); //$NON-NLS-1$ //$NON-NLS-2$
-		ensureCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws Exception {
+		ensureCredentials(username, "deleteJournal", journal); //$NON-NLS-1$
 		if (journal == null || journal.intValue() == 0) {
 			throw new IllegalStateException("Journal not found"); //$NON-NLS-1$
 		}
@@ -209,23 +216,24 @@ public class JournalApiController extends AbstractApiController {
 	 * @param username the name of the logged-in user.
 	 * @throws Exception in case the journal ranking cannot be saved
 	 */
-	@PostMapping(value = "/" + Constants.SAVE_JOURNAL_RANKING_ENDPOINT)
+	@PutMapping(value = "/" + Constants.SAVE_JOURNAL_RANKING_ENDPOINT)
 	public void saveJournalRanking(
 			@RequestParam(required = true) int journal,
 			@RequestParam(required = true) int year,
 			@RequestParam(required = false) Float impactFactor,
 			@RequestParam(required = false) String scimagoQIndex,
 			@RequestParam(required = false) String wosQIndex,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
-		getLogger().info("Opening /" + Constants.SAVE_JOURNAL_RANKING_ENDPOINT + " by " + username + " for journal " + journal); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		ensureCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws Exception {
+		ensureCredentials(username, Constants.SAVE_JOURNAL_RANKING_ENDPOINT, Integer.valueOf(journal));
 		final Journal journalObj = this.journalService.getJournalById(journal);
 		if (journalObj == null) {
 			throw new IllegalArgumentException("Journal not found with: " + journal); //$NON-NLS-1$
 		}
 		final float realImpactFactor = impactFactor == null || impactFactor.floatValue() < 0f ? 0f : impactFactor.floatValue();
-		final QuartileRanking scimago = Strings.isNullOrEmpty(scimagoQIndex) ? null : QuartileRanking.valueOf(scimagoQIndex);
-		final QuartileRanking wos = Strings.isNullOrEmpty(wosQIndex) ? null : QuartileRanking.valueOf(wosQIndex);
+		final String inScimagoQIndex = inString(scimagoQIndex);
+		final QuartileRanking scimago = inScimagoQIndex == null ? null : QuartileRanking.valueOf(inScimagoQIndex);
+		final String inWosQIndex = inString(wosQIndex);
+		final QuartileRanking wos = inWosQIndex == null ? null : QuartileRanking.valueOf(inWosQIndex);
 		this.journalService.setQualityIndicators(journalObj, year, realImpactFactor, scimago, wos);
 	}
 
@@ -240,14 +248,61 @@ public class JournalApiController extends AbstractApiController {
 	public void deleteJournalRanking(
 			@RequestParam(required = true) int journal,
 			@RequestParam(required = true) int year,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
-		getLogger().info("Opening /" + Constants.DELETE_JOURNAL_RANKING_ENDPOINT + " by " + username + " for journal " + journal + " and year " + year); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-		ensureCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws Exception {
+		ensureCredentials(username, Constants.DELETE_JOURNAL_RANKING_ENDPOINT, Integer.valueOf(journal), Integer.valueOf(year));
 		final Journal journalObj = this.journalService.getJournalById(journal);
 		if (journalObj == null) {
 			throw new IllegalArgumentException("Journal not found with: " + journal); //$NON-NLS-1$
 		}
 		this.journalService.deleteQualityIndicators(journalObj, year);
+	}
+
+	/** Replies Json that describes an update of the journal indicators for the given refence year.
+	 *
+	 * @param referenceYear the reference year.
+	 * @param wosCsvFile the uploaded CSV file from web-of-science.
+	 * @return the JSON.
+	 * @throws Exception in case of error.
+	 */
+	@PostMapping(value = "/" + Constants.JOURNAL_INDICATOR_UPDATES_ENDPOINT)
+	@ResponseBody
+	public JsonNode getJournalUpdateJson(
+			@RequestParam(required = true) int referenceYear,
+			@RequestParam(required = false) MultipartFile wosCsvFile) throws Exception {
+		if (wosCsvFile == null || wosCsvFile.isEmpty()) {
+			return this.journalService.getJournalIndicatorUpdates(referenceYear, null, null);
+		}
+		try (InputStream is = wosCsvFile.getInputStream()) {
+			return this.journalService.getJournalIndicatorUpdates(referenceYear, is, null);
+		}
+	}
+
+	/** Save the updates of the journals' quality indicators.
+	 *
+	 * @param data the map of the changes. Expected keys are {@code referenceYear} for the reference year; and
+	 *     {@code changes} for the changes to apply to the quality indicators.
+	 * @param username the name of the logged-in user.
+	 * @throws Exception in case of error.
+	 */
+	@SuppressWarnings("unchecked")
+	@PostMapping(value = "/" + Constants.SAVE_JOURNAL_INDICATOR_UPDATES_ENDPOINT)
+	public void saveJournalIndicatorUpdates(
+			@RequestParam(required = true) Map<String, String> data,
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws Exception {
+		ensureCredentials(username, Constants.SAVE_JOURNAL_INDICATOR_UPDATES_ENDPOINT);
+		final int referenceYear = ensureYear(data, "referenceYear"); //$NON-NLS-1$
+		final String rawChanges = ensureString(data, "changes"); //$NON-NLS-1$
+		if (Strings.isNullOrEmpty(rawChanges)) {
+			throw new IllegalArgumentException("changes are expected"); //$NON-NLS-1$
+		}
+		final Map<String, Map<String, ?>> changes;
+		try (StringReader sr = new StringReader(rawChanges)) {
+			final ObjectMapper mapper = new ObjectMapper();
+			try (JsonParser parser = mapper.createParser(sr)) {
+				changes = parser.readValueAs(Map.class);
+			}
+		}
+		this.journalService.updateJournalIndicators(referenceYear, changes);
 	}
 
 }

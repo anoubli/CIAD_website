@@ -36,6 +36,7 @@ import com.google.common.base.Strings;
 import fr.ciadlab.labmanager.entities.AttributeProvider;
 import fr.ciadlab.labmanager.entities.EntityUtils;
 import fr.ciadlab.labmanager.entities.IdentifiableEntity;
+import fr.ciadlab.labmanager.entities.organization.OrganizationAddress;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganization;
 import fr.ciadlab.labmanager.utils.HashCodeUtils;
 import fr.ciadlab.labmanager.utils.bap.FrenchBap;
@@ -79,6 +80,11 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 	@Enumerated(EnumType.STRING)
 	private MemberStatus memberStatus;
 
+	/** Indicates if the membership concerns a permanent position, or not.
+	 */
+	@Column(nullable = false)
+	private boolean permanentPosition;
+
 	/** Position of the person in the research organization.
 	 */
 	@Column
@@ -120,10 +126,16 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 	@ManyToOne(fetch = FetchType.EAGER)
 	private ResearchOrganization researchOrganization;
 
+	/** Reference to the address of the research organization.
+	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	private OrganizationAddress organizationAddress;
+
 	/** Construct a membership with the given values.
 	 *
 	 * @param person the person.
 	 * @param orga the research organization.
+	 * @param address the address of the research organization.
 	 * @param since the start date of involvement.
 	 * @param to the end date of involvement.
 	 * @param status the status.
@@ -133,13 +145,15 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 	 * @param frenchBap the type of job for a not-researcher staff.
 	 * @param isMainPosition indicates if the membership is associated to the main position of the associated person.
 	 */
-	public Membership(Person person, ResearchOrganization orga, LocalDate since, LocalDate to, MemberStatus status,
+	public Membership(Person person, ResearchOrganization orga, OrganizationAddress address, LocalDate since, LocalDate to, MemberStatus status,
 			Responsibility responsibility, CnuSection cnuSection, ConrsSection conrsSection, FrenchBap frenchBap, boolean isMainPosition) {
 		this.person = person;
 		this.researchOrganization = orga;
+		this.organizationAddress = validateAddress(address, this.researchOrganization);
 		this.memberSinceWhen = since;
 		this.memberToWhen = to;
 		this.memberStatus = status;
+		this.permanentPosition = validatePermanentPosition(true, status);
 		this.responsibility = responsibility;
 		this.cnuSection = cnuSection;
 		this.conrsSection = conrsSection;
@@ -154,14 +168,6 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 	}
 
 	@Override
-	public String toString() {
-		return "{" + getPerson() + "}{" + getResearchOrganization() + "}{" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				+ getMemberStatus() + "}{" //$NON-NLS-1$
-				+ getMemberSinceWhen() + "}{" //$NON-NLS-1$
-				+ getMemberToWhen() + "}:" + this.id; //$NON-NLS-1$
-	}
-
-	@Override
 	public int hashCode() {
 		int h = HashCodeUtils.start();
 		h = HashCodeUtils.add(h, this.cnuSection);
@@ -170,10 +176,12 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 		h = HashCodeUtils.add(h, this.id);
 		h = HashCodeUtils.add(h, this.memberSinceWhen);
 		h = HashCodeUtils.add(h, this.memberStatus);
+		h = HashCodeUtils.add(h, this.permanentPosition);
 		h = HashCodeUtils.add(h, this.responsibility);
 		h = HashCodeUtils.add(h, this.memberToWhen);
 		h = HashCodeUtils.add(h, this.person);
 		h = HashCodeUtils.add(h, this.researchOrganization);
+		h = HashCodeUtils.add(h, this.organizationAddress);
 		h = HashCodeUtils.add(h, this.isMainPosition);
 		return h;
 	}
@@ -196,13 +204,16 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 		if (this.frenchBap != other.frenchBap) {
 			return false;
 		}
-		if (!Objects.equals(this.memberSinceWhen, other.memberSinceWhen)) {
-			return false;
-		}
 		if (!Objects.equals(this.memberStatus, other.memberStatus)) {
 			return false;
 		}
+		if (this.permanentPosition != other.permanentPosition) {
+			return false;
+		}
 		if (!Objects.equals(this.responsibility, other.responsibility)) {
+			return false;
+		}
+		if (!Objects.equals(this.memberSinceWhen, other.memberSinceWhen)) {
 			return false;
 		}
 		if (!Objects.equals(this.memberToWhen, other.memberSinceWhen)) {
@@ -212,6 +223,9 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 			return false;
 		}
 		if (!Objects.equals(this.researchOrganization, other.researchOrganization)) {
+			return false;
+		}
+		if (!Objects.equals(this.organizationAddress, other.organizationAddress)) {
 			return false;
 		}
 		if (this.isMainPosition != other.isMainPosition) {
@@ -252,8 +266,12 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 		if (getMemberStatus() != null) {
 			consumer.accept("memberStatus", getMemberStatus()); //$NON-NLS-1$
 		}
+		consumer.accept("permanentPosition", Boolean.valueOf(isPermanentPosition())); //$NON-NLS-1$
 		if (getResponsibility() != null) {
 			consumer.accept("responsibility", getResponsibility()); //$NON-NLS-1$
+		}
+		if (getOrganizationAddress() != null) {
+			consumer.accept("organizationAddress", getOrganizationAddress()); //$NON-NLS-1$
 		}
 		consumer.accept("isMainPosition", Boolean.valueOf(isMainPosition())); //$NON-NLS-1$
 	}
@@ -301,6 +319,51 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 	 */
 	public void setResearchOrganization(ResearchOrganization orga) {
 		this.researchOrganization = orga;
+	}
+
+	/** Replies the organization address related to this membership.
+	 *
+	 * @return the address or {@code null} if unknown.
+	 */
+	public OrganizationAddress getOrganizationAddress() {
+		return this.organizationAddress;
+	}
+
+	/** Change the organization address related to this membership.
+	 *
+	 * @param address the address.
+	 */
+	public void setOrganizationAddress(OrganizationAddress address) {
+		setOrganizationAddress(address, true);
+	}
+
+	/** Change the organization address related to this membership.
+	 *
+	 * @param address the address.
+	 * @param validate indicates if the address ust be validated against the current organization.
+	 */
+	public void setOrganizationAddress(OrganizationAddress address, boolean validate) {
+		if (validate) {
+			this.organizationAddress = validateAddress(address, getResearchOrganization());
+		} else {
+			this.organizationAddress = address;
+		}
+	}
+
+	/** Validate the given address against the addresses that are associated to the given organization.
+	 * If the given address does not corresponds to an address of the given organization, this function
+	 * is not validating it.
+	 *
+	 * @param address the address to validate.
+	 * @param organization the organization that must serve as reference.
+	 * @return the validated address, or {@code null} if the address is not valid.
+	 */
+	@SuppressWarnings("static-method")
+	protected OrganizationAddress validateAddress(OrganizationAddress address, ResearchOrganization organization) {
+		if (address != null && organization != null && organization.getAddresses().contains(address)) {
+			return address;
+		}
+		return null;
 	}
 
 	/** Replies the first date of involvement in the research organization.
@@ -377,6 +440,8 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 	 */
 	public void setMemberStatus(MemberStatus status) {
 		this.memberStatus = status;
+		// Reset the permanent position flag if needed
+		this.permanentPosition = validatePermanentPosition(this.permanentPosition, this.memberStatus);
 	}
 
 	/** Change the status of the member in the research organization.
@@ -389,6 +454,44 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 		} else {
 			setMemberStatus(MemberStatus.valueOfCaseInsensitive(status));
 		}
+	}
+
+	/** Replies if the membership concerns a permanent position.
+	 *
+	 * @return {@code true} if the position is permanent.
+	 */
+	public boolean isPermanentPosition() {
+		return this.permanentPosition;
+	}
+
+	/** Change the flag that indicates if the membership concerns a permanent position.
+	 *
+	 * @param permanent {@code true} if the position is permanent.
+	 */
+	public void setPermanentPosition(boolean permanent) {
+		this.permanentPosition = validatePermanentPosition(permanent, getMemberStatus());
+	}
+
+	/** Change the flag that indicates if the membership concerns a permanent position.
+	 *
+	 * @param permanent {@code true} if the position is permanent.
+	 */
+	public final void setPermanentPosition(Boolean permanent) {
+		if (permanent == null) {
+			setPermanentPosition(false);
+		} else {
+			setPermanentPosition(permanent.booleanValue());
+		}
+	}
+
+	/** Validate the permanent flag according to the given membership status.
+	 *
+	 * @param permanent the permanent flag to validate.
+	 * @param currentStatus the current membership status.
+	 * @return the permanent flag adapted according to the given membership status.
+	 */
+	protected static boolean validatePermanentPosition(boolean permanent, MemberStatus currentStatus) {
+		return permanent && (currentStatus == null || currentStatus.isPermanentPositionAllowed());
 	}
 
 	/** Replies the CNU section of the member in the research organization.
@@ -426,6 +529,23 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 		}
 	}
 
+	/** Change the CNU section of the member in the research organization.
+	 * CNU means "Conseil National des Universités". 
+	 *
+	 * @param cnu the CNU section number or {@code null} if unknown.
+	 */
+	public final void setCnuSection(String cnu) {
+		if (Strings.isNullOrEmpty(cnu)) {
+			setCnuSection((CnuSection) null);
+		} else {
+			try {
+				setCnuSection(CnuSection.valueOfCaseInsensitive(cnu));
+			} catch (Throwable ex) {
+				setCnuSection((CnuSection) null);
+			}
+		}
+	}
+
 	/** Replies the CoNRS section of the member in the research organization.
 	 * CoNRS means "Comité national de la recherche scientifique". 
 	 *
@@ -455,6 +575,23 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 		} else {
 			try {
 				setConrsSection(ConrsSection.valueOf(conrs));
+			} catch (Throwable ex) {
+				setConrsSection((ConrsSection) null);
+			}
+		}
+	}
+
+	/** Change the CoNRS section of the member in the research organization.
+	 * CoNRS means "Comité national de la recherche scientifique". 
+	 *
+	 * @param conrs the CoNRS section number or {@code null} if unknown.
+	 */
+	public final void setConrsSection(String conrs) {
+		if (Strings.isNullOrEmpty(conrs)) {
+			setConrsSection((ConrsSection) null);
+		} else {
+			try {
+				setConrsSection(ConrsSection.valueOfCaseInsensitive(conrs));
 			} catch (Throwable ex) {
 				setConrsSection((ConrsSection) null);
 			}
@@ -638,6 +775,33 @@ public class Membership implements Serializable, AttributeProvider, Comparable<M
 		} else {
 			setResponsibility(Responsibility.valueOfCaseInsensitive(responsibility));
 		}
+	}
+
+	/** Replies the short description of this membership. It is composed of the status, organization and dates.
+	 * This short description is usually used in the form for describing the membership.
+	 *
+	 * @return the short description of the membership.
+	 */
+	public String getShortDescription() {
+		final StringBuilder b = new StringBuilder();
+		b.append(getMemberStatus().getLabel(getPerson().getGender()));
+		b.append(" - ").append(getResearchOrganization().getAcronymOrName()); //$NON-NLS-1$
+		b.append(" ["); //$NON-NLS-1$
+		if (getMemberSinceWhen() != null && getMemberToWhen() != null) {
+			final int y0 = getMemberSinceWhen().getYear();
+			final int y1 = getMemberToWhen().getYear();
+			if (y0 != y1) {
+				b.append(y0).append("-").append(y1); //$NON-NLS-1$
+			} else {
+				b.append(y0);
+			}
+		} else if (getMemberSinceWhen() != null) {
+			b.append(getMemberSinceWhen().getYear());
+		} else if (getMemberToWhen() != null) {
+			b.append(getMemberToWhen().getYear());
+		}
+		b.append("]"); //$NON-NLS-1$
+		return b.toString();
 	}
 
 }

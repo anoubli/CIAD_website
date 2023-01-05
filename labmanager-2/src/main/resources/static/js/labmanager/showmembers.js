@@ -23,10 +23,10 @@ function initMemberDataTable(config) {
 				data: "memberType",
 				defaultContent: '',
 				render: (data, type, row) => {
-					if (data in config['types'] && 'order' in config['types'][data] && config['types'][data]['order']) {
+					if (data in config['types'] && 'order' in config['types'][data]) {
 						return config['types'][data]['order'];
 					}
-					return '';
+					return '1000';
 				},
 				type: 'num',
 				visible: false,
@@ -71,6 +71,10 @@ function initMemberDataTable(config) {
 					if (key in config['statusLabels'] && config['statusLabels'][key]) {
 						return config['statusLabels'][key];
 					}
+					key = data + '_OTHER';
+					if (key in config['statusLabels'] && config['statusLabels'][key]) {
+						return config['statusLabels'][key];
+					}
 					return '';
 				},
 				searchPanes: {
@@ -82,6 +86,10 @@ function initMemberDataTable(config) {
 				defaultContent: '',
 				render: (data, type, row) => {
 					var key = data + '_' + row.person.gender;
+					if (key in config['responsibilityLabels'] && config['responsibilityLabels'][key]) {
+						return config['responsibilityLabels'][key];
+					}
+					key = data + '_OTHER';
 					if (key in config['responsibilityLabels'] && config['responsibilityLabels'][key]) {
 						return config['responsibilityLabels'][key];
 					}
@@ -104,15 +112,20 @@ function initMemberDataTable(config) {
 				defaultContent: '',
 				render: (data, type, row) => {
 					if (data) {
+						var cntr = row.country;
 						return data.map((it) => {
 							var orgName = it.acronym;
 							if (!orgName) {
 								orgName = it.name;
 							}
+							var nm = orgName;
 							if (it.url) {
-								return "<a href=\"" + it.url + "\">" + orgName + "</a>";
+								nm = "<a href=\"" + it.url + "\">" + orgName + "</a>";
 							}
-							return orgName;
+							if (it.countryLabel != cntr) {
+								nm += " (" + it.countryLabel + ")";
+							}
+							return nm;
 						}).join(', ');
 					}
 					return '';

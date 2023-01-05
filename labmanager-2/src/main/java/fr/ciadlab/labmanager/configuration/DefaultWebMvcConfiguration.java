@@ -44,8 +44,18 @@ public class DefaultWebMvcConfiguration extends DelegatingWebMvcConfiguration {
 	public LocaleResolver localeResolver() {
 		//final SessionLocaleResolver localeResolver = new SessionLocaleResolver();
 		final FixedLocaleResolver localeResolver = new FixedLocaleResolver();
-		localeResolver.setDefaultLocale(Locale.ENGLISH);
+		localeResolver.setDefaultLocale(defaultLocale());
 		return localeResolver;
+	}
+
+	/** Replies the default locale.
+	 *
+	 * @return the default locale.
+	 */
+	@SuppressWarnings("static-method")
+	@Bean
+	public Locale defaultLocale() {
+		return Locale.ENGLISH;
 	}
 
 }

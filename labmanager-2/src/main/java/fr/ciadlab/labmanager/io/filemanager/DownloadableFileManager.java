@@ -19,6 +19,7 @@ package fr.ciadlab.labmanager.io.filemanager;
 import java.io.File;
 import java.io.IOException;
 
+import org.arakhne.afc.sizediterator.SizedIterator;
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure3;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,6 +47,20 @@ public interface DownloadableFileManager {
 	 */
 	void deleteDownloadableAwardPdfFile(int id) throws Exception;
 
+	/** Delete from the server the address background image associated to the address with given identifier.
+	 *
+	 * @param id the identifier of the address.
+	 * @param fileExtension the filename extension for the image ({@code .jpg}, {@code .gif}, {@code .png}).
+	 * @throws Exception if the file cannot be deleted.
+	 */
+	void deleteAddressBackgroundImage(int id, String fileExtension);
+
+	/** Replies the path to the a folder that could be used temporary.
+	 *
+	 * @return the path to the temporary folder.
+	 */
+	File getTemporaryRootFile();
+
 	/** Replies the path to the root folder for pdf files.
 	 *
 	 * @return the path to the root folder.
@@ -57,6 +72,19 @@ public interface DownloadableFileManager {
 	 * @return the path to the root folder.
 	 */
 	File getAwardRootFile();
+
+	/** Replies the path to the root folder for address background images.
+	 *
+	 * @return the path to the root folder.
+	 */
+	File getAddressBackgroundRootFile();
+
+	/** Replies the path to the root folder for saved files.
+	 *
+	 * @return the path to the root folder.
+	 * @since 2.2
+	 */
+	File getSavingDataRootFile();
 
 	/** Make the path to the PDF downloadable file for the publication with the given identifier.
 	 *
@@ -86,6 +114,14 @@ public interface DownloadableFileManager {
 	 */
 	File makeAwardPictureFilename(int publicationId);
 
+	/** Make the path to the image that corresponds to the address background file for the address with the given identifier.
+	 *
+	 * @param addressId the identifier of the address.
+	 * @param fileExtension the filename extension for the image ({@code .jpg}, {@code .gif}, {@code .png}).
+	 * @return the path to the image associated to the background image.
+	 */
+	File makeAddressBackgroundImage(int addressId, String fileExtension);
+
 	/** Normalize a relative filename to be absolute for the server.
 	 *
 	 * @param file the relative filename.
@@ -102,6 +138,22 @@ public interface DownloadableFileManager {
 	 */
 	void saveFiles(File pdfFilename, File pictureFilename, MultipartFile multipartPdfFile) throws IOException;
 
+	/** Save the uploaded address background image.
+	 *
+	 * @param filename the filename of the image to upload.
+	 * @param backgroundImage the content of the image.
+	 * @throws IOException if the file cannot be created.
+	 */
+	void saveAddressBackgroundImage(File filename, MultipartFile backgroundImage) throws IOException;
+
+	/** Ensure that the picture file representing the PDF file is generated.
+	 *
+	 * @param pdfFilename the filename of the PDF file to upload.
+	 * @param pictureFilename the filename of the JPEG file to create. 
+	 * @throws IOException if the file cannot be created.
+	 */
+	void ensurePictureFile(File pdfFilename, File pictureFilename) throws IOException;
+
 	/** Move the uploaded files from one publication to another publication.
 	 * If the target files exist, they must not be replaced by the source files; but the source files
 	 * must disappear from the file system.
@@ -112,5 +164,26 @@ public interface DownloadableFileManager {
 	 * @throws IOException if the files cannot be moved.
 	 */
 	void moveFiles(int sourceId, int targetId, Procedure3<String, String, String> callback) throws IOException;
+
+	/** Replies the list of all the uploaded PDF files.
+	 *
+	 * @return the list of uploaded PDF files
+	 * @since 2.2
+	 */
+	SizedIterator<File> getUploadedPdfFiles();
+
+	/** Replies the list of all the thumbnail files.
+	 *
+	 * @return the list of uploaded PDF files
+	 * @since 2.2
+	 */
+	SizedIterator<File> getThumbailFiles();
+
+	/** Regenerate all the thumbnail for the given files.
+	 *
+	 * @param file the PDF file.
+	 * @throws IOException if the file cannot be created.
+	 */
+	void regenerateThumbnail(File file) throws IOException;
 
 }

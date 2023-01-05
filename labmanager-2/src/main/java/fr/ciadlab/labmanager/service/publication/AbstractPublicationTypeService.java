@@ -27,7 +27,6 @@ import fr.ciadlab.labmanager.entities.publication.Publication;
 import fr.ciadlab.labmanager.entities.publication.PublicationLanguage;
 import fr.ciadlab.labmanager.entities.publication.PublicationType;
 import fr.ciadlab.labmanager.io.filemanager.DownloadableFileManager;
-import fr.ciadlab.labmanager.service.AbstractService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 
@@ -39,7 +38,7 @@ import org.springframework.context.support.MessageSourceAccessor;
  * @mavengroupid $GroupId$
  * @mavenartifactid $ArtifactId$
  */
-public abstract class AbstractPublicationTypeService extends AbstractService {
+public abstract class AbstractPublicationTypeService extends AbstractPublicationService {
 
 	private DownloadableFileManager downloadableFileManager;
 

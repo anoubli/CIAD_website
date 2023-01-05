@@ -34,12 +34,15 @@ import org.springframework.stereotype.Component;
 @Primary
 public class SorensenDicePersonNameComparator extends AbstractPersonNameComparator {
 
+	private static final double SIMILARITY_LEVEL = 0.7;
+
 	/** Constructor.
 	 *
 	 * @param nameParser the parser for persons' names.
 	 */
 	public SorensenDicePersonNameComparator(@Autowired PersonNameParser nameParser) {
 		super(nameParser);
+		setSimilarityLevel(SIMILARITY_LEVEL);
 	}
 
 	@Override

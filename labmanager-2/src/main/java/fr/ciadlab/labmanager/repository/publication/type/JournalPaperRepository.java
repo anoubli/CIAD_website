@@ -17,8 +17,8 @@
 package fr.ciadlab.labmanager.repository.publication.type;
 
 import java.util.List;
+import java.util.Set;
 
-import fr.ciadlab.labmanager.entities.publication.Publication;
 import fr.ciadlab.labmanager.entities.publication.type.JournalPaper;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -37,7 +37,14 @@ public interface JournalPaperRepository extends JpaRepository<JournalPaper, Inte
 	 * @param journalId the identifier of the journal.
 	 * @return the journal papers.
 	 */
-	List<Publication> findAllByJournalId(int journalId);
+	List<JournalPaper> findAllByJournalId(int journalId);
+
+	/** Replies the list of journal papers for the persons with the given identifiers.
+	 *
+	 * @param personIds the list of identifiers of the authors.
+	 * @return the list of publications.
+	 */
+	Set<JournalPaper> findAllByAuthorshipsPersonIdIn(Set<Integer> personIds);
 
 }
 

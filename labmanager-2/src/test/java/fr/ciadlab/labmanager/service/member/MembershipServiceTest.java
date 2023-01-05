@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.*	;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
@@ -551,8 +551,8 @@ public class MembershipServiceTest {
 
 	@Test
 	public void addMembership() throws Exception {
-		final Pair<Membership, Boolean> m = this.test.addMembership(2345, 34567, LocalDate.parse("2022-07-12"),
-				LocalDate.parse("2022-07-28"), MemberStatus.ENGINEER, Responsibility.DEAN,
+		final Pair<Membership, Boolean> m = this.test.addMembership(2345, null, 34567, LocalDate.parse("2022-07-12"),
+				LocalDate.parse("2022-07-28"), MemberStatus.ENGINEER, true, Responsibility.DEAN,
 				CnuSection.CNU_07, ConrsSection.CONRS_08, FrenchBap.BAP_E, false, false);
 		assertNotNull(m);
 		assertTrue(m.getRight());
@@ -565,6 +565,7 @@ public class MembershipServiceTest {
 		assertEquals(LocalDate.parse("2022-07-12"), actual.getMemberSinceWhen());
 		assertEquals(LocalDate.parse("2022-07-28"), actual.getMemberToWhen());
 		assertSame(MemberStatus.ENGINEER, actual.getMemberStatus());
+		assertTrue(actual.isPermanentPosition());
 		assertSame(Responsibility.DEAN, actual.getResponsibility());
 		assertSame(CnuSection.CNU_07, actual.getCnuSection());
 		assertSame(ConrsSection.CONRS_08, actual.getConrsSection());
@@ -585,8 +586,8 @@ public class MembershipServiceTest {
 			return Optional.empty();
 		});
 
-		final Membership m = this.test.updateMembershipById(234, 1234, LocalDate.parse("2019-07-12"), LocalDate.parse("2019-07-28"),
-				MemberStatus.MASTER_STUDENT, Responsibility.IT_RESPONSIBLE, CnuSection.CNU_05, ConrsSection.CONRS_06, FrenchBap.BAP_E, false);
+		final Membership m = this.test.updateMembershipById(234, 1234, null, LocalDate.parse("2019-07-12"), LocalDate.parse("2019-07-28"),
+				MemberStatus.MASTER_STUDENT, true, Responsibility.IT_RESPONSIBLE, CnuSection.CNU_05, ConrsSection.CONRS_06, FrenchBap.BAP_E, false);
 		assertSame(this.ms1, m);
 
 		final ArgumentCaptor<Membership> arg0 = ArgumentCaptor.forClass(Membership.class);
@@ -594,9 +595,11 @@ public class MembershipServiceTest {
 		verifyNoMoreInteractions(this.membershipRepository);
 
 		verify(this.ms1).setResearchOrganization(same(this.o1));
+		verify(this.ms1).setOrganizationAddress(isNull());
 		verify(this.ms1).setMemberSinceWhen(eq(LocalDate.parse("2019-07-12")));
 		verify(this.ms1).setMemberToWhen(eq(LocalDate.parse("2019-07-28")));
 		verify(this.ms1).setMemberStatus(same(MemberStatus.MASTER_STUDENT));
+		verify(this.ms1).setPermanentPosition(eq(true));
 		verify(this.ms1).setResponsibility(same(Responsibility.IT_RESPONSIBLE));
 		verify(this.ms1).setCnuSection(same(CnuSection.CNU_05));
 		verify(this.ms1).setConrsSection(same(ConrsSection.CONRS_06));

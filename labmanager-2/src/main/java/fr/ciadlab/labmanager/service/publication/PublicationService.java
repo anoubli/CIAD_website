@@ -20,7 +20,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -29,7 +38,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.entities.journal.Journal;
-import fr.ciadlab.labmanager.entities.member.Membership;
 import fr.ciadlab.labmanager.entities.member.Person;
 import fr.ciadlab.labmanager.entities.publication.Authorship;
 import fr.ciadlab.labmanager.entities.publication.JournalBasedPublication;
@@ -48,6 +56,7 @@ import fr.ciadlab.labmanager.entities.publication.type.Report;
 import fr.ciadlab.labmanager.entities.publication.type.Thesis;
 import fr.ciadlab.labmanager.io.ExporterConfigurator;
 import fr.ciadlab.labmanager.io.bibtex.BibTeX;
+import fr.ciadlab.labmanager.io.bibtex.JournalFake;
 import fr.ciadlab.labmanager.io.filemanager.DownloadableFileManager;
 import fr.ciadlab.labmanager.io.html.HtmlDocumentExporter;
 import fr.ciadlab.labmanager.io.json.JsonExporter;
@@ -56,7 +65,6 @@ import fr.ciadlab.labmanager.repository.journal.JournalRepository;
 import fr.ciadlab.labmanager.repository.member.PersonRepository;
 import fr.ciadlab.labmanager.repository.publication.AuthorshipRepository;
 import fr.ciadlab.labmanager.repository.publication.PublicationRepository;
-import fr.ciadlab.labmanager.service.AbstractService;
 import fr.ciadlab.labmanager.service.member.MembershipService;
 import fr.ciadlab.labmanager.service.member.PersonService;
 import fr.ciadlab.labmanager.service.publication.type.BookChapterService;
@@ -73,14 +81,11 @@ import fr.ciadlab.labmanager.utils.ComposedException;
 import fr.ciadlab.labmanager.utils.names.PersonNameParser;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.jena.ext.com.google.common.base.Strings;
-import org.apache.maven.model.Organization;
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.persistence.criteria.CriteriaBuilder;
 
 /** Service for managing the publications.
  * 
@@ -91,7 +96,7 @@ import javax.persistence.criteria.CriteriaBuilder;
  * @mavenartifactid $ArtifactId$
  */
 @Service
-public class PublicationService extends AbstractService {
+public class PublicationService extends AbstractPublicationService {
 
 	private PublicationRepository publicationRepository;
 
@@ -250,9 +255,11 @@ public class PublicationService extends AbstractService {
 	 *
 	 * @param identifier the identifier of the organization.
 	 * @param includeSubOrganizations indicates if the members of the suborganizations are considered.
+	 * @param filterAuthorshipsWithActiveMemberships indicates if the authorships must correspond to active memberships.
 	 * @return the publications.
 	 */
-	public Set<Publication> getPublicationsByOrganizationId(int identifier, boolean includeSubOrganizations) {
+	public Set<Publication> getPublicationsByOrganizationId(int identifier, boolean includeSubOrganizations,
+			boolean filterAuthorshipsWithActiveMemberships) {
 		final Set<Person> members;
 		if (includeSubOrganizations) {
 			members = this.membershipService.getMembersOf(identifier);
@@ -260,7 +267,11 @@ public class PublicationService extends AbstractService {
 			members = this.membershipService.getDirectMembersOf(identifier);
 		}
 		final Set<Integer> identifiers = members.stream().map(it -> Integer.valueOf(it.getId())).collect(Collectors.toUnmodifiableSet());
-		return this.publicationRepository.findAllByAuthorshipsPersonIdIn(identifiers);
+		final Set<Publication> publications = this.publicationRepository.findAllByAuthorshipsPersonIdIn(identifiers);
+		if (filterAuthorshipsWithActiveMemberships) {
+			return filterPublicationsWithMemberships(publications, identifier, includeSubOrganizations);
+		}
+		return publications;
 	}
 
 	/** Replies the publication with the given identifier.
@@ -412,6 +423,48 @@ public class PublicationService extends AbstractService {
 		}
 	}
 
+	/** Remove the publications with the given identifiers.
+	 *
+	 * @param identifiers the identifiers of the publications to remove.
+	 * @param removeAssociatedFiles indicates if the associated files (PDF, Award...) should be also deleted.
+	 * @since 2.4
+	 */
+	public void removePublications(Collection<Integer> identifiers, boolean removeAssociatedFiles) {
+		final Set<Publication> publications = this.publicationRepository.findAllByIdIn(identifiers);
+		if (!publications.isEmpty()) {
+			for (final Publication publication : publications) {
+				final int id = publication.getId();
+				final Iterator<Authorship> iterator = publication.getAuthorships().iterator();
+				while (iterator.hasNext()) {
+					final Authorship autship = iterator.next();
+					final Person person = autship.getPerson();
+					if (person != null) {
+						person.getAuthorships().remove(autship);
+						autship.setPerson(null);
+						this.personRepository.save(person);
+					}
+					autship.setPublication(null);
+					iterator.remove();
+					this.authorshipRepository.save(autship);
+				}
+				publication.getAuthorshipsRaw().clear();
+				this.publicationRepository.deleteById(Integer.valueOf(id));
+				if (removeAssociatedFiles) {
+					try {
+						this.fileManager.deleteDownloadablePublicationPdfFile(id);
+					} catch (Throwable ex) {
+						// Silent
+					}
+					try {
+						this.fileManager.deleteDownloadableAwardPdfFile(id);
+					} catch (Throwable ex) {
+						// Silent
+					}
+				}
+			}
+		}
+	}
+
 	/** Save the given publications into the database.
 	 * If one publication has a temporary list of authors, the corresponding authors are
 	 * explicitly created into the database.
@@ -467,14 +520,17 @@ public class PublicationService extends AbstractService {
 	 *     If this argument is {@code false}, the ids of the JPA entities will be the default values, i.e., {@code 0}.
 	 * @param ensureAtLeastOneMember if {@code true}, at least one member of a research organization is required from the
 	 *     the list of the persons. If {@code false}, the list of persons could contain no organization member.
+	 * @param createMissedJournal if {@code true} the missed journals from the JPA database will be automatically the subject
+	 *     of the creation of a {@link JournalFake journal fake} for the caller. If {@code false}, an exception is thown when
+	 *     a journal is missed from the JPA database.
 	 * @return the list of the publications that are successfully extracted.
 	 * @throws Exception if it is impossible to parse the given BibTeX source.
 	 * @see BibTeX
 	 * @see "https://en.wikipedia.org/wiki/BibTeX"
 	 */
 	public List<Publication> readPublicationsFromBibTeX(Reader bibtex, boolean keepBibTeXId, boolean assignRandomId,
-			boolean ensureAtLeastOneMember) throws Exception {
-		return this.bibtex.extractPublications(bibtex, keepBibTeXId, assignRandomId, ensureAtLeastOneMember);
+			boolean ensureAtLeastOneMember, boolean createMissedJournal) throws Exception {
+		return this.bibtex.extractPublications(bibtex, keepBibTeXId, assignRandomId, ensureAtLeastOneMember, createMissedJournal);
 	}
 
 	/** Import publications from a BibTeX string. The format of the BibTeX is a standard that is briefly described
@@ -487,18 +543,21 @@ public class PublicationService extends AbstractService {
 	 * @param importedEntriesWithExpectedType a map that list the entries to import (keys corresponds to the BibTeX keys) and the
 	 *      expected publication type (as the map values) or {@code null} map value if we accept the "default" publication type.
 	 *      If this argument is {@code null} or the map is empty, then all the BibTeX entries will be imported.
+	 * @param createMissedJournals indicates if the missed journals in the database should be created on-the-fly from
+	 *     the BibTeX data.
 	 * @return the list of the identifiers of the publications that are successfully imported.
 	 * @throws Exception if it is impossible to parse the given BibTeX source.
 	 * @see BibTeX
 	 * @see "https://en.wikipedia.org/wiki/BibTeX"
 	 */
 	@SuppressWarnings("null")
-	public List<Integer> importPublications(Reader bibtex, Map<String, PublicationType> importedEntriesWithExpectedType) throws Exception {
+	public List<Integer> importPublications(Reader bibtex, Map<String, PublicationType> importedEntriesWithExpectedType,
+			boolean createMissedJournals) throws Exception {
 		// Holds the publications that we are trying to import.
 		// The publications are not yet imported into the database.
-		final List<Publication> importablePublications = readPublicationsFromBibTeX(bibtex, true, false, true);
+		final List<Publication> importablePublications = readPublicationsFromBibTeX(bibtex, true, false, true, createMissedJournals);
 
-		//Holds the IDs of the successfully imported IDs. We'll need it for type differenciation later.
+		//Holds the IDs of the successfully imported IDs. We'll need it for type differentiation later.
 		final List<Integer> importedPublicationIdentifiers = new ArrayList<>();
 
 		//We are going to try to import every publication in the list
@@ -540,6 +599,16 @@ public class PublicationService extends AbstractService {
 						publication.setType(expectedType);
 					}
 
+					// Create the journal if is was missed
+					if (publication instanceof JournalBasedPublication) {
+						final JournalBasedPublication jbpub = (JournalBasedPublication) publication;
+						if (jbpub.getJournal() != null && jbpub.getJournal().isFakeEntity()) {
+							final Journal journal = new Journal(jbpub.getJournal());
+							this.journalRepository.save(journal);
+							jbpub.setJournal(journal);
+						}
+					}
+					
 					// Add the publication to the database and get the new assigned identifier
 					this.publicationRepository.save(publication);
 					final int publicationId = publication.getId();
@@ -711,6 +780,7 @@ public class PublicationService extends AbstractService {
 	/** Create a publication in the database from values stored in the given map.
 	 * This function ignore the attributes related to uploaded files.
 	 *
+	 * @param validated indicates if the publication is validated by a local authority.
 	 * @param attributes the values of the attributes for the publication's creation.
 	 * @param authors the list of authors. It is a list of database identifiers (for known persons) and full name
 	 *     (for unknown persons). It is assumed that this list contains at least one author that is associated to a research organization.
@@ -719,7 +789,9 @@ public class PublicationService extends AbstractService {
 	 * @return the created publication.
 	 * @throws IOException if the uploaded files cannot be treated correctly.
 	 */
-	public Optional<Publication> createPublicationFromMap(Map<String, String> attributes,
+	public Optional<Publication> createPublicationFromMap(
+			boolean validated,
+			Map<String, String> attributes,
 			List<String> authors, MultipartFile downloadablePDF, MultipartFile downloadableAwardCertificate) throws IOException {
 		final PublicationType typeEnum = PublicationType.valueOfCaseInsensitive(ensureString(attributes, "type")); //$NON-NLS-1$
 		final PublicationLanguage languageEnum = PublicationLanguage.valueOfCaseInsensitive(ensureString(attributes, "majorLanguage")); //$NON-NLS-1$
@@ -745,6 +817,7 @@ public class PublicationService extends AbstractService {
 				languageEnum);
 
 		// Second step: save late attributes of the fake publication
+		publication.setValidated(validated);
 		publication.setPublicationYear(year);
 		publication.setManualValidationForced(optionalBoolean(attributes, "manualValidationForced")); //$NON-NLS-1$
 
@@ -846,6 +919,7 @@ public class PublicationService extends AbstractService {
 	/** Update an existing publication in the database from values stored in the given map.
 	 *
 	 * @param id the identifier of the publication.
+	 * @param validated indicates if the publication is validated by a local authority.
 	 * @param attributes the values of the attributes for the publication's creation.
 	 * @param authors the list of authors. It is a list of database identifiers (for known persons) and full name
 	 *     (for unknown persons). It is assumed that this list contains at least one author that is associated to a research organization.
@@ -854,7 +928,7 @@ public class PublicationService extends AbstractService {
 	 * @return the updated publication.
 	 * @throws IOException if the uploaded files cannot be treated correctly.
 	 */
-	public Optional<Publication> updatePublicationFromMap(int id, Map<String, String> attributes,
+	public Optional<Publication> updatePublicationFromMap(int id, boolean validated, Map<String, String> attributes,
 			List<String> authors, MultipartFile downloadablePDF, MultipartFile downloadableAwardCertificate) throws IOException {
 		final PublicationType typeEnum = PublicationType.valueOfCaseInsensitive(ensureString(attributes, "type")); //$NON-NLS-1$
 		// First step : find the publication
@@ -866,7 +940,7 @@ public class PublicationService extends AbstractService {
 		// Second step: check for any change of publication type
 		if (isInstanceTypeChangeNeeded(publication, typeEnum)) {
 			removePublication(id, false);
-			optPublication = createPublicationFromMap(attributes, authors, downloadablePDF, downloadableAwardCertificate);
+			optPublication = createPublicationFromMap(validated, attributes, authors, downloadablePDF, downloadableAwardCertificate);
 			if (optPublication.isPresent()) {
 				final Publication newPublication = optPublication.get();
 				final int newId = newPublication.getId();
@@ -900,7 +974,7 @@ public class PublicationService extends AbstractService {
 			return optPublication;
 		}
 		// Third step: update of an existing publication
-		updateExistingPublicationFromMap(publication, typeEnum, attributes, authors, downloadablePDF, downloadableAwardCertificate);
+		updateExistingPublicationFromMap(publication, typeEnum, validated, attributes, authors, downloadablePDF, downloadableAwardCertificate);
 		return optPublication;
 	}
 
@@ -913,6 +987,7 @@ public class PublicationService extends AbstractService {
 	 *
 	 * @param publication the publication.
 	 * @param type the type of the publication to be set-up.
+	 * @param validated indicates if the publication is validated by a local authority.
 	 * @param attributes the values of the attributes for the publication's creation.
 	 * @param authors the list of authors. It is a list of database identifiers (for known persons) and full name
 	 *     (for unknown persons).
@@ -920,14 +995,16 @@ public class PublicationService extends AbstractService {
 	 * @param downloadableAwardCertificate the uploaded Award certificate for the publication.
 	 * @throws IOException if the uploaded files cannot be treated correctly.
 	 */
-	protected void updateExistingPublicationFromMap(Publication publication, PublicationType type, Map<String, String> attributes,
-			List<String> authors, MultipartFile downloadablePDF, MultipartFile downloadableAwardCertificate) throws IOException {
+	protected void updateExistingPublicationFromMap(Publication publication, PublicationType type, boolean validated,
+			Map<String, String> attributes, List<String> authors, MultipartFile downloadablePDF,
+			MultipartFile downloadableAwardCertificate) throws IOException {
 		final PublicationLanguage languageEnum = PublicationLanguage.valueOfCaseInsensitive(ensureString(attributes, "majorLanguage")); //$NON-NLS-1$
 		final LocalDate date = optionalDate(attributes, "publicationDate"); //$NON-NLS-1$;
 		final int year = ensureYear(attributes, "publicationDate"); //$NON-NLS-1$;
 
 		// First step: Update the specific fields.
 		publication.setManualValidationForced(optionalBoolean(attributes, "manualValidationForced")); //$NON-NLS-1$
+		publication.setValidated(validated);
 
 		// Second step: Update the list of authors.
 		updateAuthorList(false, publication, authors);
@@ -1307,74 +1384,5 @@ public class PublicationService extends AbstractService {
 		this.publicationRepository.save(publication);
 		this.authorshipRepository.flush();
 	}
-
-	public List<List> getNumberOfPublicationPerYear( List<Publication> publications){
-		List<Integer> counter = new ArrayList<>();
-		List<Integer> yearArray = new ArrayList<>();
-		int currentYear;
-		int currentIndex;
-
-		for(Publication publication : publications){
-			currentYear = publication.getPublicationYear();
-			if(yearArray.contains(currentYear)){
-				currentIndex = yearArray.indexOf(currentYear);
-				counter.set(currentIndex, counter.get(currentIndex)+1);
-			}else{
-				yearArray.add(currentYear);
-				counter.add(1);
-			}
-		}
-
-		List<List> ListOfPublicationPerYear = new ArrayList<>();
-
-		for(int i=0; i<yearArray.size();i++){
-			List<Integer> intermediateList = new ArrayList<>();
-			intermediateList.add(yearArray.get(i));
-			intermediateList.add(counter.get(i));
-			ListOfPublicationPerYear.add(intermediateList);
-		}
-
-		return ListOfPublicationPerYear;
-	}
-
-	public Map<String, Integer> getPublicationPerOrganisation(){
-		Map<String,Integer> listPublicationPerOrganisation = new TreeMap<>();
-		List<Publication> allPublication = getAllPublications();
-		List<Authorship> tempAuthorshipList;
-		List<String> organisation = new ArrayList<>();
-		List<Integer> numberOfPublication = new ArrayList<>();
-
-		for(Publication publication : allPublication){
-			tempAuthorshipList = publication.getAuthorships();
-			Set<Membership> membership = tempAuthorshipList.get(0).getPerson().getMemberships();
-			boolean vrfy = true;
-			for(Membership membership1 : membership){
-				if(organisation.contains(membership1.getResearchOrganization().getAcronym())){
-					if(vrfy){
-						numberOfPublication.set(organisation.indexOf(membership1.getResearchOrganization().getAcronym()),numberOfPublication.get(organisation.indexOf(membership1.getResearchOrganization().getAcronym()))+1);
-					}
-				}else {
-					organisation.add(membership1.getResearchOrganization().getAcronym());
-					numberOfPublication.add(1);
-					vrfy=false;
-				}
-			}
-
-		}
-
-		for(String orga : organisation){
-			listPublicationPerOrganisation.put(orga, numberOfPublication.get(organisation.indexOf(orga)));
-		}
-
-
-
-
-
-
-
-		return listPublicationPerOrganisation;
-	}
-
-
 	
 }

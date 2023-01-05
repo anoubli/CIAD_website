@@ -181,8 +181,13 @@ public abstract class Publication implements Serializable, JsonSerializable, Com
 
 	/** Authorships specify the authors of the publication and their position in the list of authors.
 	 */
-	@OneToMany(mappedBy = "publication", fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "publication", fetch = FetchType.LAZY)
 	private Set<Authorship> authorships = new HashSet<>();
+
+	/** Indicates if the publication was validated by an authority.
+	 */
+	@Column(nullable = false)
+	private boolean validated;
 
 	@Transient
 	private List<Person> temporaryAuthors = null;
@@ -214,6 +219,7 @@ public abstract class Publication implements Serializable, JsonSerializable, Com
 		this.pathToDownloadableAwardCertificate = publication.getPathToDownloadableAwardCertificate();
 		this.type = publication.getType();
 		this.manualValidationForced = publication.getManualValidationForced();
+		this.validated = publication.isValidated();
 	}
 
 	/** Create a publication with the given field values.
@@ -266,11 +272,6 @@ public abstract class Publication implements Serializable, JsonSerializable, Com
 	}
 
 	@Override
-	public String toString() {
-		return "{" + getTitle() + "}:" + this.id; //$NON-NLS-1$ //$NON-NLS-2$
-	}
-
-	@Override
 	public int hashCode() {
 		int h = HashCodeUtils.start();
 		h = HashCodeUtils.add(h, this.abstractText);
@@ -291,6 +292,7 @@ public abstract class Publication implements Serializable, JsonSerializable, Com
 		h = HashCodeUtils.add(h, this.type);
 		h = HashCodeUtils.add(h, this.videoUrl);
 		h = HashCodeUtils.add(h, this.manualValidationForced);
+		h = HashCodeUtils.add(h, this.validated);
 		return h;
 	}
 
@@ -355,6 +357,9 @@ public abstract class Publication implements Serializable, JsonSerializable, Com
 			return false;
 		}
 		if (this.manualValidationForced != other.manualValidationForced) {
+			return false;
+		}
+		if (this.validated != other.validated) {
 			return false;
 		}
 		return true;
@@ -427,9 +432,10 @@ public abstract class Publication implements Serializable, JsonSerializable, Com
 		consumer.accept("ranked", Boolean.valueOf(ranked)); //$NON-NLS-1$
 		if (getType() != null) {
 			consumer.accept("type", getType()); //$NON-NLS-1$
-			consumer.accept("category", getType().getCategory(ranked)); //$NON-NLS-1$
+			consumer.accept("category", getCategory()); //$NON-NLS-1$
 		}
 		consumer.accept("manualValidationForced", Boolean.valueOf(getManualValidationForced())); //$NON-NLS-1$
+		consumer.accept("validated", Boolean.valueOf(isValidated())); //$NON-NLS-1$
 	}
 
 	@Override
@@ -1098,6 +1104,44 @@ public abstract class Publication implements Serializable, JsonSerializable, Com
 		} else {
 			setManualValidationForced(validated.booleanValue());
 		}
+	}
+
+	/** Replies if this journal was validated by an authority.
+	 *
+	 * @return {@code true} if the journal is validated.
+	 */
+	public boolean isValidated() {
+		return this.validated;
+	}
+
+	/** Change the flag that indicates if this journal was validated by an authority.
+	 *
+	 * @param validated {@code true} if the journal is validated.
+	 */
+	public void setValidated(boolean validated) {
+		this.validated = validated;
+	}
+
+	/** Change the flag that indicates if this journal was validated by an authority.
+	 *
+	 * @param validated {@code true} if the journal is validated.
+	 */
+	public final void setValidated(Boolean validated) {
+		if (validated == null) {
+			setValidated(false);
+		} else {
+			setValidated(validated.booleanValue());
+		}
+	}
+
+	/** Replies if the publication is open access
+	 *
+	 * @return {@link Boolean#TRUE} if the publication is open access, {@link Boolean#FALSE} if the publication is not open access,
+	 *     or {@code null} if the open access flag is unknown.
+	 */
+	@SuppressWarnings("static-method")
+	public Boolean getOpenAccess() {
+		return null;
 	}
 
 }

@@ -39,6 +39,14 @@ public enum MemberStatus {
 			return 0;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 0.5f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return true;
 		}
@@ -57,6 +65,18 @@ public enum MemberStatus {
 		@Override
 		public boolean isPhDOwner() {
 			return true;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
 		}
 	},
 	/** Research Director (Directeur de recherche).
@@ -67,6 +87,14 @@ public enum MemberStatus {
 			return 0;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 1f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return true;
 		}
@@ -85,6 +113,18 @@ public enum MemberStatus {
 		@Override
 		public boolean isPhDOwner() {
 			return true;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
 		}
 	},
 	/** Associate professor (maitre de conferences) with HDR.
@@ -95,6 +135,14 @@ public enum MemberStatus {
 			return 1;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 0.5f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return true;
 		}
@@ -113,6 +161,18 @@ public enum MemberStatus {
 		@Override
 		public boolean isPhDOwner() {
 			return true;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
 		}
 	},
 	/** Associate professor (maitre de conferences) without HDR.
@@ -123,6 +183,14 @@ public enum MemberStatus {
 			return 2;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 0.5f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return true;
 		}
@@ -141,6 +209,18 @@ public enum MemberStatus {
 		@Override
 		public boolean isPhDOwner() {
 			return true;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
 		}
 	},
 	/** Contractual teacher-researcher (enseignant chercheur contractuel) with PhD.
@@ -151,6 +231,14 @@ public enum MemberStatus {
 			return 2;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 0.5f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return true;
 		}
@@ -169,6 +257,18 @@ public enum MemberStatus {
 		@Override
 		public boolean isPhDOwner() {
 			return true;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
 		}
 	},
 	/** Contractual teacher-researcher (enseignant chercheur contractuel) without PhD.
@@ -179,6 +279,14 @@ public enum MemberStatus {
 			return 2;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 0.5f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return true;
 		}
@@ -198,8 +306,68 @@ public enum MemberStatus {
 		public boolean isPhDOwner() {
 			return false;
 		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
+		}
 	},
-	/** Researcher (Chargé de recherche, LRU, etc.).
+	/** Researcher (Chargé de recherche, LRU, etc.) with PhD.
+	 */
+	RESEARCHER_PHD {
+		@Override
+		public int getHierachicalLevel() {
+			return 2;
+		}
+		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 1f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
+		public boolean isResearcher() {
+			return true;
+		}
+		@Override
+		public boolean isTeacher() {
+			return false;
+		}
+		@Override
+		public boolean isTechnicalStaff() {
+			return false;
+		}
+		@Override
+		public boolean isAdministrativeStaff() {
+			return false;
+		}
+		@Override
+		public boolean isPhDOwner() {
+			return true;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
+		}
+	},
+	/** Researcher (Chargé de recherche, LRU, etc.) without PhD.
 	 */
 	RESEARCHER {
 		@Override
@@ -207,6 +375,14 @@ public enum MemberStatus {
 			return 2;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 1f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return true;
 		}
@@ -224,7 +400,19 @@ public enum MemberStatus {
 		}
 		@Override
 		public boolean isPhDOwner() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
 			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
 		}
 	},
 	/** Postdoc.
@@ -235,6 +423,14 @@ public enum MemberStatus {
 			return 3;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 1f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return false;
+		}
+		@Override
 		public boolean isResearcher() {
 			return true;
 		}
@@ -253,6 +449,18 @@ public enum MemberStatus {
 		@Override
 		public boolean isPhDOwner() {
 			return true;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return true;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
 		}
 	},
 	/** Research engineer (IGR) with PhD.
@@ -263,6 +471,14 @@ public enum MemberStatus {
 			return 3;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 1f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return false;
 		}
@@ -281,6 +497,18 @@ public enum MemberStatus {
 		@Override
 		public boolean isPhDOwner() {
 			return true;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
 		}
 	},
 	/** Research engineer (IGR) without PhD.
@@ -291,6 +519,14 @@ public enum MemberStatus {
 			return 3;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 1f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return false;
 		}
@@ -308,6 +544,18 @@ public enum MemberStatus {
 		}
 		@Override
 		public boolean isPhDOwner() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
 			return false;
 		}
 	},
@@ -319,6 +567,14 @@ public enum MemberStatus {
 			return 4;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 1f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return false;
+		}
+		@Override
 		public boolean isResearcher() {
 			return true;
 		}
@@ -336,6 +592,18 @@ public enum MemberStatus {
 		}
 		@Override
 		public boolean isPhDOwner() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return true;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return false;
+		}
+		@Override
+		public boolean isExternalPosition() {
 			return false;
 		}
 	},
@@ -347,6 +615,14 @@ public enum MemberStatus {
 			return 4;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 1f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return false;
 		}
@@ -365,6 +641,18 @@ public enum MemberStatus {
 		@Override
 		public boolean isPhDOwner() {
 			return true;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
 		}
 	},
 	/** Engineer (IGE) without PhD.
@@ -375,6 +663,14 @@ public enum MemberStatus {
 			return 4;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 1f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return false;
 		}
@@ -392,6 +688,18 @@ public enum MemberStatus {
 		}
 		@Override
 		public boolean isPhDOwner() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return false;
+		}
+		@Override
+		public boolean isExternalPosition() {
 			return false;
 		}
 	},
@@ -403,6 +711,14 @@ public enum MemberStatus {
 			return 4;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 0f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return false;
 		}
@@ -420,6 +736,18 @@ public enum MemberStatus {
 		}
 		@Override
 		public boolean isPhDOwner() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return false;
+		}
+		@Override
+		public boolean isExternalPosition() {
 			return false;
 		}
 	},
@@ -431,6 +759,14 @@ public enum MemberStatus {
 			return 4;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 0f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return false;
 		}
@@ -449,6 +785,18 @@ public enum MemberStatus {
 		@Override
 		public boolean isPhDOwner() {
 			return true;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return false;
 		}
 	},
 	/** Teacher (PRAG, etc.) without PhD.
@@ -459,6 +807,14 @@ public enum MemberStatus {
 			return 4;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 0f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return true;
+		}
+		@Override
 		public boolean isResearcher() {
 			return false;
 		}
@@ -476,6 +832,18 @@ public enum MemberStatus {
 		}
 		@Override
 		public boolean isPhDOwner() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return false;
+		}
+		@Override
+		public boolean isExternalPosition() {
 			return false;
 		}
 	},
@@ -487,6 +855,14 @@ public enum MemberStatus {
 			return 5;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 1f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return false;
+		}
+		@Override
 		public boolean isResearcher() {
 			return false;
 		}
@@ -505,6 +881,18 @@ public enum MemberStatus {
 		@Override
 		public boolean isPhDOwner() {
 			return false;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return true;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return false;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return true;
 		}
 	},
 	/** Bachelor student (internship).
@@ -515,6 +903,14 @@ public enum MemberStatus {
 			return 6;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 1f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return false;
+		}
+		@Override
 		public boolean isResearcher() {
 			return false;
 		}
@@ -534,6 +930,18 @@ public enum MemberStatus {
 		public boolean isPhDOwner() {
 			return false;
 		}
+		@Override
+		public boolean isSupervisable() {
+			return true;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return false;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return true;
+		}
 	},
 	/** Associate member with PhD.
 	 */
@@ -541,6 +949,14 @@ public enum MemberStatus {
 		@Override
 		public int getHierachicalLevel() {
 			return 7;
+		}
+		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 0f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return false;
 		}
 		@Override
 		public boolean isResearcher() {
@@ -560,6 +976,18 @@ public enum MemberStatus {
 		}
 		@Override
 		public boolean isPhDOwner() {
+			return true;
+		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
 			return true;
 		}
 	},
@@ -571,6 +999,14 @@ public enum MemberStatus {
 			return 7;
 		}
 		@Override
+		public float getUsualResearchFullTimeEquivalent() {
+			return 0f;
+		}
+		@Override
+		public boolean isPermanentPositionAllowed() {
+			return false;
+		}
+		@Override
 		public boolean isResearcher() {
 			return true;
 		}
@@ -590,6 +1026,18 @@ public enum MemberStatus {
 		public boolean isPhDOwner() {
 			return false;
 		}
+		@Override
+		public boolean isSupervisable() {
+			return false;
+		}
+		@Override
+		public boolean isSupervisor() {
+			return true;
+		}
+		@Override
+		public boolean isExternalPosition() {
+			return true;
+		}
 	};
 
 	private static final String MESSAGE_PREFIX = "memberStatus."; //$NON-NLS-1$
@@ -597,7 +1045,7 @@ public enum MemberStatus {
 	private static final String TITLE_POSTFIX = "_title"; //$NON-NLS-1$
 
 	private MessageSourceAccessor messages;
-	
+
 	/** Replies the message accessor to be used.
 	 *
 	 * @return the accessor.
@@ -629,6 +1077,21 @@ public enum MemberStatus {
 	 */
 	public abstract int getHierachicalLevel();
 
+	/** Replies the amount of full-time equivalent for this type of member status that is usually defined
+	 * in the job status for the associated position.
+	 *
+	 * @return the amount of full-time equivalent. {@code 1} means a full-time, {@code 0.5} means 50% part-time.
+	 * @since 2.2
+	 */
+	public abstract float getUsualResearchFullTimeEquivalent();
+
+	/** Replies if this status allowed to be associated to a permanent position.
+	 *
+	 * @return {@code true} if the status could be associated to a permanent position.
+	 * @since 2.2
+	 */
+	public abstract boolean isPermanentPositionAllowed();
+
 	/** Replies if the status includes research activities.
 	 *
 	 * @return {@code true} if the status includes activities of research.
@@ -653,12 +1116,42 @@ public enum MemberStatus {
 	 */
 	public abstract boolean isAdministrativeStaff();
 
+	/** Replies if the status enables to be supervised by another person.
+	 *
+	 * @return {@code true} if the status enables supervision by another person.
+	 * @since 2.1
+	 */
+	public abstract boolean isSupervisable();
+
+	/** Replies if the status enables to be supervisor of another person.
+	 *
+	 * @return {@code true} if the status enables supervisor of another person.
+	 * @since 2.1
+	 */
+	public abstract boolean isSupervisor();
+
+	/** Replies if this status corresponds to an external position outside the organization itself.
+	 *
+	 * @return {@code true} if the status could be associated to an external position.
+	 * @since 2.3
+	 */
+	public abstract boolean isExternalPosition();
+
 	/** Replies the label of the status in the current language.
 	 *
 	 * @return the label of the status in the current language.
 	 */
 	public String getLabel() {
-		return getLabel((Gender) null);
+		return getLabel(null, false, null);
+	}
+
+	/** Replies the label of the status in the current language.
+	 *
+	 * @param former is the status for a former member?
+	 * @return the label of the status in the current language.
+	 */
+	public String getLabel(boolean former) {
+		return getLabel(null, former, null);
 	}
 
 	/** Replies the label of the status in the current language.
@@ -667,9 +1160,18 @@ public enum MemberStatus {
 	 * @return the label of the status in the current language.
 	 */
 	public String getLabel(Locale locale) {
-		return getLabel(null, locale);
+		return getLabel(null, false, locale);
 	}
 
+	/** Replies the label of the status in the current language.
+	 *
+	 * @param former is the status for a former member?
+	 * @param locale the locale to use.
+	 * @return the label of the status in the current language.
+	 */
+	public String getLabel(boolean former, Locale locale) {
+		return getLabel(null, former, locale);
+	}
 
 	/** Replies the label of the status in the current language.
 	 *
@@ -677,9 +1179,7 @@ public enum MemberStatus {
 	 * @return the label of the status in the current language.
 	 */
 	public String getLabel(Gender gender) {
-		final Gender gndr = gender == null || gender == Gender.NOT_SPECIFIED ? Gender.OTHER : gender;
-		final String label = getMessageSourceAccessor().getMessage(MESSAGE_PREFIX + name() + "_" + gndr.name()); //$NON-NLS-1$
-		return Strings.nullToEmpty(label);
+		return getLabel(gender, false, null);
 	}
 
 	/** Replies the label of the status in the current language.
@@ -689,8 +1189,40 @@ public enum MemberStatus {
 	 * @return the label of the status in the current language.
 	 */
 	public String getLabel(Gender gender, Locale locale) {
+		return getLabel(gender, false, locale);
+	}
+
+	/** Replies the label of the status in the current language.
+	 *
+	 * @param gender the gender of the person concerned by the member status.
+	 * @param former is the status for a former member?
+	 * @return the label of the status in the current language.
+	 */
+	public String getLabel(Gender gender, boolean former) {
+		return getLabel(gender, former, null);
+	}
+
+	/** Replies the label of the status in the current language.
+	 *
+	 * @param gender the gender of the person concerned by the member status.
+	 * @param former is the status for a former member?
+	 * @param locale the locale to use.
+	 * @return the label of the status in the current language.
+	 */
+	public String getLabel(Gender gender, boolean former, Locale locale) {
 		final Gender gndr = gender == null || gender == Gender.NOT_SPECIFIED ? Gender.OTHER : gender;
-		final String label = getMessageSourceAccessor().getMessage(MESSAGE_PREFIX + name() + "_" + gndr.name(), locale); //$NON-NLS-1$
+		final StringBuilder key = new StringBuilder();
+		key.append(MESSAGE_PREFIX).append(name());
+		if (former) {
+			key.append("_former"); //$NON-NLS-1$
+		}
+		key.append("_").append(gndr.name()); //$NON-NLS-1$
+		final String label;
+		if (locale == null) {
+			label = getMessageSourceAccessor().getMessage(key.toString());
+		} else {
+			label = getMessageSourceAccessor().getMessage(key.toString(), locale);
+		}
 		return Strings.nullToEmpty(label);
 	}
 

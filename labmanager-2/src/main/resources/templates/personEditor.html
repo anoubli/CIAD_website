@@ -26,6 +26,7 @@
 	<div class="form-group" th:replace="fragments/form :: textInput(email, #{html.Email}, #{html.PlaceHolderEmail}, ${person != null ? person.email : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: textInput(officePhone, #{html.OfficePhone}, #{html.PlaceHolderPhone}, ${person != null ? person.officePhone : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: textInput(mobilePhone, #{html.MobilePhone}, #{html.PlaceHolderPhone}, ${person != null ? person.mobilePhone : ''})"></div>
+	<div class="form-group" th:replace="fragments/form :: textInput(officeRoom, #{html.OfficeRoom}, #{html.PlaceHolderRoom}, ${person != null ? person.officeRoom : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: textInputWithDiv(gravatarId, #{html.GravatarId}, #{html.PlaceHolderIdentifier}, ${person != null ? person.gravatarId : ''}, personGravatarPhoto)"></div>
 	<div class="form-group" th:replace="fragments/form :: textInput(orcid, #{html.ORCID}, #{html.PlaceHolderIdentifierOrcid}, ${person != null ? person.getORCID() : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: textInput(researcherId, #{html.ResearcherId}, #{html.PlaceHolderIdentifier}, ${person != null ? person.researcherId : ''})"></div>
@@ -47,7 +48,7 @@
 	<div class="form-group" th:replace="fragments/form :: textInput(googleScholarHindex, #{html.HindexOnScholar}, #{html.PlaceHolderPositiveInteger}, ${person != null ? person.googleScholarHindex : ''})"></div>
 	<div class="form-group" th:replace="fragments/form :: textInput(wosHindex, #{html.HindexOnWos}, #{html.PlaceHolderPositiveInteger}, ${person != null ? person.wosHindex : ''})"></div>
 </form>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
 $(document).ready(function () {
     $('#form:first').validate({
         rules: {

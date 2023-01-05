@@ -22,6 +22,7 @@ import java.util.TreeMap;
 
 import com.google.common.base.Strings;
 import org.arakhne.afc.util.CountryCode;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 /** Utilities for country codes.
  * 
@@ -60,15 +61,22 @@ public final class CountryCodeUtils {
 	}
 
 	/** Replies the display name of the country.
+	 * The target language is the one provided by {@link LocaleContextHolder}.
 	 *
 	 * @param code the country code to use.
 	 * @return the display name of the country.
 	 */
 	public static String getDisplayCountry(CountryCode code) {
-		return new Locale(code.getCode(), code.getCode()).getDisplayCountry();
+		final Locale targetLanguage = LocaleContextHolder.getLocale();
+		final Locale countryLocale = new Locale(code.getCode(), code.getCode());
+		if (targetLanguage == null) {
+			countryLocale.getDisplayCountry();
+		}
+		return countryLocale.getDisplayCountry(targetLanguage);
 	}
 
 	/** Replies all the display names of the countries.
+	 * The target language is the one provided by {@link LocaleContextHolder}.
 	 *
 	 * @return the display names of the countries.
 	 */
@@ -78,6 +86,19 @@ public final class CountryCodeUtils {
 			labels.put(code, getDisplayCountry(code));
 		}
 		return labels;
+	}
+
+	/** Replies if the given code corresponds to France and one of its associated territories.
+	 *
+	 * @param code the code to test.
+	 * @return {@code true} if the code corresponds to a French territory.
+	 */
+	public static boolean isFrance(CountryCode code) {
+		if (code != null) {
+			return code == CountryCode.FRANCE || code == CountryCode.FRENCH_GUIANA
+					|| code == CountryCode.FRENCH_POLYNESIA || code == CountryCode.FRENCH_SOUTHERN_TERRITORIES;
+		}
+		return false;
 	}
 
 }

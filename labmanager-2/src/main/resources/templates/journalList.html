@@ -18,6 +18,7 @@
         <th th:utext="#{html.WoS}"></th>
         <th th:utext="#{html.ImpactFactor}"></th>
         <th th:utext="#{html.PapersCount}"></th>
+        <th th:utext="#{html.Validated}"></th>
         <th th:text="#{html.Actions}"></th>
     </thead>
     <tbody>
@@ -46,27 +47,32 @@
             </td>
             <td th:with="qindex=${journal.getScimagoQIndexByYear(currentYear)}">
             	<a th:href="@{/getJournalQualityIndicators(journal=${journal.id})}">
-	                <th:block th:if="${qindex != null}"
+	                <th:block th:if="${qindex != null && qindex != T(fr.ciadlab.labmanager.utils.ranking.QuartileRanking).NR}"
 	                          th:utext="${qindex.toString}"></th:block>
             	</a>
             </td>
             <td th:with="qindex=${journal.getWosQIndexByYear(currentYear)}">
             	<a th:href="@{/getJournalQualityIndicators(journal=${journal.id})}">
-	                <th:block th:if="${qindex != null}"
+	                <th:block th:if="${qindex != null && qindex != T(fr.ciadlab.labmanager.utils.ranking.QuartileRanking).NR}"
 	                          th:utext="${qindex.toString}"></th:block>
             	</a>
             </td>
             <td th:with="impactFactor=${journal.getImpactFactorByYear(currentYear)}">
-            	<a th:href="@{/getJournalQualityIndicators(journal=${journal.id})}">
-	                <th:block th:if="${impactFactor > 0}"
-	                          th:utext="${impactFactor}"></th:block>
-            	</a>
+				<th:block th:if="${impactFactor <= 0}" th:utext="${impactFactor}"></th:block>
+            	<a th:href="@{/getJournalQualityIndicators(journal=${journal.id})}"
+            	   th:if="${impactFactor > 0}">
+	                <th:block th:utext="${impactFactor}"></th:block>
+				</a>
             </td>
             <td>
                 <th:block th:if="${journal.publishedPapers.size <= 0}" th:utext="${journal.publishedPapers.size}"></th:block>
                 <a th:if="${journal.publishedPapers.size > 0}"
                    th:href="@{/publicationList(journal=${journal.id})}">
 	                <th:block th:utext="${journal.publishedPapers.size}"></th:block></a>
+            </td>
+            <td>
+            	<th:block th:if="${journal.validated}"><i style="color:green" class="fa-solid fa-check-circle">B</i></th:block>
+            	<th:block th:unless="${journal.validated}"><i style="color:red" class="fa-solid fa-triangle-exclamation">A</i></th:block>
             </td>
             <td th:replace="fragments/table :: adminToolButtons(${journal.id}, ${journal.journalName},
             		#{html.EditJournal1(${journal.journalName})},
@@ -89,10 +95,10 @@
         </tr>
     </tbody>
 </table>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
     $(document).ready(() => {
     	initAdministrationTable({
-    		columns: 9,
+            columns: 10,
     		actionWidth: '180px',
     	});
         /*[# th:if="${changeEnabled}" th:each="journal : ${journals}"]*/

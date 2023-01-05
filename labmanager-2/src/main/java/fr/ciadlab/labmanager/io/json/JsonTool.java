@@ -57,6 +57,14 @@ public abstract class JsonTool {
 	 */
 	public static final String SPECIAL_FIELD_PREFIX = "@"; //$NON-NLS-1$
 
+	/** Main section of the JSON that is dedicated to global indicators.
+	 */
+	public static final String GLOBALINDICATORS_SECTION = "globalIndicators"; //$NON-NLS-1$
+
+	/** Main section of the JSON that is dedicated to organization addresses.
+	 */
+	public static final String ORGANIZATIONADDRESSES_SECTION = "organizationAddresses"; //$NON-NLS-1$
+
 	/** Main section of the JSON that is dedicated to research organizations.
 	 */
 	public static final String RESEARCHORGANIZATIONS_SECTION = "researchOrganizations"; //$NON-NLS-1$
@@ -67,7 +75,7 @@ public abstract class JsonTool {
 
 	/** Main section of the JSON that is dedicated to memberships.
 	 */
-	public static final String MEMBERSHIPS_SECTION = "memberships"; //$NON-NLS-1$
+	public static final String ORGANIZATION_MEMBERSHIPS_SECTION = "memberships"; //$NON-NLS-1$
 
 	/** Main section of the JSON that is dedicated to journals.
 	 */
@@ -76,6 +84,18 @@ public abstract class JsonTool {
 	/** Main section of the JSON that is dedicated to publications.
 	 */
 	public static final String PUBLICATIONS_SECTION = "publications"; //$NON-NLS-1$
+
+	/** Main section of the JSON that is dedicated to jury memberships.
+	 */
+	public static final String JURY_MEMBERSHIPS_SECTION = "juryMemberships"; //$NON-NLS-1$
+
+	/** Main section of the JSON that is dedicated to supervisions.
+	 */
+	public static final String SUPERVISIONS_SECTION = "supervisions"; //$NON-NLS-1$
+
+	/** Main section of the JSON that is dedicated to invitations.
+	 */
+	public static final String INVITATIONS_SECTION = "invitations"; //$NON-NLS-1$
 
 	/** Name of the field that contains the source of the data. Value of this field may be
 	 * {@code :db} or the name of the source.
@@ -98,6 +118,14 @@ public abstract class JsonTool {
 	 * The reason why an entity cannot be imported is not explicitly explained in this field.
 	 */
 	public static final String HIDDEN_INTERNAL_IMPORTABLE_KEY = HIDDEN_FIELD_PREFIX + "internalImportable"; //$NON-NLS-1$
+
+	/** Name of the field that indicates if a journal must be created for importing a publication in the database.
+	 */
+	public static final String HIDDEN_INTERNAL_NEW_JOURNAL_KEY = HIDDEN_FIELD_PREFIX + "internalNewJournal"; //$NON-NLS-1$
+
+	/** Name of the field for the visible global indicators.
+	 */
+	public static final String VISIBLEGLOBALINDICATORS_KEY = "visibleGlobalIndicators"; //$NON-NLS-1$
 
 	/** Name of the field for the year. This field is usually for {@link Publication}.
 	 *
@@ -150,6 +178,10 @@ public abstract class JsonTool {
 	 */
 	public static final String MANUALVALIDATIONFORCED_KEY = "manualValidationForced"; //$NON-NLS-1$
 
+	/** Prefix for organization address identifiers.
+	 */
+	protected  static final String ORGANIZATIONADDRESS_ID_PREFIX = "/adr#"; //$NON-NLS-1$
+
 	/** Prefix for research organization identifiers.
 	 */
 	protected  static final String RESEARCHORGANIZATION_ID_PREFIX = "/ro#"; //$NON-NLS-1$
@@ -157,6 +189,18 @@ public abstract class JsonTool {
 	/** Prefix for membership identifiers.
 	 */
 	protected  static final String MEMBERSHIP_ID_PREFIX = "/mbr#"; //$NON-NLS-1$
+
+	/** Prefix for jury membership identifiers.
+	 */
+	protected  static final String JURY_MEMBERSHIP_ID_PREFIX = "/jurymbr#"; //$NON-NLS-1$
+
+	/** Prefix for supervision identifiers.
+	 */
+	protected  static final String SUPERVISION_ID_PREFIX = "/supervis#"; //$NON-NLS-1$
+
+	/** Prefix for invitation identifiers.
+	 */
+	protected  static final String INVITATION_ID_PREFIX = "/invit#"; //$NON-NLS-1$
 
 	/** Prefix for person identifiers.
 	 */
@@ -194,6 +238,14 @@ public abstract class JsonTool {
 	 */
 	protected static final String IS_GETTER_FUNCTION_PREFIX = "is"; //$NON-NLS-1$
 
+	/** Name of the field for the addresses reference.
+	 */
+	protected static final String ADDRESSES_KEY = "addresses"; //$NON-NLS-1$
+
+	/** Name of the field for the address reference.
+	 */
+	protected static final String ADDRESS_KEY = "address"; //$NON-NLS-1$
+
 	/** Name of the field for the super organization reference.
 	 */
 	protected static final String SUPERORGANIZATION_KEY = "superOrganization"; //$NON-NLS-1$
@@ -201,6 +253,54 @@ public abstract class JsonTool {
 	/** Name of the field for the person reference.
 	 */
 	protected static final String PERSON_KEY = "person"; //$NON-NLS-1$
+
+	/** Name of the field for the guest person reference.
+	 */
+	protected static final String GUEST_KEY = "guest"; //$NON-NLS-1$
+
+	/** Name of the field for the inviter person reference.
+	 */
+	protected static final String INVITER_KEY = "inviter"; //$NON-NLS-1$
+
+	/** Name of the field for a percentage.
+	 */
+	protected static final String PERCENT_KEY = "percent"; //$NON-NLS-1$
+
+	/** Name of the field for the candidate reference.
+	 */
+	protected static final String CANDIDATE_KEY = "candidate"; //$NON-NLS-1$
+
+	/** Name of the field for the promoters' references.
+	 */
+	protected static final String PROMOTERS_KEY = "promoters"; //$NON-NLS-1$
+
+	/** Name of the field for the supervisors' references.
+	 */
+	protected static final String SUPERVISORS_KEY = "supervisors"; //$NON-NLS-1$
+
+	/** Name of the field for the abandonment.
+	 */
+	protected static final String ABANDONMENT_KEY = "abandonment"; //$NON-NLS-1$
+
+	/** Name of the field for the defense date.
+	 */
+	protected static final String DEFENSE_DATE_KEY = "defenseDate"; //$NON-NLS-1$
+
+	/** Name of the field for the number of ATER positions.
+	 */
+	protected static final String ATER_COUNT_KEY = "aterCount"; //$NON-NLS-1$
+
+	/** Name of the field for the becoming of.
+	 */
+	protected static final String BECOMING_KEY = "becoming"; //$NON-NLS-1$
+
+	/** Name of the field for the funding.
+	 */
+	protected static final String FUNDING_KEY = "funding"; //$NON-NLS-1$
+
+	/** Name of the field for the funding details.
+	 */
+	protected static final String FUNDING_DETAILS_KEY = "fundingDetails"; //$NON-NLS-1$
 
 	/** Name of the field for the research organization reference.
 	 */
@@ -395,7 +495,8 @@ public abstract class JsonTool {
 		for (final Method meth : source.getMethods()) {
 			final String name = meth.getName().toLowerCase();
 			if (meth.getParameterCount() == 1
-					&& (Number.class.equals(meth.getParameterTypes()[0])
+					&& (meth.getParameterTypes()[0].isPrimitive()
+							|| Number.class.equals(meth.getParameterTypes()[0])
 							|| String.class.equals(meth.getParameterTypes()[0])
 							|| Boolean.class.equals(meth.getParameterTypes()[0]))
 					&& name.startsWith(SETTER_FUNCTION_PREFIX)) {
@@ -420,6 +521,8 @@ public abstract class JsonTool {
 				}
 			}
 		}
+		//
+		getters.remove("id"); //$NON-NLS-1$
 		//
 		final Iterator<Entry<String, Method>> iterator = getters.entrySet().iterator();
 		while (iterator.hasNext()) {

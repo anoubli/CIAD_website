@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import fr.ciadlab.labmanager.configuration.BaseMessageSource;
 import fr.ciadlab.labmanager.entities.member.MemberStatus;
 import fr.ciadlab.labmanager.entities.member.Membership;
+import fr.ciadlab.labmanager.entities.member.Responsibility;
 import org.springframework.context.support.MessageSourceAccessor;
 
 /** Describe the type of a member for the member list front end.
@@ -32,9 +33,17 @@ import org.springframework.context.support.MessageSourceAccessor;
  * @mavenartifactid $ArtifactId$
  */
 public enum GeneralMemberType {
+	/** Laboratory Direction.
+	 */
+	DIRECTION,
+
 	/** Researchers.
 	 */
 	RESEARCHERS,
+
+	/** Associated members.
+	 */
+	ASSOCIATED_MEMBERS,
 
 	/** Post-Docs.
 	 */
@@ -44,13 +53,13 @@ public enum GeneralMemberType {
 	 */
 	PHDS,
 
+	/** Members that are engineers.
+	 */
+	ENGINEERS,
+
 	/** Members that are not inside in one of the other general member types.
 	 */
 	OTHER_MEMBERS,
-
-	/** Associated members.
-	 */
-	ASSOCIATED_MEMBERS,
 
 	/** Master students.
 	 */
@@ -112,24 +121,33 @@ public enum GeneralMemberType {
 		if (membership.isFuture()) {
 			return null;
 		}
+		// Classification on the responsabilities
+		Responsibility res = membership.getResponsibility();
+		if (res != null && res.isDirectionLevel()) {
+			return GeneralMemberType.DIRECTION;
+		}
+		// Classification on member status
 		final MemberStatus ms = membership.getMemberStatus();
 		if (membership.isActive()) {
 			if (ms.isResearcher()) {
+				if (ms == MemberStatus.ASSOCIATED_MEMBER || ms == MemberStatus.ASSOCIATED_MEMBER_PHD) {
+					return GeneralMemberType.ASSOCIATED_MEMBERS;
+				}
 				if (ms == MemberStatus.POSTDOC) {
 					return GeneralMemberType.POSTDOCS;
 				}
 				if (ms == MemberStatus.PHD_STUDENT) {
 					return GeneralMemberType.PHDS;
 				}
-				if (ms == MemberStatus.ASSOCIATED_MEMBER) {
-					return GeneralMemberType.ASSOCIATED_MEMBERS;
-				}
 				return GeneralMemberType.RESEARCHERS;
+			}
+			if (ms.isTechnicalStaff()) {
+				return GeneralMemberType.ENGINEERS;
 			}
 			if (ms == MemberStatus.MASTER_STUDENT) {
 				return GeneralMemberType.MASTER_STUDENTS;
 			}
-			if (ms.isAdministrativeStaff() || ms.isTechnicalStaff()) {
+			if (ms.isAdministrativeStaff()) {
 				return GeneralMemberType.OTHER_MEMBERS;
 			}
 			return null;

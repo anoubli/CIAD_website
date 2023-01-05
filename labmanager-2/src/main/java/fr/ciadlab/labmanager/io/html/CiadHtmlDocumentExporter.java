@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Primary
 public class CiadHtmlDocumentExporter extends AbstractCiadHtmlExporter implements HtmlDocumentExporter {
-
+	
 	/** Constructor.
 	 *
 	 * @param constants the accessor to the application constants.
@@ -46,7 +46,7 @@ public class CiadHtmlDocumentExporter extends AbstractCiadHtmlExporter implement
 	public CiadHtmlDocumentExporter(@Autowired Constants constants, @Autowired MessageSourceAccessor messages, DoiTools doiTools) {
 		super(constants, messages, doiTools);
 	}
-	
+
 	@Override
 	public String exportPublications(Iterable<? extends Publication> publications, ExporterConfigurator configurator) throws Exception {
 		assert configurator != null;
@@ -54,12 +54,27 @@ public class CiadHtmlDocumentExporter extends AbstractCiadHtmlExporter implement
 			return null;
 		}
 		final StringBuilder html = new StringBuilder();
-		html.append("<html><body><ul>"); //$NON-NLS-1$
+		html.append("<html><body>"); //$NON-NLS-1$
+		exportPublicationsWithGroupingCriteria(publications, configurator,
+				it -> html.append("<h1>").append(it).append("</h1>"), //$NON-NLS-1$ //$NON-NLS-2$
+				it -> html.append("<h2>").append(it).append("</h2>"), //$NON-NLS-1$ //$NON-NLS-2$
+				it -> exportFlatList(html, it, configurator));
+		html.append("</html></body>"); //$NON-NLS-1$
+		return html.toString();
+	}
+
+	/** Export the publications in a flat list.
+	 *
+	 * @param html the receiver of the HTML code.
+	 * @param publications the publications to export.
+	 * @param configurator the exporter configurator.
+	 */
+	protected void exportFlatList(StringBuilder html, Iterable<? extends Publication> publications, ExporterConfigurator configurator) {
+		html.append("<ul>"); //$NON-NLS-1$
 		for (final Publication publication : publications) {
 			exportPublication(html, publication, configurator);
 		}
-		html.append("</ul></html></body>"); //$NON-NLS-1$
-		return html.toString();
+		html.append("</ul>"); //$NON-NLS-1$
 	}
 
 	/** Export in HTML a single publication.

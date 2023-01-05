@@ -39,6 +39,7 @@ import fr.ciadlab.labmanager.entities.member.MemberStatus;
 import fr.ciadlab.labmanager.entities.member.Membership;
 import fr.ciadlab.labmanager.entities.member.Person;
 import fr.ciadlab.labmanager.entities.member.Responsibility;
+import fr.ciadlab.labmanager.entities.organization.OrganizationAddress;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganization;
 import fr.ciadlab.labmanager.repository.member.MembershipRepository;
 import fr.ciadlab.labmanager.repository.member.PersonRepository;
@@ -201,16 +202,27 @@ public class MembershipService extends AbstractService {
 		return null;
 	}
 
+	/** Replies the membership of the given person.
+	 *
+	 * @param memberId the identifier of the person.
+	 * @return the memberships of the person.
+	 */
+	public List<Membership> getMembershipsForPerson(int memberId) {
+		return this.membershipRepository.findAllByPersonId(memberId);
+	}
+
 	/** Create the membership that corresponds to the given organization and member identifiers.
 	 * This function may test if an active membership already exists in the organization for the given
 	 * person. In this case, and if the argument {@code forceCreation} is set to {@code false},
 	 * then the function does not create the membership and replies the existing membership.
 	 * 
 	 * @param organizationId the identifier of the organization.
+	 * @param organizationAddressId the identifier of the organization address, if known.
 	 * @param personId the identifier of the member.
 	 * @param startDate the beginning of the membership.
 	 * @param endDate the end of the membership.
 	 * @param memberStatus the status of the person in the membership.
+	 * @param permanentPosition indicates if the position is permanent.
 	 * @param responsibility the responsibility of the person during the membership period.
 	 * @param cnuSection the section of the CNU to which this membership belongs to.
 	 * @param conrsSection the section of the CoNRS to which this membership belongs to.
@@ -222,8 +234,10 @@ public class MembershipService extends AbstractService {
 	 *     if the replied membership is a new membership or not.
 	 * @throws Exception if the creation cannot be done.
 	 */
-	public Pair<Membership, Boolean> addMembership(int organizationId, int personId, LocalDate startDate, LocalDate endDate,
-			MemberStatus memberStatus, Responsibility responsibility, CnuSection cnuSection, ConrsSection conrsSection,
+	public Pair<Membership, Boolean> addMembership(int organizationId, Integer organizationAddressId, int personId,
+			LocalDate startDate, LocalDate endDate,
+			MemberStatus memberStatus, boolean permanentPosition,
+			Responsibility responsibility, CnuSection cnuSection, ConrsSection conrsSection,
 			FrenchBap frenchBap, boolean isMainPosition, boolean forceCreation) throws Exception {
 		assert memberStatus != null;
 		final Optional<ResearchOrganization> optOrg = this.organizationRepository.findById(Integer.valueOf(organizationId));
@@ -244,12 +258,22 @@ public class MembershipService extends AbstractService {
 					}
 				}
 				final ResearchOrganization organization = optOrg.get();
+				OrganizationAddress address = null;
+				if (organizationAddressId != null && organizationAddressId.intValue() != 0) {
+					final Optional<OrganizationAddress> optAdr = organization.getAddresses().stream().filter(it -> organizationAddressId.intValue() == it.getId()).findAny();
+					if (optAdr.isPresent()) {
+						address = optAdr.get();
+					}
+				}
+				
 				final Membership mem = new Membership();
 				mem.setPerson(person);
 				mem.setResearchOrganization(organization);
+				mem.setOrganizationAddress(address);
 				mem.setMemberSinceWhen(startDate);
 				mem.setMemberToWhen(endDate);
 				mem.setMemberStatus(memberStatus);
+				mem.setPermanentPosition(permanentPosition);
 				mem.setResponsibility(responsibility);
 				mem.setCnuSection(cnuSection);
 				mem.setConrsSection(conrsSection);
@@ -267,9 +291,11 @@ public class MembershipService extends AbstractService {
 	 * 
 	 * @param membershipId the identifier of the membership to update.
 	 * @param organizationId the identifier of the organization. If it is {@code null}, the organization should not change.
+	 * @param organizationAddressId the identifier of the organization address, if known.
 	 * @param startDate the new beginning of the membership.
 	 * @param endDate the new end of the membership.
 	 * @param memberStatus the new status of the person in the membership.
+	 * @param permanentPosition indicates if the position is permanent or not.
 	 * @param responsibility the responsibility of the person during the membership period.
 	 * @param cnuSection the new CNU section, or {@code null} if unknown.
 	 * @param conrsSection the section of the CoNRS to which this membership belongs to.
@@ -278,8 +304,10 @@ public class MembershipService extends AbstractService {
 	 * @return the updated membership.
 	 * @throws Exception if the given identifiers cannot be resolved to JPA entities.
 	 */
-	public Membership updateMembershipById(int membershipId, Integer organizationId, LocalDate startDate, LocalDate endDate,
-			MemberStatus memberStatus, Responsibility responsibility, CnuSection cnuSection, ConrsSection conrsSection, FrenchBap frenchBap,
+	public Membership updateMembershipById(int membershipId, Integer organizationId, Integer organizationAddressId,
+			LocalDate startDate, LocalDate endDate,
+			MemberStatus memberStatus, boolean permanentPosition, Responsibility responsibility,
+			CnuSection cnuSection, ConrsSection conrsSection, FrenchBap frenchBap,
 			boolean isMainPosition) throws Exception {
 		final Optional<Membership> res = this.membershipRepository.findById(Integer.valueOf(membershipId));
 		if (res.isPresent()) {
@@ -290,12 +318,21 @@ public class MembershipService extends AbstractService {
 					throw new IllegalArgumentException("Cannot find organization with id: " + organizationId); //$NON-NLS-1$
 				}
 				membership.setResearchOrganization(res0.get());
+				OrganizationAddress address = null;
+				if (organizationAddressId != null && organizationAddressId.intValue() != 0) {
+					final Optional<OrganizationAddress> optAdr = res0.get().getAddresses().stream().filter(it -> organizationAddressId.intValue() == it.getId()).findAny();
+					if (optAdr.isPresent()) {
+						address = optAdr.get();
+					}
+				}
+				membership.setOrganizationAddress(address);
 			}
 			membership.setMemberSinceWhen(startDate);
 			membership.setMemberToWhen(endDate);
 			if (memberStatus != null) {
 				membership.setMemberStatus(memberStatus);
 			}
+			membership.setPermanentPosition(permanentPosition);
 			membership.setResponsibility(responsibility);
 			membership.setCnuSection(cnuSection);
 			membership.setConrsSection(conrsSection);
@@ -317,7 +354,7 @@ public class MembershipService extends AbstractService {
 		final Integer mid = Integer.valueOf(membershipId);
 		final Optional<Membership> optMbr = this.membershipRepository.findById(mid);
 		if (optMbr.isEmpty()) {
-			throw new IllegalStateException("Membership not founnd with id: " + membershipId); //$NON-NLS-1$
+			throw new IllegalStateException("Membership not found with id: " + membershipId); //$NON-NLS-1$
 		}
 		final Membership mbr = optMbr.get();
 		final Person person = mbr.getPerson();

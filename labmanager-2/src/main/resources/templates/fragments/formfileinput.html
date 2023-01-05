@@ -3,7 +3,7 @@
 
     <th:block th:fragment="all">
 		<th:block th:replace="fragments/libs :: bootstrap-fileinput"/>
-		<script th:src="@{/js/labmanager/formfileinput.js}"></script>
+		<script type="text/javascript" th:src="@{/js/labmanager/formfileinput.js}"></script>
 	</th:block>
 
 	<div th:fragment="fileUploadPdf(name, label)" class="form-group">
@@ -26,6 +26,28 @@
 		       data-preview-file-type="text"
 		       accept=".bib,.bibtex,text/x-bibtex"
 		       th:id="${'fileUploadBibTeX_' + name}" th:name="${name}"></input>
+    </div>
+
+	<div th:fragment="fileUploadImage(name, label)" class="form-group">
+		<input type="text" class="form-control"
+		       th:id="${'fileUploadImage_removed_' + name}" 
+		       hidden="true" value="false" />
+		<label th:for="${'fileUploadImage_' + name}" class="col-form-label" th:utext="${label}"></label>
+		<input class="form-control" type="file"
+		       data-preview-file-type="text"
+		       accept=".gif,.jpg,.jpeg,.png,image/jpeg,image/gif,image/png"
+		       th:id="${'fileUploadImage_' + name}" th:name="${name}"></input>
+    </div>
+
+	<div th:fragment="fileUploadCsv(name, label)" class="form-group">
+		<input type="text" class="form-control"
+		       th:id="${'fileUploadCsv_removed_' + name}" 
+		       hidden="true" value="false" />
+		<label th:for="${'fileUploadCsv_' + name}" class="col-form-label" th:utext="${label}"></label>
+		<input class="form-control" type="file"
+		       data-preview-file-type="text"
+		       accept=".csv,text/csv,text/x-csv"
+		       th:id="${'fileUploadCsv_' + name}" th:name="${name}"></input>
     </div>
 
 </html>

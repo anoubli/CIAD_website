@@ -2,15 +2,19 @@
 
 This project is the backend implementation of the online tools for managing the database of a research laboratory.
 
-## 1. Documentation for Developpers
+## 1. Documentation for End Users
+
+The **documentation for the end-users** is in the [docs folder](./docs/index.md).
+
+## 2. Documentation for Developpers
 
 The **documentation for the contributors and developpers** is in the [CONTRIBUTING document](./CONTRIBUTING.md).
 
-## 2. Model Definition
+## 3. Model Definition
 
 The model of the application is based on the definition of JEE entities that represent the data managed by the software.
 
-### 2.1 Research Organizations
+### 3.1 Research Organizations
 
 Research organizations are structure that have the role to do Research tasks. They may by *universities*, *faculties*, *laboratories*, *teams*, etc.
 A research origanisation has several information associated to it: acronym, name, description, url...
@@ -20,7 +24,7 @@ In addition, a hierarchical structure may exist between different research organ
 
 ![UML - Entities - Organizations](./resources/Entities_Organizations.png)
 
-### 2.2 Persons
+### 3.2 Persons
 
 Persons are involved in a research organization with different possible status (full professor, associate profesor, PhD student...). Each person is associated to different informations (name, gender, email, ORCID number...) that are usually considered for building activity reports for a research unit.
 
@@ -28,7 +32,7 @@ As it is briefly explained in the previous section, a person may be involved in 
 
 ![UML - Entities - Persons](./resources/Entities_Persons.png)
 
-### 2.3 Journals
+### 3.3 Journals
 
 In academic publishing, a (scientific) journal is a periodical publication intended to further the progress of science, usually by reporting new research. Articles in journals are mostly written by active scientists such as students, researchers and professors instead of professional journalists. There are thousands of scientific journals in publication, and many more have been published at various points in the past. Most journals are highly specialized, although some of the oldest journals such as Nature publish articles and scientific papers across a wide range of scientific fields. Scientific journals contain articles that have been peer reviewed, in an attempt to ensure that articles meet the journal's standards of quality, and scientific validity.
 
@@ -43,7 +47,7 @@ Open access (OA) is a set of principles and a range of practices through which r
 
 ![UML - Entities - Journals](./resources/Entities_Journals.png)
 
-### 2.4 Publications
+### 3.4 Publications
 
 Academic publishing is the subfield of publishing which distributes academic research and scholarship. Most academic work is published in academic journal articles, conferences, books or theses. Most scientific and scholarly journals, and many academic and scholarly books, though not all, are based on some form of peer review or editorial refereeing to qualify texts for publication. Different types of academic publishing may be condidered, including:
 
@@ -97,7 +101,7 @@ Each publication type is associated to a category that is defined by the French 
 * AP: Other productions.
 
 
-## 5. Installation Notes
+## 4. Installation Notes
 
 This section provides some inputs for the installation of this software on a real-life server.
 
@@ -118,7 +122,7 @@ systemctl daemon-reload
 systemctl restart tomcat9
 ```
 
-## 4. Software License
+## 5. Software License
 
 ```
 Copyright (c) 2019-22, CIAD Laboratory, Universite de Technologie de Belfort Montbeliard

@@ -73,6 +73,8 @@ public class GeneralMemberTypeTest {
 		assertEquals("PhD students", cons(GeneralMemberType.PHDS).getLabel());
 		assertEquals("Post-Docs", cons(GeneralMemberType.POSTDOCS).getLabel());
 		assertEquals("Researchers", cons(GeneralMemberType.RESEARCHERS).getLabel());
+		assertEquals("Direction", cons(GeneralMemberType.DIRECTION).getLabel());
+		assertEquals("Engineers", cons(GeneralMemberType.ENGINEERS).getLabel());
 		assertAllTreated();
 	}
 
@@ -87,6 +89,8 @@ public class GeneralMemberTypeTest {
 		assertEquals("PhD students", cons(GeneralMemberType.PHDS).getLabel());
 		assertEquals("Post-Docs", cons(GeneralMemberType.POSTDOCS).getLabel());
 		assertEquals("Researchers", cons(GeneralMemberType.RESEARCHERS).getLabel());
+		assertEquals("Direction", cons(GeneralMemberType.DIRECTION).getLabel());
+		assertEquals("Engineers", cons(GeneralMemberType.ENGINEERS).getLabel());
 		assertAllTreated();
 	}
 
@@ -99,6 +103,8 @@ public class GeneralMemberTypeTest {
 		assertEquals("PhD students", cons(GeneralMemberType.PHDS).getLabel(Locale.US));
 		assertEquals("Post-Docs", cons(GeneralMemberType.POSTDOCS).getLabel(Locale.US));
 		assertEquals("Researchers", cons(GeneralMemberType.RESEARCHERS).getLabel(Locale.US));
+		assertEquals("Direction", cons(GeneralMemberType.DIRECTION).getLabel(Locale.US));
+		assertEquals("Engineers", cons(GeneralMemberType.ENGINEERS).getLabel(Locale.US));
 		assertAllTreated();
 	}
 
@@ -111,6 +117,8 @@ public class GeneralMemberTypeTest {
 		assertEquals("Doctorants", cons(GeneralMemberType.PHDS).getLabel(Locale.FRANCE));
 		assertEquals("Post-Docs", cons(GeneralMemberType.POSTDOCS).getLabel(Locale.FRANCE));
 		assertEquals("Chercheurs", cons(GeneralMemberType.RESEARCHERS).getLabel(Locale.FRANCE));
+		assertEquals("Direction", cons(GeneralMemberType.DIRECTION).getLabel(Locale.FRANCE));
+		assertEquals("Ingénieurs", cons(GeneralMemberType.ENGINEERS).getLabel(Locale.FRANCE));
 		assertAllTreated();
 	}
 
@@ -155,7 +163,7 @@ public class GeneralMemberTypeTest {
 		when(mbr.isFuture()).thenReturn(Boolean.FALSE);
 		when(mbr.getMemberStatus()).thenReturn(MemberStatus.RESEARCH_ENGINEER);
 		GeneralMemberType type = GeneralMemberType.fromMembership(mbr);
-		assertSame(GeneralMemberType.OTHER_MEMBERS, type);
+		assertSame(GeneralMemberType.ENGINEERS, type);
 	}
 
 	@Test

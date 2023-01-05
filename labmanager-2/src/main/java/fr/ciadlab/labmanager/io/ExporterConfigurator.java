@@ -71,6 +71,10 @@ public class ExporterConfigurator {
 
 	private boolean enableTypeAndCategoryLabels = true;
 
+	private boolean enableGroupByCategory;
+
+	private boolean enableGroupByYear;
+
 	private final JournalService service;
 
 	/** Constructor.
@@ -87,6 +91,44 @@ public class ExporterConfigurator {
 	 */
 	public JournalService getJournalService() {
 		return this.service;
+	}
+
+	/** Replies if the publications must be grouped by year.
+	 * <p>This feature may be ignored in the implementation of the exporter.
+	 *
+	 * @return {@code true} if publications are grouped by year.
+	 */
+	public boolean isGroupedByYear() {
+		return this.enableGroupByYear;
+	}
+
+	/** Enable the grouping of the publications by year.
+	 * <p>This feature may be ignored in the implementation of the exporter.
+	 *
+	 * @return this.
+	 */
+	public ExporterConfigurator enableGroupByYear() {
+		this.enableGroupByYear = true;
+		return this;
+	}
+
+	/** Replies if the publications must be grouped by category.
+	 * <p>This feature may be ignored in the implementation of the exporter.
+	 *
+	 * @return {@code true} if publications are grouped by category.
+	 */
+	public boolean isGroupedByCategory() {
+		return this.enableGroupByCategory;
+	}
+
+	/** Enable the grouping of the publications by category.
+	 * <p>This feature may be ignored in the implementation of the exporter.
+	 *
+	 * @return this.
+	 */
+	public ExporterConfigurator enableGroupByCategory() {
+		this.enableGroupByCategory = true;
+		return this;
 	}
 
 	/** Replies if the labels of the publication type and category are included to the exported data.

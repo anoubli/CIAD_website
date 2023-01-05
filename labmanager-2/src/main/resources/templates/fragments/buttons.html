@@ -2,20 +2,26 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 	<th:block th:fragment="interactiveDeletionProcess">
-		<script th:src="@{/js/labmanager/buttons_interactivedeletionprocess.js}"></script>
-    	<script th:inline="javascript">
+		<script type="text/javascript" th:src="@{/js/labmanager/buttons_interactivedeletionprocess.js}"></script>
+    	<script type="text/javascript" th:inline="javascript">
     	function attachDeletionHandler( config ) {
     		(!('confirmButtonText' in config)) && (config.confirmButtonText = "[(#{html.YesDeleteIt})]");
     		(!('successTitle' in config)) && (config['successTitle'] = "[(#{html.Deleted})]");
     		(!('failureTitle' in config)) && (config['failureTitle'] = "[(#{html.Error})]");
     		attachDeletionHandler_base(config);
     	}
+    	function attachDeletionHandlerNoAjax( config ) {
+    		(!('confirmButtonText' in config)) && (config.confirmButtonText = "[(#{html.YesDeleteIt})]");
+    		(!('successTitle' in config)) && (config['successTitle'] = "[(#{html.Deleted})]");
+    		(!('failureTitle' in config)) && (config['failureTitle'] = "[(#{html.Error})]");
+    		attachDeletionHandlerNoAjax_base(config);
+    	}
     	</script>
 	</th:block>
 
 	<th:block th:fragment="ajaxButtons" th:inline="javascript">
-		<script th:src="@{/js/labmanager/buttons_ajaxbuttons.js}"></script>
-		<script th:inline="javascript">
+		<script type="text/javascript" th:src="@{/js/labmanager/buttons_ajaxbuttons.js}"></script>
+		<script type="text/javascript" th:inline="javascript">
 		function attachAjaxHandler(config) {
 			 (!('failureTitle' in config)) && (config['failureTitle'] = "[(#{html.Error})]");
 			 attachAjaxHandler_base(config);
@@ -24,8 +30,8 @@
 	</th:block>
 
 	<th:block th:fragment="waitButtons">
-		<script th:src="@{/js/labmanager/buttons_waitbuttons.js}"></script>
-		<script th:inline="javascript">
+		<script type="text/javascript" th:src="@{/js/labmanager/buttons_waitbuttons.js}"></script>
+		<script type="text/javascript" th:inline="javascript">
 		function attachSpinnerAjaxHandler(config) {
 			 (!('failureTitle' in config)) && (config['failureTitle'] = "[(#{html.Error})]");
 			 attachSpinnerAjaxHandler_base(config);
@@ -34,8 +40,8 @@
 	</th:block>
 
 	<th:block th:fragment="conditionButtons">
-		<script th:src="@{/js/labmanager/buttons_conditionbuttons.js}"></script>
-		<script th:inline="javascript">
+		<script type="text/javascript" th:src="@{/js/labmanager/buttons_conditionbuttons.js}"></script>
+		<script type="text/javascript" th:inline="javascript">
 		function attachConditionalHandler( config ) {
 			 (!('confirmButtonText' in config)) && (config['confirmButtonText'] = "[(#{html.YesDoIt})]");
 			 (!('failureTitle' in config)) && (config['failureTitle'] = "[(#{html.Error})]");

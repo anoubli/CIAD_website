@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<link rel="stylesheet" th:href="@{/css/labmanager/showGlobalIndicators.css}"/>
+<div class="globalOrganizationIndicators">
+	<div class="globalOrganizationIndicator"
+	     th:each="indicatorPair : ${indicators}"
+	     th:with="indicator = ${indicatorPair.first}, value = ${indicatorPair.second}, tutils = ${T(fr.ciadlab.labmanager.utils.TextUtils)}, vunit = ${T(fr.ciadlab.labmanager.utils.Unit).fromNumericValue(value)}">
+		<div class="globalIndicatorValue"
+		     th:utext="${tutils.formatNumber(value, vunit, backendLocale)}"
+		     th:title="#{html.GlobalIndicatorTooltip(${globalIndicators.lastUpdate.toString})}"></div>
+		<div class="globalIndicatorExplanation" th:utext="${indicator.getLabel(vunit)}"></div>
+	</div>
+</div>
+</html>

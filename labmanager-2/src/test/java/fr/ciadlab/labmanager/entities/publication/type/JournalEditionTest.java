@@ -50,6 +50,8 @@ public class JournalEditionTest {
 	@Test
 	public void isRanked_notRanked() {
 		final Journal jour = mock(Journal.class);
+		when(jour.getScimagoQIndexByYear(anyInt())).thenCallRealMethod();
+		when(jour.getWosQIndexByYear(anyInt())).thenCallRealMethod();
 		this.test.setJournal(jour);
 		this.test.setPublicationYear(2022);
 		assertFalse(this.test.isRanked());
@@ -59,6 +61,7 @@ public class JournalEditionTest {
 	public void isRanked_scimagoRanked() {
 		final Journal jour = mock(Journal.class);
 		when(jour.getScimagoQIndexByYear(anyInt())).thenReturn(QuartileRanking.Q1);
+		when(jour.getWosQIndexByYear(anyInt())).thenCallRealMethod();
 		this.test.setJournal(jour);
 		this.test.setPublicationYear(2022);
 		assertTrue(this.test.isRanked());
@@ -67,6 +70,7 @@ public class JournalEditionTest {
 	@Test
 	public void isRanked_wosRanked() {
 		final Journal jour = mock(Journal.class);
+		when(jour.getScimagoQIndexByYear(anyInt())).thenCallRealMethod();
 		when(jour.getWosQIndexByYear(anyInt())).thenReturn(QuartileRanking.Q2);
 		this.test.setJournal(jour);
 		this.test.setPublicationYear(2022);
@@ -151,7 +155,7 @@ public class JournalEditionTest {
 
 	@Test
 	public void getScimagoQIndex() {
-		assertNull(this.test.getScimagoQIndex());
+		assertSame(QuartileRanking.NR, this.test.getScimagoQIndex());
 
 		final Journal jour = mock(Journal.class);
 		when(jour.getScimagoQIndexByYear(anyInt())).thenReturn(QuartileRanking.Q3);
@@ -163,7 +167,7 @@ public class JournalEditionTest {
 
 	@Test
 	public void getWosQIndex() {
-		assertNull(this.test.getWosQIndex());
+		assertSame(QuartileRanking.NR, this.test.getWosQIndex());
 
 		final Journal jour = mock(Journal.class);
 		when(jour.getWosQIndexByYear(anyInt())).thenReturn(QuartileRanking.Q2);

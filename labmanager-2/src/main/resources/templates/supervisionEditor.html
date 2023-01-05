@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs" />
+<th:block th:replace="fragments/form :: formLibs" />
+<th:block th:replace="fragments/buttons :: ajaxButtons" />
+<th:block th:replace="fragments/buttons :: waitButtons" />
+<th:block th:replace="fragments/buttons :: interactiveDeletionProcess" />
+<th:block th:replace="fragments/formselect2 :: all" />
+
+<th:block th:replace="fragments/nav :: personListBar*(#{html.EditSupervisions(${person.fullName})})"/>
+
+<form id="form">
+	<button id="btAdd" class="btn btn-warning mt-4 pr-4 pl-4"
+		th:if="${changeEnabled}" th:utext="#{html.AddSupervision}"></button>
+	<th:block th:if="${changeEnabled}">
+		<div id="new-supervision-input-area" class="form-super-group form-super-group-new" style="display:none">
+			<div class="form-group" th:replace="fragments/form :: comboInput*(supervisedPerson_new, #{html.SupervisedPersonContract(${person.fullName})}, ~{::option#option-supervisedPerson-new})">
+				<option id="option-supervisedPerson-new"
+				        th:each="membership : ${memberships}"
+				        th:value="${membership.id}"
+				        th:utext="${membership.shortDescription}"></option>
+			</div>
+			<div class="form-group">
+				<label for="supervisorTable_new" class="col-form-label" th:utext="#{html.Supervisors(${person.fullName})}"></label>
+				<table id="supervisorTable_new" class="regularTable table-responsive supervisorTable">
+					<tbody>
+						<tr id="supervisorAdditionRow_new">
+							<td>
+								<button class="fa-solid fa-add"
+								      id="TheAddButton_supervisor_new"
+								      th:title="#{html.AddSupervisor}"
+								      style="font-size:14pt;cursor: pointer;"></button>
+							</td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: checkInput(abandonment_new, #{html.Abandonment(${person.fullName})}, #{html.Abandonment(${person.fullName})}, ${false})"></div>
+			<div class="form-group" th:replace="fragments/form :: textInput(title_new, #{html.Title}, #{html.PlaceHolderSupervisionTitle(${person.fullName})}, '')"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(fundingScheme_new, #{html.FundingScheme(${person.fullName})}, ~{::option#option-fundingScheme-new})">
+				<option id="option-fundingScheme-new"
+				        th:each="type : ${T(fr.ciadlab.labmanager.utils.funding.FundingScheme).values}"
+				        th:value="${type.name}"
+				        th:utext="${type.getLabel()}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: textInput(fundingDetails_new, #{html.FundingSchemeDetails(${person.fullName})}, #{html.PlaceHolderFundingSchemeDetails(${person.fullName})}, '')"></div>
+			<div class="form-group" th:replace="fragments/form :: dateInput(defenseDate_new, #{html.DefenseDate},'')"></div>
+			<div class="form-group" th:replace="fragments/form :: textInput(positionAfterSupervision_new, #{html.PositionAfterSupervision(${person.fullName})}, #{html.PlaceHolderPositionAfterSupervision(${person.fullName})}, '')"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(numberOfAterPositions_new, #{html.NumberOfAterPositions(${person.fullName})}, ~{::option#option-numberOfAterPositions-new})">
+				<option id="option-numberOfAterPositions-new"
+				        th:each="i : ${#numbers.sequence(0, 4, 1)}"
+				        th:value="${i}"
+				        th:utext="${i}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: checkInput(jointPosition_new, #{html.JointPosition}, #{html.JointPosition}, ${false})"></div>
+			<div class="form-group" th:replace="fragments/form :: checkInput(entrepreneur_new, #{html.Entrepreneur(${person.fullName})}, #{html.Entrepreneur(${person.fullName})}, ${false})"></div>
+			<button th:id="btSave_new" type="button"
+				class="btn btn-primary mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+				th:utext="#{html.Submit}"></button>
+		</div>
+	</th:block>
+	<th:block th:each="supervision : ${supervisions}">
+		<div th:id="${'supervision-input-area-' + supervision.id}"
+		     class="form-super-group form-super-group-active">
+			<div class="form-group" th:replace="fragments/form :: comboInput*(${'supervisedPerson_' + supervision.id}, #{html.SupervisedPersonContract(${person.fullName})}, ~{::option#option-supervisedPerson})">
+				<option id="option-supervisedPerson"
+				        th:each="membership : ${memberships}"
+				        th:selected="${supervision.supervisedPerson != null && supervision.supervisedPerson.id == membership.id}"
+				        th:value="${membership.id}"
+				        th:utext="${membership.shortDescription}"></option>
+			</div>
+			<div class="form-group">
+				<label th:for="${'supervisorTable_' + supervision.id}"
+				       class="col-form-label"
+				       th:utext="#{html.Supervisors(${person.fullName})}"></label>
+				<table th:id="${'supervisorTable_' + supervision.id}"
+				       class="regularTable table-responsive supervisorTable">
+					<tbody>
+						<th:block th:each="supervisor : ${supervision.supervisors}">
+							<tr th:id="${'supervisor_' + supervision.id + '_' + supervisor.id}">
+								<td>
+									<input class="form-control" type="hidden"
+									       th:name="${'supervisorId_' + supervision.id}"
+									       th:value="${supervisor.supervisor.id}"/>
+									<input class="form-control" type="hidden"
+									       th:name="${'supervisorType_' + supervision.id}"
+									       th:value="${supervisor.type.name}"/>
+									<input class="form-control" type="hidden"
+									       th:name="${'supervisorPercent_' + supervision.id}"
+									       th:value="${supervisor.percentage}"/>
+									<span class="fa-solid fa-trash"
+									      th:id="${'TheDeleteButton_supervisor_' + supervision.id + '_' + supervisor.id}"
+									      th:title="#{html.DeleteSupervisor}"
+									      style="font-size:14pt;cursor: pointer"></span>
+								</td>
+								<td class="dataCell" th:utext="${supervisor.supervisor.fullName}"/>
+								<td class="dataCell" th:utext="${supervisor.type.getLabel(supervisor.supervisor.gender)}"/>
+								<td class="dataCell" th:utext="${supervisor.percentage + '%'}"/>
+							</tr>
+						</th:block>
+						<tr th:id="${'supervisorAdditionRow_' + supervision.id}">
+							<td>
+								<button class="fa-solid fa-add"
+								      th:id="${'TheAddButton_supervisor_' + supervision.id}"
+								      th:title="#{html.AddSupervisor}"
+								      style="font-size:14pt;cursor: pointer;"></button>
+							</td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: checkInput(${'abandonment_' + supervision.id}, #{html.Abandonment(${person.fullName})}, #{html.Abandonment(${person.fullName})}, ${supervision.abandonment})"></div>
+			<div class="form-group" th:replace="fragments/form :: textInput(${'title_' + supervision.id}, #{html.Title}, #{html.PlaceHolderSupervisionTitle(${person.fullName})}, ${supervision.title})"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(${'fundingScheme_' + supervision.id}, #{html.FundingScheme(${person.fullName})}, ~{::option#option-fundingScheme})">
+				<option id="option-fundingScheme"
+				        th:each="type : ${T(fr.ciadlab.labmanager.utils.funding.FundingScheme).values}"
+				        th:selected="${supervision.funding == type}"
+				        th:value="${type.name}"
+				        th:utext="${type.getLabel()}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: textInput(${'fundingDetails_' + supervision.id}, #{html.FundingSchemeDetails(${person.fullName})}, #{html.PlaceHolderFundingSchemeDetails(${person.fullName})}, ${supervision.fundingDetails})"></div>
+			<div class="form-group" th:replace="fragments/form :: dateInput(${'defenseDate_' + supervision.id}, #{html.DefenseDate}, ${supervision.defenseDate != null ? supervision.defenseDate.toString : ''})"></div>
+			<div class="form-group" th:replace="fragments/form :: textInput(${'positionAfterSupervision_' + supervision.id}, #{html.PositionAfterSupervision(${person.fullName})}, #{html.PlaceHolderPositionAfterSupervision(${person.fullName})}, ${supervision.positionAfterSupervision})"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(${'numberOfAterPositions_' + supervision.id}, #{html.NumberOfAterPositions(${person.fullName})}, ~{::option#option-numberOfAterPositions})">
+				<option id="option-numberOfAterPositions"
+				        th:each="i : ${#numbers.sequence(0, 4, 1)}"
+				        th:value="${i}"
+				        th:selected="${supervision.numberOfAterPositions == i}"
+				        th:utext="${i}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: checkInput(${'jointPosition_' + supervision.id}, #{html.JointPosition}, #{html.JointPosition}, ${supervision.jointPosition})"></div>
+			<div class="form-group" th:replace="fragments/form :: checkInput(${'entrepreneur_' + supervision.id}, #{html.Entrepreneur(${person.fullName})}, #{html.Entrepreneur(${person.fullName})}, ${supervision.entrepreneur})"></div>
+			<button th:id="${'btSave_' + supervision.id}" type="button"
+				class="btn btn-primary mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+				th:utext="#{html.Submit}"></button>
+			<button th:id="${'TheDeleteButton_' + supervision.id}" type="button"
+				class="btn btn-danger mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+				th:utext="#{html.DeleteSupervision}"></button>
+		</div>
+	</th:block>
+</form>
+<script type="text/javascript" th:inline="javascript">
+function addSavingButtonCallback(supervisionId, isNewSupervision) {
+	var buttonConfig = {
+		id: 'btSave_' + supervisionId,
+		url: "[(${savingUrl})]",
+		requestMethod: 'put',
+		text: "[(#{html.Submit})]",
+		precondition: (event, backHandler) => {
+			var supervisorArray = [];
+			$('input[name="supervisorId_' + supervisionId + '"]').each((index, item) => {
+				supervisorArray.push({
+					supervisorId: item.value,
+				});
+			});
+			$('input[name="supervisorType_' + supervisionId + '"]').each((index, item) => {
+				supervisorArray[index]['supervisorType'] = item.value;
+			});
+			var percentSum = 0;
+			$('input[name="supervisorPercent_' + supervisionId + '"]').each((index, item) => {
+				supervisorArray[index]['percent'] = item.value;
+				percentSum = percentSum + parseInt(item.value);
+			});
+			if (supervisorArray.length <= 0) {
+				Swal.fire(
+						"[(#{html.Error})]",
+						"[(#{html.ErrorNoSupervisor})]",
+						  'error');
+			} else if (percentSum < 0 || percentSum > 100) {
+				Swal.fire(
+						"[(#{html.Error})]",
+						"[(#{html.ErrorInalidSupervisorPercent})]",
+						  'error');
+			} else {
+				buttonConfig['precondition-result'] = supervisorArray;
+				backHandler(event);
+			}
+		},
+		prepareData: ($bt, formData, supervisorArray) => {
+			if (!isNewSupervision) {
+				formData.append("supervision", supervisionId);
+			}
+			formData.append("membership", $('#comboInput_supervisedPerson_' + supervisionId + ' option:selected').attr('value'));
+			formData.append("supervisors", JSON.stringify(supervisorArray));
+			formData.append("abandonment", $('#checkInput_abandonment_' + supervisionId).is(':checked'));
+			formData.append("title", $('#textInput_title_' + supervisionId).val());
+			formData.append("fundingScheme", $('#comboInput_fundingScheme_' + supervisionId + ' option:selected').attr('value'));
+			formData.append("fundingDetails", $('#textInput_fundingDetails_' + supervisionId).val());
+			formData.append("defenseDate", $('#dateInput_defenseDate_' + supervisionId).val());
+			formData.append("positionAfterSupervision", $('#textInput_positionAfterSupervision_' + supervisionId).val());
+			formData.append("numberOfAterPositions", $('#comboInput_numberOfAterPositions_' + supervisionId + ' option:selected').attr('value'));
+			formData.append("jointPosition", $('#checkInput_jointPosition_' + supervisionId).is(':checked'));
+			formData.append("entrepreneur", $('#checkInput_entrepreneur_' + supervisionId).is(':checked'));
+			
+			for (const pair of formData.entries()) {
+			  console.log(`${pair[0]}, ${pair[1]}`);
+			}
+		},
+		failureText: "[(#{html.JuryMembershipSavingError})]",
+		onSuccess: () => {
+			Swal.fire(
+					  "[(#{html.Success})]",
+					  "[(#{html.SupervisionSavingSuccess})]",
+					  'success'
+					).then(result => {
+						location.reload();
+					});
+		},
+	};
+	attachSpinnerAjaxHandler(buttonConfig);
+}
+var ALL_SUPERVISOR_NAMES = {
+    /*[# th:each="supervisor : ${allPersons}"]*/
+    "[(${supervisor.id})]": [[${supervisor.fullNameWithLastNameFirst}]],
+    /*[/]*/    
+};
+var ALL_SUPERVISOR_NAMES_OPTIONS = ''
+	/*[# th:each="supervisor : ${allPersons}"]*/
+	+ '<option value="[(${supervisor.id})]">[(${supervisor.fullNameWithLastNameFirst})]</option>'
+	/*[/]*/
+	;
+var ALL_SUPERVISOR_TYPES = {
+    /*[# th:each="supervisorType : ${T(fr.ciadlab.labmanager.entities.supervision.SupervisorType).values}"]*/
+    "[(${supervisorType.name})]": [[${supervisorType.getLabel(null)}]],
+    /*[/]*/
+};
+var ALL_SUPERVISOR_TYPES_OPTIONS = ''
+    /*[# th:each="supervisorType : ${T(fr.ciadlab.labmanager.entities.supervision.SupervisorType).values}"]*/
+    + '<option value="[(${supervisorType.name})]">[(${supervisorType.getLabel(null)})]</option>'
+    /*[/]*/
+	;
+function attachSupervisorDeletionHandler(supervisionId, supervisor) {
+	attachDeletionHandlerNoAjax({
+		selector: '#TheDeleteButton_supervisor_' + supervisionId + '_' + supervisor,
+		name: ALL_SUPERVISOR_NAMES[supervisor],
+		questionTitle: [[#{html.DeleteSupervisor}]],
+		questionText: [[#{html.AreYouSureToDelete}]].format(ALL_SUPERVISOR_NAMES[supervisor]),
+		onDeletion: () => {
+			var $row = $("table[id='supervisorTable_" + supervisionId + "'] tr[id='supervisor_" + supervisionId + "_" + supervisor + "']");
+			$row.remove();
+		},
+	});
+}
+function addAddSupervisorButtonCallback(supervisionId, isNewSupervision) {
+	const boxOptions = {
+		title: [[#{html.AddSupervisor}]],
+		icon: 'question',
+		showCancelButton: true,
+		confirmButtonColor: '#d33',
+		cancelButtonColor: '#99cc00',
+		confirmButtonText: [[#{html.Add}]],
+		html: "[(#{html.SupervisorName})]<br/>"
+			+ '<select id="swal-input1-' + supervisionId + '" class="swal2-input">'
+			+ ALL_SUPERVISOR_NAMES_OPTIONS    
+			+ '</select><br/>'
+			+ "[(#{html.SupervisorType})]<br/>"
+			+ '<select id="swal-input2-' + supervisionId + '" class="swal2-input">'
+		    + ALL_SUPERVISOR_TYPES_OPTIONS
+			+ '</select><br/>'
+			+ "[(#{html.SupervisorPercentage})]<br/>"
+			+ '<input type="number" id="swal-input3-' + supervisionId + '", class="swal2-input" value="0" step="5">',
+		preConfirm: () => {
+			return {
+				supervisor: document.getElementById("swal-input1-" + supervisionId).value,
+				type: document.getElementById("swal-input2-" + supervisionId).value,
+				percentage: document.getElementById("swal-input3-" + supervisionId).value,
+			};
+		},
+	};
+	Swal.fire(boxOptions).then(result => {
+		if (result.isConfirmed) {
+			var selectedSupervisor = result.value;
+			var $input0 = $("<input/>").addClass('form-control').attr('type', 'hidden')
+			$input0 = $input0.attr('name', 'supervisorId_' + supervisionId).attr('value', selectedSupervisor['supervisor']);
+			var $input1 = $("<input/>").addClass('form-control').attr('type', 'hidden')
+			$input1 = $input1.attr('name', 'supervisorType_' + supervisionId).attr('value', selectedSupervisor['type']);
+			var $input2 = $("<input/>").addClass('form-control').attr('type', 'hidden')
+			$input2 = $input2.attr('name', 'supervisorPercent_' + supervisionId).attr('value', selectedSupervisor['percentage']);
+			var $button = $("<span/>").addClass('fa-solid').addClass('fa-trash').attr('id', 'TheDeleteButton_supervisor_' + supervisionId + '_' + selectedSupervisor['supervisor']);
+			$button = $button.attr('title', [[#{html.DeleteSupervisor}]]);
+			$button = $button.attr('style', 'font-size:14pt;cursor: pointer;');
+			var $col0 = $("<td/>");
+			$col0.append($input0).append($input1).append($input2).append($button);
+			var $col1 = $("<td/>").addClass('dataCell').text(ALL_SUPERVISOR_NAMES[selectedSupervisor['supervisor']]);
+			var $col2 = $("<td/>").addClass('dataCell').text(ALL_SUPERVISOR_TYPES[selectedSupervisor['type']]);
+			var $col3 = $("<td/>").addClass('dataCell').text(selectedSupervisor['percentage'] + '%');
+			var $row = $("<tr/>").attr('id', 'supervisor_' + supervisionId + '_' + selectedSupervisor['supervisor']);
+			$row.append($col0).append($col1).append($col2).append($col3);
+			var $body = $("table[id='supervisorTable_" + supervisionId + "'] tr[id='supervisorAdditionRow_" + supervisionId + "']");
+			$body.before($row);
+			attachSupervisorDeletionHandler(supervisionId, selectedSupervisor['supervisor']);
+		}
+	});
+}
+$(document).ready(function () {
+    /*[# th:if="${changeEnabled}"]*/
+	$(document).on('click', '#btAdd', () => {
+		$('#btAdd').prop("disabled", true);
+		$('#new-supervision-input-area').show();
+	    addSavingButtonCallback("new", true);
+	});
+	$(document).on('click', "#TheAddButton_supervisor_new", (event) => {
+		addAddSupervisorButtonCallback("new", true);
+	});
+		/*[# th:each="supervision : ${supervisions}"]*/
+	$(document).on('click', "#TheAddButton_supervisor_[(${supervision.id})]", (event) => {
+		addAddSupervisorButtonCallback("[(${supervision.id})]", false);
+	});
+			/*[# th:each="supervisor : ${supervision.supervisors}"]*/
+	attachSupervisorDeletionHandler("[(${supervision.id})]", "[(${supervisor.id})]");
+		    /*[/]*/    
+    addSavingButtonCallback("[(${supervision.id})]", false);
+	attachDeletionHandler({
+		id: "[(${supervision.id})]",
+		url: "[(${deletionUrl + '?id=' + supervision.id})]",
+		elementNameCallback: () => { return "[(${person.fullName})]"; },
+		questionTitle: "[(#{html.DeleteSupervision})]",
+		questionText: "[(#{html.AreYouSureToDeleteSupervision(${person.fullName})})]",
+		successText: "[(#{html.SupervisionDeleted})]",
+		failureText: "[(#{html.CannotDeleteSupervision})]",
+    });
+	    /*[/]*/    
+    /*[/]*/    
+});
+/*[# th:if="${gotoName != null}"]*/
+$(window).on('load', () => {
+	setTimeout( () => {
+	    const gotoElement = document.getElementById("[(${'supervision-input-area-' + gotoName})]");
+	    gotoElement.scrollIntoView();
+	}, 200);
+});
+/*[/]*/
+</script>
+</html>

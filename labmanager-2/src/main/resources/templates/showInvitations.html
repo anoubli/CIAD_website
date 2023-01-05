@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:unless="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs"/>
+</th:block>
+<th:block th:if="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs-embedded"/>
+</th:block>
+<th:block th:replace="fragments/table :: publicTable"/>
+<th:block th:if="${editionUrl != null}">
+	<a th:href="${editionUrl}" class="btn btn-warning mt-4 pr-4 pl-4"><span class="fa-solid fa-pen"></span><th:block th:utext="#{html.ChangeInvitations}"></th:block></a>
+</th:block>
+<div class="table table-responsive">
+    <table class="data-tables datatable-primary" th:id="${'table'+uuid}" style="width: 100%">
+        <thead>
+	        <th>Rank</th>
+	        <th th:utext="#{html.InvitationType}"></th>
+	        <th th:utext="#{html.Year}"></th>
+	        <th th:utext="#{html.Name}"></th>
+	        <th th:utext="#{html.Description}"></th>
+        </thead>
+        <tbody>
+        <tr th:each="invitation : ${invitations}"
+            th:with="typeLabelKey = ${invitation.getLongTypeLabelKey()}">
+            <td>
+            	<th:block th:utext="${typeLabelKeyOrdering.get(typeLabelKey)}"></th:block>
+            </td>
+            <td>
+            	<th:block th:utext="#{${typeLabelKey}}"></th:block>
+            </td>
+            <td>
+            	<th:block th:utext="${invitation.endDate != null ? invitation.endDate.year : invitation.startDate.year}"></th:block>
+            </td>
+            <td>
+            	<th:block th:unless="${invitation.type.outgoing}">
+	            	<a th:href="${invitation.guest.webPageURI}"
+	            	   th:if="${invitation.guest.webPageURI != null}"
+	            	   class="simpleLink"
+	            	   th:utext="${invitation.guest.fullNameWithLastNameFirst}"></a>
+	            	<th:block th:unless="${invitation.guest.webPageURI != null}"
+	            	          th:utext="${invitation.guest.fullNameWithLastNameFirst}"></th:block>
+            	</th:block>
+            	<th:block th:if="${editionUrl != null}"><a th:href="${editionUrl + '&goto=' + invitation.id}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
+            </td>
+            <td>
+            	<div class="invitationTitle" th:utext="${invitation.title}"></div>
+            	<div class="invitationDetails">
+	            	<th:block th:utext="${invitation.university + ', ' + countryLabels.get(invitation.country)}"></th:block>
+	            	<th:block th:if="${invitation.type.outgoing}">
+		            	<br/><th:block th:utext="#{html.Inviter1}"></th:block>
+		            	<a th:href="${invitation.inviter.webPageURI}"
+		            	   th:if="${invitation.inviter.webPageURI != null}"
+		            	   class="simpleLink"
+		            	   th:utext="${invitation.inviter.fullNameWithLastNameFirst}"></a>
+		            	<th:block th:unless="${invitation.inviter.webPageURI != null}"
+		            	          th:utext="${invitation.inviter.fullNameWithLastNameFirst}"></th:block>
+	            	</th:block>
+	            	<br/><th:block th:utext="#{html.DateInterval(${invitation.startDate.toString}, ${invitation.endDate.toString})}"></th:block>
+            	</div>
+            </td>
+        </tbody>
+    </table>
+</div>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(() => {
+	var $dtable = initFrontTable( {
+		id: [[${'table'+uuid}]],
+		dom: 't',
+		columns: [
+        	{
+                "orderable": false,
+        	},
+        	{
+        		data: 'type',
+                "orderable": false,
+        	},
+        	{
+        		data: 'year',
+                "orderable": false,
+			},
+        	{
+                "orderable": false,
+        	},
+        	{
+                "orderable": false,
+            }
+		],
+		order: [ [0, 'asc'], [2, 'desc'], [3, 'asc'] ],
+		tableParams: {
+			rowGroup: {
+				startRender: (rows, group) => {
+					return group;
+				},
+				endRender: null,
+				dataSrc: ['type', 'year'],
+			},
+		},
+	});
+	$dtable.column(0).visible(false);
+	$dtable.column(1).visible(false);
+	$dtable.column(2).visible(false);
+});
+</script>
+</html>

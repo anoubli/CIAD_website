@@ -39,6 +39,9 @@ import com.google.common.base.Strings;
  * @see "https://jcr.clarivate.com/"
  */
 public enum QuartileRanking {
+	/** Not ranked.
+	 */
+	NR,
 	/** Fourth quartile.
 	 */
 	Q4,
@@ -68,6 +71,19 @@ public enum QuartileRanking {
 			}
 		}
 		throw new IllegalArgumentException("Invalid quartile ranking: " + name); //$NON-NLS-1$
+	}
+
+	/** Normalize the given quartile. Normalization ensures that there is no {@code null}
+	 * value for a quartile. If the given quartile is {@code null}, {@link #NR} is replied.
+	 * 
+	 * @param quartile the quartile to normalize.
+	 * @return the normalized quartile, neer {@code null}.
+	 */
+	public static QuartileRanking normalize(QuartileRanking quartile) {
+		if (quartile == null) {
+			return NR;
+		}
+		return quartile;
 	}
 
 }

@@ -13,7 +13,8 @@
 		<th th:text="#{html.Acronym}"></th>
 		<th th:text="#{html.Name}"></th>
 		<th th:text="#{html.Type}"></th>
-		<th th:text="#{html.Description}"></th>
+		<th th:text="#{html.NationalIdentifier0}"></th>
+		<th th:text="#{html.RnsrNumber0}"></th>
 		<th th:text="#{html.Country}"></th>
 		<th th:text="#{html.SuperOrganization}"></th>
 		<th th:text="#{html.SubOrganizations}"></th>
@@ -22,14 +23,17 @@
     <tbody>
         <tr th:each="organization : ${organizations}">
             <td>
-                <th:block th:utext="${organization.id}"></th:block>
+                <span th:style="${organization.isMajorOrganization ? 'font-weight:900;' : ''}"
+                      th:utext="${organization.id}"></span>
             </td>
             <td>
                 <a th:if="${organization.organizationURL != null}"
                    th:href="${organization.organizationURL}"
+                   th:style="${organization.isMajorOrganization ? 'font-weight:900;' : ''}"
                    th:utext="${organization.acronym}"></a>
-                <th:block th:if="${organization.organizationURL == null}"
-                          th:utext="${organization.acronym}"></th:block>
+                <span th:if="${organization.organizationURL == null}"
+                      th:style="${organization.isMajorOrganization ? 'font-weight:900;' : ''}"
+                      th:utext="${organization.acronym}"></span>
             </td>
             <td>
                 <th:block th:utext="${organization.name}"></th:block>
@@ -38,7 +42,10 @@
                 <th:block th:utext="${organization.type.getLabel()}"></th:block>
             </td>
             <td>
-                <th:block th:utext="${organization.description}"></th:block>
+                <th:block th:utext="${organization.nationalIdentifier}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${organization.rnsr}"></th:block>
             </td>
             <td>
                 <th:block th:utext="${organization.countryDisplayName}"></th:block>
@@ -63,10 +70,10 @@
         </tr>
     </tbody>
 </table>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
     $(document).ready(() => {
     	initAdministrationTable({
-    		columns: 8,
+    		columns: 9,
     	});
         /*[# th:if="${changeEnabled}" th:each="organization : ${organizations}"]*/
     	attachDeletionHandler({

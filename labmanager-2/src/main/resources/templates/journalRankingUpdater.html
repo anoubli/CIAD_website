@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs" />
+<th:block th:replace="fragments/form :: formLibs" />
+<th:block th:replace="fragments/formfileinput :: all" />
+<th:block th:replace="fragments/buttons :: ajaxButtons" />
+<th:block th:replace="fragments/buttons :: waitButtons" />
+
+<th:block th:replace="fragments/nav :: journalListBar*(#{html.UpdateJournalRankings})"/>
+
+<form th:replace="fragments/form :: genericForm(false, ~{::.form-group})">
+	<div class="form-group" th:replace="fragments/form :: textInput*(referenceYear, #{html.Year}, #{html.PlaceHolderReferenceYear}, ${referenceYear})"></div>
+	<div class="form-group" th:replace="fragments/formfileinput :: fileUploadCsv(wosCsvFile, #{html.ImportWosCsvFile})"></div>
+	<th:block class="form-group">
+		<hr/>
+		<div id="loadingIndicator" style="display:none">
+			<div class="d-flex justify-content-center">
+				<div class="spinner-border" role="status">
+					<span class="sr-only" th:utext="#{html.Loading}"></span>
+				</div>
+			</div>
+		</div>
+		<div id="form-dynamic-groups" style="display:none"></div>
+	</th:block>
+</form>
+<script type="text/javascript" th:inline="javascript">
+var GLOBAL_JOURNAL_UPDATES = {};
+function resetCsvView() {
+	$('#fileUploadCsv_bibtexFile').fileinput('enable');
+	$('#form-dynamic-groups').hide();
+	$('#submitButton').prop("disabled", true);
+	$('#loadingIndicator').hide();
+}
+function buildJournalUpdateDescription($root, jsonJournal) {
+	var $desc = $('<div></div>');
+	$root.append($desc);
+	var $span0 = $('<span></span>').attr('class', 'journalTitle').text(jsonJournal.name);
+	$desc.append($span0);
+	if (jsonJournal.publisher) {
+		var $span1 = $('<span></span>').attr('class', 'journalPublisher').text(jsonJournal.publisher);
+		$desc.append(", ").append($span1);
+	}
+	if (jsonJournal.issn) {
+		var $span2 = $('<span></span>').attr('class', 'journalIssn').text(jsonJournal.issn);
+		$desc.append(", ").append($span2);
+	}
+	$desc.append(".");
+	var $impact0 = $('<div></div>').attr('class', 'col-form-sub-label');
+	$root.append($impact0);
+	$impact0.append([[#{html.CurrentImpactFactor}]]).append(' ');
+	if (jsonJournal.previous && jsonJournal.previous.impactFactor) {
+		$impact0.append(jsonJournal.previous.impactFactor);
+	} else {
+		$impact0.append([[#{html.notset}]]);
+	}
+	var $impact1 = $('<div></div>').attr('class', 'col-form-sub-label');
+	$root.append($impact1);
+	$impact1.append([[#{html.NewImpactFactor}]]).append(' ');
+	if (jsonJournal.impactFactor) {
+		$impact1.append(jsonJournal.impactFactor);
+	} else {
+		$impact1.append([[#{html.notset}]]);
+	}
+	var $qi0 = $('<div></div>').attr('class', 'col-form-sub-label');
+	$root.append($qi0);
+	$qi0.append([[#{html.CurrentScimagoQindex}]]).append(' ');
+	if (jsonJournal.previous && jsonJournal.previous.scimagoQindex) {
+		$qi0.append(jsonJournal.previous.scimagoQindex);
+		if (jsonJournal.previous.scimagoCategory) {
+			$qi0.append(' (').append(jsonJournal.previous.scimagoCategory).append(')');
+		}
+	} else {
+		$qi0.append([[#{html.notset}]]);
+	}
+	var $qi1 = $('<div></div>').attr('class', 'col-form-sub-label');
+	$root.append($qi1);
+	$qi1.append([[#{html.NewScimagoQindex}]]).append(' ');
+	if (jsonJournal.scimago && jsonJournal.scimago.qindex) {
+		$qi1.append(jsonJournal.scimago.qindex);
+	} else {
+		$qi1.append([[#{html.notset}]]);
+	}
+	var $qi2 = $('<div></div>').attr('class', 'col-form-sub-label');
+	$root.append($qi2);
+	$qi2.append([[#{html.CurrentWosQindex}]]).append(' ');
+	if (jsonJournal.previous && jsonJournal.previous.wosQindex) {
+		$qi2.append(jsonJournal.previous.wosQindex);
+		if (jsonJournal.previous.wosCategory) {
+			$qi2.append(' (').append(jsonJournal.previous.wosCategory).append(')');
+		}
+	} else {
+		$qi2.append([[#{html.notset}]]);
+	}
+	var $qi3 = $('<div></div>').attr('class', 'col-form-sub-label');
+	$root.append($qi3);
+	$qi3.append([[#{html.NewWosQindex}]]).append(' ');
+	if (jsonJournal.wos && jsonJournal.wos.qindex) {
+		$qi3.append(jsonJournal.wos.qindex);
+	} else {
+		$qi3.append([[#{html.notset}]]);
+	}
+}
+function createOption($container, label, value, qindex, cssStyle) {
+	var $optionElement = $("<option></option>").attr('value', value).text(label);
+	if (qindex) {
+		$optionElement = $optionElement.attr('qindex', qindex);
+	}
+	if (cssStyle) {
+		$optionElement = $optionElement.attr('class', cssStyle);
+	}
+	$container.append($optionElement);
+}
+function createCategorySelect(jsonJournal, source, label, idPrefix, outQindex, outCategories) {
+	if (jsonJournal[source] && jsonJournal[source]['categories']) {
+		$groupElement = $("<div></div>").attr('class', 'form-group');
+		$('#form-dynamic-groups').append($groupElement);
+
+		$firstBlock = $('<div></div>').attr('class', 'col-form-label');
+		$groupElement.append($firstBlock);
+
+		$labelElement = $('<label></label>').attr('class', 'col-form-sub-label').text(label);
+		$firstBlock.append($labelElement);
+
+		var $selectElement = $("<select></select>").attr('class', 'form-control selectType list-group-item list-group-item-action form-sub-control');
+		$selectElement = $selectElement.attr('id', idPrefix + jsonJournal.id);
+		$groupElement.append($selectElement);
+        createOption($selectElement, [[#{html.DoNotSelectCategory}]], '-', '', 'redBackground');
+        createOption($selectElement, [[#{html.NotRanked}]], '--', 'NR', 'redBackground');
+		$.each(jsonJournal[source]['categories'], (index, json) => {
+	        createOption($selectElement,
+	        		json.name + ' - ' + json.qindex,
+	        		json.name,
+	        		json.qindex,
+	        		'');
+		});
+		GLOBAL_JOURNAL_UPDATES[jsonJournal.id][outCategories] = true;
+	}
+}
+function postProcessingUpdateJson(jsonData0, textStatus, obj) {
+	$('#loadingIndicator').hide();
+	var jsonData = jsonData0;
+	if ('data' in jsonData) {
+		jsonData = jsonData['data'];
+	}
+	GLOBAL_JOURNAL_UPDATES = {};
+	if (jsonData.length > 0) {
+		var root = $('#form-dynamic-groups');
+		root.empty();
+		$.each(jsonData, (index, jsonJournal) => {
+			var id = jsonJournal.id
+
+			GLOBAL_JOURNAL_UPDATES[id] = {};
+			GLOBAL_JOURNAL_UPDATES[id]['id'] = id;
+
+			var $groupElement = $("<div></div>").attr('class', 'form-group');
+			$('#form-dynamic-groups').append($groupElement);
+
+			var $firstBlock = $('<div></div>').attr('class', 'col-form-label');
+			$groupElement.append($firstBlock);
+
+			var $labelElement = $('<label></label>');
+			buildJournalUpdateDescription($labelElement, jsonJournal);
+			$firstBlock.append($labelElement);
+
+			if ('impactFactor' in jsonJournal && jsonJournal.impactFactor > 0) {
+				GLOBAL_JOURNAL_UPDATES[id]['impactFactor'] = jsonJournal.impactFactor;
+			}
+			if ('scimago' in jsonJournal && 'qindex' in jsonJournal['scimago'] && jsonJournal['scimago']['qindex']) {
+				GLOBAL_JOURNAL_UPDATES[id]['scimagoQindex'] = jsonJournal['scimago']['qindex'];
+				GLOBAL_JOURNAL_UPDATES[id]['scimagoCategory'] = jsonJournal['previous']['scimagoCategory'];
+			}
+			if ('wos' in jsonJournal && 'qindex' in jsonJournal['wos'] && jsonJournal['wos']['qindex']) {
+				GLOBAL_JOURNAL_UPDATES[id]['wosQindex'] = jsonJournal['wos']['qindex'];
+				GLOBAL_JOURNAL_UPDATES[id]['wosCategory'] = jsonJournal['previous']['wosCategory'];
+			}
+
+			createCategorySelect(jsonJournal, 'scimago',
+				[[#{html.NewScimagoCategory}]],
+				'scimagoCategory_', 'scimagoQindex', 'scimagoCategories');
+			createCategorySelect(jsonJournal, 'wos',
+				[[#{html.NewWosCategory}]],
+				'wosCategory_', 'wosQindex', 'wosCategories');
+		});
+		root.show();
+		$('#submitButton').prop("disabled", false);
+	} else {
+		resetCsvView();
+		Swal.fire(
+				  "[(#{html.Warning})]",
+				  "[(#{html.ImportCsvError2})]",
+				  'warning'
+				);
+	}
+}
+function postProcessingJsonError(obj, textStatus, errorThrown) {
+	resetCsvView();
+	var errCode = obj.status;
+	var errMsg = obj.responseJSON.message ? obj.responseJSON.message : obj.responseJSON.error;
+	var errMessage = "[(#{html.ImportCsvError1})]".format(errCode, errMsg);	
+	Swal.fire(
+			  "[(#{html.Error})]",
+			  errMessage,
+			  'error'
+			);
+}
+function startWosCsvView(file) {
+	if (file) {
+		var fileName = file.name;
+		$('#loadingIndicator').show();
+		$('#fileUploadCsv_wosCsvFile').fileinput('disable');
+		$('#form-dynamic-groups').hide();
+		$('#submitButton').prop("disabled", true);
+		var formData = new FormData();
+		var year = $('#textInput_referenceYear').val();
+		formData.append("referenceYear", year);
+		formData.append("wosCsvFile", file, fileName);
+	    formData.append("wosCvs_file", true);
+		$.ajax({
+			url: "[(${getJournalUpdateJsonUrl})]",
+			timeout: 300000,
+			type: 'post',
+			data: formData,
+			dataType: 'json',
+			contentType: false,
+			processData: false,
+			cache: false,
+			async:true,
+			success: postProcessingUpdateJson,
+			error: postProcessingJsonError,
+		});
+		return;
+	}
+	Swal.fire(
+		  "[(#{html.Error})]",
+		  "[(#{html.ImportCsvError0})]",
+		  'error'
+		);
+}
+
+$(document).ready(() => {
+	// Initialize file upload library
+	initFileUploadSingleCsv({
+		name: 'wosCsvFile',
+		enableRemove: false,
+		onSelected: (file) => {
+			startWosCsvView(file);
+		},
+	});
+	attachSpinnerAjaxHandler({
+		id: "submitButton",
+		url: "[(${formActionUrl})]",
+		timeout: 500000,
+		text: "[(#{html.Submit})]",
+		prepareData: ($bt, formData) => {
+			var changes = {};
+			$.each(GLOBAL_JOURNAL_UPDATES, (id, data) => {
+				changes[id] = {};
+				changes[id]['id'] = id;
+				if ('impactFactor' in data) {
+					changes[id]['impactFactor'] = data['impactFactor'];
+				}
+				if ('scimagoQindex' in data) {
+					changes[id]['scimagoQindex'] = data['scimagoQindex'];
+				}
+				if ('scimagoCategory' in data) {
+					changes[id]['scimagoCategory'] = data['scimagoCategory'];
+				}
+				if ('wosQindex' in data) {
+					changes[id]['wosQindex'] = data['wosQindex'];
+				}
+				if ('wosCategory' in data) {
+					changes[id]['wosCategory'] = data['wosCategory'];
+				}
+				if ('scimagoCategories' in data) {
+					var $elt = $('#scimagoCategory_' + id);
+					var $elt1 = $('option:selected', $elt);
+					if ($elt1) {
+						var $eltObj = $elt1[0];
+						var fieldValue = $eltObj.value;
+						if (fieldValue) {
+							changes[id]['scimagoCategory'] = fieldValue;
+							if ('qindex' in $eltObj.attributes) {
+								var fieldQindex = $eltObj.attributes.qindex;
+								if (fieldQindex && fieldQindex.value) {
+									changes[id]['scimagoQindex'] = fieldQindex.value;
+								}
+							}
+						}
+					}
+				}
+				if ('wosCategories' in data) {
+					var $elt = $('#wosCategory_' + id);
+					var $elt1 = $('option:selected', $elt);
+					if ($elt1) {
+						var $eltObj = $elt1[0];
+						var fieldValue = $eltObj.value;
+						if (fieldValue) {
+							changes[id]['wosCategory'] = fieldValue;
+							if ('qindex' in $eltObj.attributes) {
+								var fieldQindex = $eltObj.attributes.qindex;
+								if (fieldQindex && fieldQindex.value) {
+									changes[id]['wosQindex'] = fieldQindex.value;
+								}
+							}
+						}
+					}
+				}
+			});
+		    formData.append("changes", JSON.stringify(changes));
+			var year = $('#textInput_referenceYear').val();
+		    formData.append("referenceYear", year);
+		},
+		failureText: "[(#{html.ImportCsvError3})]",
+		onSuccess: () => {
+			resetCsvView();
+			Swal.fire(
+					  "[(#{html.Success})]",
+					  "[(#{html.ImportCsvSuccess})]",
+					  'success'
+					).then(result => {
+    					location.reload();
+					});
+		},
+		onFailure: () => {
+			resetCsvView();
+		},
+	});
+});
+</script>
+</html>

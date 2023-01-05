@@ -68,7 +68,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-President of Communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.MALE));
 		assertEquals("Dean", cons(Responsibility.DEAN).getLabel(Gender.MALE));
 		assertEquals("Department Director", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.MALE));
-		assertEquals("Deputy-Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.MALE));
+		assertEquals("Deputy Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.MALE));
 		assertEquals("Direction Secretary", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.MALE));
 		assertEquals("Director", cons(Responsibility.DIRECTOR).getLabel(Gender.MALE));
 		assertEquals("Executive Director", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.MALE));
@@ -118,7 +118,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-President of Communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.FEMALE));
 		assertEquals("Dean", cons(Responsibility.DEAN).getLabel(Gender.FEMALE));
 		assertEquals("Department Director", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.FEMALE));
-		assertEquals("Deputy-Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.FEMALE));
+		assertEquals("Deputy Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.FEMALE));
 		assertEquals("Direction Secretary", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.FEMALE));
 		assertEquals("Director", cons(Responsibility.DIRECTOR).getLabel(Gender.FEMALE));
 		assertEquals("Executive Director", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.FEMALE));
@@ -168,7 +168,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-President of Communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.OTHER));
 		assertEquals("Dean", cons(Responsibility.DEAN).getLabel(Gender.OTHER));
 		assertEquals("Department Director", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.OTHER));
-		assertEquals("Deputy-Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.OTHER));
+		assertEquals("Deputy Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.OTHER));
 		assertEquals("Direction Secretary", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.OTHER));
 		assertEquals("Director", cons(Responsibility.DIRECTOR).getLabel(Gender.OTHER));
 		assertEquals("Executive Director", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.OTHER));
@@ -218,7 +218,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-President of Communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.MALE));
 		assertEquals("Dean", cons(Responsibility.DEAN).getLabel(Gender.MALE));
 		assertEquals("Department Director", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.MALE));
-		assertEquals("Deputy-Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.MALE));
+		assertEquals("Deputy Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.MALE));
 		assertEquals("Direction Secretary", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.MALE));
 		assertEquals("Director", cons(Responsibility.DIRECTOR).getLabel(Gender.MALE));
 		assertEquals("Executive Director", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.MALE));
@@ -268,7 +268,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-President of Communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.FEMALE));
 		assertEquals("Dean", cons(Responsibility.DEAN).getLabel(Gender.FEMALE));
 		assertEquals("Department Director", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.FEMALE));
-		assertEquals("Deputy-Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.FEMALE));
+		assertEquals("Deputy Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.FEMALE));
 		assertEquals("Direction Secretary", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.FEMALE));
 		assertEquals("Director", cons(Responsibility.DIRECTOR).getLabel(Gender.FEMALE));
 		assertEquals("Executive Director", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.FEMALE));
@@ -318,7 +318,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-President of Communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.OTHER));
 		assertEquals("Dean", cons(Responsibility.DEAN).getLabel(Gender.OTHER));
 		assertEquals("Department Director", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.OTHER));
-		assertEquals("Deputy-Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.OTHER));
+		assertEquals("Deputy Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.OTHER));
 		assertEquals("Direction Secretary", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.OTHER));
 		assertEquals("Director", cons(Responsibility.DIRECTOR).getLabel(Gender.OTHER));
 		assertEquals("Executive Director", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.OTHER));
@@ -366,7 +366,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-President of Communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.MALE, Locale.US));
 		assertEquals("Dean", cons(Responsibility.DEAN).getLabel(Gender.MALE, Locale.US));
 		assertEquals("Department Director", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.MALE, Locale.US));
-		assertEquals("Deputy-Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.MALE, Locale.US));
+		assertEquals("Deputy Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.MALE, Locale.US));
 		assertEquals("Direction Secretary", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.MALE, Locale.US));
 		assertEquals("Director", cons(Responsibility.DIRECTOR).getLabel(Gender.MALE, Locale.US));
 		assertEquals("Executive Director", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.MALE, Locale.US));
@@ -414,7 +414,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-President of Communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.FEMALE, Locale.US));
 		assertEquals("Dean", cons(Responsibility.DEAN).getLabel(Gender.FEMALE, Locale.US));
 		assertEquals("Department Director", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.FEMALE, Locale.US));
-		assertEquals("Deputy-Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.FEMALE, Locale.US));
+		assertEquals("Deputy Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.FEMALE, Locale.US));
 		assertEquals("Direction Secretary", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.FEMALE, Locale.US));
 		assertEquals("Director", cons(Responsibility.DIRECTOR).getLabel(Gender.FEMALE, Locale.US));
 		assertEquals("Executive Director", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.FEMALE, Locale.US));
@@ -462,7 +462,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-President of Communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.OTHER, Locale.US));
 		assertEquals("Dean", cons(Responsibility.DEAN).getLabel(Gender.OTHER, Locale.US));
 		assertEquals("Department Director", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.OTHER, Locale.US));
-		assertEquals("Deputy-Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.OTHER, Locale.US));
+		assertEquals("Deputy Director", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.OTHER, Locale.US));
 		assertEquals("Direction Secretary", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.OTHER, Locale.US));
 		assertEquals("Director", cons(Responsibility.DIRECTOR).getLabel(Gender.OTHER, Locale.US));
 		assertEquals("Executive Director", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.OTHER, Locale.US));
@@ -510,7 +510,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-président à la communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.MALE, Locale.FRANCE));
 		assertEquals("Doyen", cons(Responsibility.DEAN).getLabel(Gender.MALE, Locale.FRANCE));
 		assertEquals("Directeur de département", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.MALE, Locale.FRANCE));
-		assertEquals("Directeur-adjoint", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.MALE, Locale.FRANCE));
+		assertEquals("Directeur adjoint", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.MALE, Locale.FRANCE));
 		assertEquals("Secrétaire de direction", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.MALE, Locale.FRANCE));
 		assertEquals("Directeur", cons(Responsibility.DIRECTOR).getLabel(Gender.MALE, Locale.FRANCE));
 		assertEquals("Directeur exécutif", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.MALE, Locale.FRANCE));
@@ -558,7 +558,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-présidente à la communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.FEMALE, Locale.FRANCE));
 		assertEquals("Doyenne", cons(Responsibility.DEAN).getLabel(Gender.FEMALE, Locale.FRANCE));
 		assertEquals("Directrice de département", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.FEMALE, Locale.FRANCE));
-		assertEquals("Directrice-adjointe", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.FEMALE, Locale.FRANCE));
+		assertEquals("Directrice adjointe", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.FEMALE, Locale.FRANCE));
 		assertEquals("Secrétaire de direction", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.FEMALE, Locale.FRANCE));
 		assertEquals("Directrice", cons(Responsibility.DIRECTOR).getLabel(Gender.FEMALE, Locale.FRANCE));
 		assertEquals("Directrice exécutive", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.FEMALE, Locale.FRANCE));
@@ -606,7 +606,7 @@ public class ResponsibilityTest {
 		assertEquals("Vice-président.e à la communication", cons(Responsibility.COMMUNICATION_VICE_PRESIDENT).getLabel(Gender.OTHER, Locale.FRANCE));
 		assertEquals("Doyen.ne", cons(Responsibility.DEAN).getLabel(Gender.OTHER, Locale.FRANCE));
 		assertEquals("Directeur.trice de département", cons(Responsibility.DEPARTMENT_DIRECTOR).getLabel(Gender.OTHER, Locale.FRANCE));
-		assertEquals("Directeur.trice-adjoint.e", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.OTHER, Locale.FRANCE));
+		assertEquals("Directeur.trice adjoint.e", cons(Responsibility.DEPUTY_DIRECTOR).getLabel(Gender.OTHER, Locale.FRANCE));
 		assertEquals("Secrétaire de direction", cons(Responsibility.DIRECTION_SECRETARY).getLabel(Gender.OTHER, Locale.FRANCE));
 		assertEquals("Directeur.trice", cons(Responsibility.DIRECTOR).getLabel(Gender.OTHER, Locale.FRANCE));
 		assertEquals("Directeur.trice exécutif.ve", cons(Responsibility.EXECUTIVE_DIRECTOR).getLabel(Gender.OTHER, Locale.FRANCE));

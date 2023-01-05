@@ -76,7 +76,7 @@
                               th:utext="${'ERROR:' + mbr.key.acronymOrName}"></th:block>
                     <a th:if="${mbr.value.memberStatus != null}"
                        th:href="@{/personList(organization=${mbr.key.id})}"
-                       th:title="${mbr.value.memberStatus.getLabel()}"
+                       th:title="${mbr.value.memberStatus.getLabel() + ' (' + (mbr.value.isPermanentPosition ? 'CDI' : 'CDD') + ')'}"
                        th:utext="${mbr.key.acronymOrName}"></a>
 					<span th:id="${'btPositionResign_' + person.id + '_' + mbr.value.id}"
 					   class="fa fa-unlink"
@@ -124,11 +124,42 @@
            		   th:id="${'btEditMemberships' + person.id}"
            		   th:title="#{html.EditMemberships(${person.fullName})}"
                    style="font-size:14pt"></span>
+            	<a th:href="@{/supervisionEditor(person=${person.id})}"
+				   th:if="${changeEnabled && !person.getSupervisableMemberships().isEmpty()}"
+				   class="noLink admin-tool-buttons">
+            		<span class="fa-solid fa-people-arrows"
+            		   th:title="#{html.EditSupervisions(${person.fullName})}"
+                       style="font-size:14pt"></span>
+            	</a>
+            	<a th:href="@{/juryMembershipEditor(person=${person.id})}"
+				   th:if="${changeEnabled}"
+				   class="noLink admin-tool-buttons">
+            		<span class="fa-solid fa-person-chalkboard"
+            		   th:title="#{html.EditJuryMemberships(${person.fullName})}"
+                       style="font-size:14pt"></span>
+            	</a>
+           		<span class="fa fa-person-chalkboard admin-tool-buttons"
+				   th:unless="${changeEnabled}"
+           		   th:id="${'btEditJuryMemberships' + person.id}"
+           		   th:title="#{html.EditJuryMemberships(${person.fullName})}"
+                   style="font-size:14pt"></span>
+            	<a th:href="@{/personInvitationEditor(person=${person.id})}"
+				   th:if="${changeEnabled}"
+				   class="noLink admin-tool-buttons">
+            		<span class="fa-solid fa-plane"
+            		   th:title="#{html.EditInvitations(${person.fullName})}"
+                       style="font-size:14pt"></span>
+            	</a>
+           		<span class="fa fa-plane admin-tool-buttons"
+				   th:unless="${changeEnabled}"
+           		   th:id="${'btEditInvitations' + person.id}"
+           		   th:title="#{html.EditInvitations(${person.fullName})}"
+                   style="font-size:14pt"></span>
             </td>
         </tr>
     </tbody>
 </table>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
     $(document).ready(() => {
     	initAdministrationTable({
     		columns: [
@@ -148,7 +179,7 @@
             	{ }
     		],
     		order: [ [2, 'asc'], [3, 'asc'] ],
-    		actionWidth: '180px',
+    		actionWidth: '250px',
     	});
         /*[# th:if="${changeEnabled}" th:each="person : ${persons}"]*/
 		attachDeletionHandler({

@@ -381,7 +381,6 @@ public class DefaultPersonNameParserTest {
 		verify(cb).name(eq("Bidarra"), isNull(), eq("Rafael"), eq(4));
 	}
 
-
 	@Test
 	public void parseNames_mixedFormat1() {
 		NameCallback cb = mock(NameCallback.class);
@@ -391,6 +390,20 @@ public class DefaultPersonNameParserTest {
 		verify(cb).name(eq("Tim"), isNull(), eq("Tutenel"), eq(1));
 		verify(cb).name(eq("Klaas Jan"), eq("de"), eq("Kraker"), eq(2));
 		verify(cb).name(eq("Bidarra"), isNull(), eq("Rafael"), eq(3));
+	}
+
+	@Test
+	public void parseNames_fromMember1() {
+		NameCallback cb = mock(NameCallback.class);
+		int n = this.test.parseNames("Tomáš Vintr and Martin Rektoris and Jan Blaha and Jiří Ulrich and George Broughton and Zhi Yan and Tomáš Krajník", cb);
+		assertEquals(7, n);
+		verify(cb).name(eq("Tomáš"), isNull(), eq("Vintr"), eq(0));
+		verify(cb).name(eq("Martin"), isNull(), eq("Rektoris"), eq(1));
+		verify(cb).name(eq("Jan"), isNull(), eq("Blaha"), eq(2));
+		verify(cb).name(eq("Jiří"), isNull(), eq("Ulrich"), eq(3));
+		verify(cb).name(eq("George"), isNull(), eq("Broughton"), eq(4));
+		verify(cb).name(eq("Zhi"), isNull(), eq("Yan"), eq(5));
+		verify(cb).name(eq("Tomáš"), isNull(), eq("Krajník"), eq(6));
 	}
 
 	@Test

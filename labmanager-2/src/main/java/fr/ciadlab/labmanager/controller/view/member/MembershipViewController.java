@@ -40,6 +40,7 @@ import fr.ciadlab.labmanager.utils.cnu.CnuSection;
 import fr.ciadlab.labmanager.utils.conrs.ConrsSection;
 import fr.ciadlab.labmanager.utils.names.PersonNameParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -84,6 +85,7 @@ public class MembershipViewController extends AbstractViewController {
 	 * @param membershipComparator the comparator of memberships to use for building the views with
 	 *     a chronological point of view.
 	 * @param membershipService the service for managing the memberships.
+	 * @param usernameKey the key string for encrypting the usernames.
 	 */
 	public MembershipViewController(
 			@Autowired MessageSourceAccessor messages,
@@ -92,8 +94,9 @@ public class MembershipViewController extends AbstractViewController {
 			@Autowired PersonService personService,
 			@Autowired ResearchOrganizationService organizationService,
 			@Autowired ResearchOrganizationRepository organizationRepository,
-			@Autowired ChronoMembershipComparator membershipComparator) {
-		super(messages, constants);
+			@Autowired ChronoMembershipComparator membershipComparator,
+			@Value("${labmanager.security.username-key}") String usernameKey) {
+		super(messages, constants, usernameKey);
 		this.nameParser = nameParser;
 		this.personService = personService;
 		this.organizationService = organizationService;
@@ -107,25 +110,28 @@ public class MembershipViewController extends AbstractViewController {
 	 *      provided, {@code personId} must be provided.
 	 * @param personId the identifier of the person for who memberships must be edited. If this argument is not
 	 *      provided, {@code personName} must be provided.
+	 * @param gotoName the name of the anchor to go to in the view.
 	 * @param username the name of the logged-in user.
-	 * @param locale the current locale.
+	 * @param locale the locale to be used.
 	 * @return the model-view that shows the duplicate persons.
 	 */
-	@GetMapping("/membershipEditor")
+	@GetMapping("/" + Constants.MEMBERSHIP_EDITING_ENDPOINT)
 	public ModelAndView showMembershipEditor(
 			@RequestParam(required = false) String personName,
 			@RequestParam(required = false) Integer personId,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username,
+			@RequestParam(required = false, name = "goto") String gotoName,
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username,
 			Locale locale) {
-		ensureCredentials(username);
+		ensureCredentials(username, Constants.MEMBERSHIP_EDITING_ENDPOINT);
 		//
-		if (Strings.isNullOrEmpty(personName) && personId == null) {
+		final String inPersonName = inString(personName);
+		if (Strings.isNullOrEmpty(inPersonName) && personId == null) {
 			throw new IllegalArgumentException("You must provide the name or the identifier of the person."); //$NON-NLS-1$
 		}
 		final Person person;
 		if (personId == null) {
-			final String firstName = this.nameParser.parseFirstName(personName);
-			final String lastName = this.nameParser.parseLastName(personName);
+			final String firstName = this.nameParser.parseFirstName(inPersonName);
+			final String lastName = this.nameParser.parseLastName(inPersonName);
 			person = this.personService.getPersonBySimilarName(firstName, lastName);
 		} else {
 			person = this.personService.getPersonById(personId.intValue());
@@ -134,8 +140,8 @@ public class MembershipViewController extends AbstractViewController {
 			throw new IllegalArgumentException("Person not found"); //$NON-NLS-1$
 		}
 		//
-		final ModelAndView modelAndView = new ModelAndView("membershipEditor"); //$NON-NLS-1$
-		initModelViewWithInternalProperties(modelAndView);
+		final ModelAndView modelAndView = new ModelAndView(Constants.MEMBERSHIP_EDITING_ENDPOINT);
+		initModelViewWithInternalProperties(modelAndView, false);
 		//
 		final List<Membership> memberships = person.getMemberships().stream().sorted(this.membershipComparator).collect(Collectors.toList());
 		// Preferred values
@@ -202,6 +208,7 @@ public class MembershipViewController extends AbstractViewController {
 		modelAndView.addObject("person", person); //$NON-NLS-1$
 		modelAndView.addObject("sortedMemberships", memberships); //$NON-NLS-1$
 		modelAndView.addObject("organizations", sortedOrganizations); //$NON-NLS-1$
+		modelAndView.addObject("gotoName", inString(gotoName)); //$NON-NLS-1$
 		return modelAndView;
 	}
 
@@ -214,6 +221,7 @@ public class MembershipViewController extends AbstractViewController {
 	 * @param organizationAcronym the acronym of the organization for which the publications must be exported.
 	 * @param includeSuborganizations indicates if the sub-organizations are included.
 	 * @param enableFilters indicates if the "Filters" box should be visible.
+	 * @param embedded indicates if the view will be embedded into a larger page, e.g., WordPress page. 
 	 * @param username the name of the logged-in user.
 	 * @return the model-view of the list of publications.
 	 * @see #showBackPersonList(Integer, String)
@@ -224,23 +232,27 @@ public class MembershipViewController extends AbstractViewController {
 			@RequestParam(required = false) String organizationAcronym,
 			@RequestParam(required = false, name = Constants.INCLUDESUBORGANIZATION_ENDPOINT_PARAMETER, defaultValue = "true") boolean includeSuborganizations,
 			@RequestParam(required = false, defaultValue = "true") boolean enableFilters,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
-		readCredentials(username);
+			@RequestParam(required = false, defaultValue = "false") boolean embedded,
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		readCredentials(username, "showMembers"); //$NON-NLS-1$
 		final ModelAndView modelAndView = new ModelAndView("showMembers"); //$NON-NLS-1$
-		initModelViewWithInternalProperties(modelAndView);
+		initModelViewWithInternalProperties(modelAndView, embedded);
 		//
 		final Integer organizationIdObj;
 		if (organization != null && organization.intValue() != 0) {
 			organizationIdObj = Integer.valueOf(organization.intValue());
-		} else if (!Strings.isNullOrEmpty(organizationAcronym)) {
-			final ResearchOrganization org = getOrganizationWith(organizationAcronym, this.organizationService);
-			if (org != null) {
-				organizationIdObj = Integer.valueOf(org.getId());
+		} else {
+			final String inOrganizationAcronym = inString(organizationAcronym);
+			if (!Strings.isNullOrEmpty(inOrganizationAcronym)) {
+				final ResearchOrganization org = getOrganizationWith(inOrganizationAcronym, this.organizationService);
+				if (org != null) {
+					organizationIdObj = Integer.valueOf(org.getId());
+				} else {
+					organizationIdObj = null;
+				}
 			} else {
 				organizationIdObj = null;
 			}
-		} else {
-			organizationIdObj = null;
 		}
 		//
 		addUrlToMemberListEndPoint(modelAndView, organizationIdObj, includeSuborganizations);

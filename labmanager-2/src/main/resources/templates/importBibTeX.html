@@ -22,7 +22,7 @@
 		<div id="form-dynamic-groups" style="display:none"></div>
 	</th:block>
 </form>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
 var GLOBAL_PUBLICATIONS = [];
 
 function resetBibTeXView() {
@@ -57,7 +57,15 @@ function buildPublicationDetails($parent, pub) {
 	$parent = $parent.append('. ');
 	var $span = $('<span></span>').attr('class', 'publicationTitle').text(pub.title);
 	$parent = $parent.append($span);
-	$parent = $parent.append(". [(#{html.In})] " + pub.wherePublishedShortDescription + '. ' + pub.publicationYear + '.');
+	var isNewJournal = pub._internalNewJournal;
+	$parent = $parent.append(". [(#{html.In})] ");
+	if (isNewJournal) {
+		$span = $('<span></span>').attr('class', 'publicationNewJournal').text(pub.wherePublishedShortDescription);
+		$parent = $parent.append($span);
+	} else {
+		$parent = $parent.append(pub.wherePublishedShortDescription);
+	}
+	$parent = $parent.append('. ' + pub.publicationYear + '.');
 }
 function getCompatiblePublicationTypes(type) {
 	var types = [];

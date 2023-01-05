@@ -16,6 +16,7 @@
 
 package fr.ciadlab.labmanager.repository.publication;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -53,6 +54,14 @@ public interface PublicationRepository extends JpaRepository<Publication, Intege
 	 */
 	Set<Publication> findAllByAuthorshipsPersonIdIn(Set<Integer> personIds);
 	
+	/** Replies the list of publictions for the given identifiers.
+	 *
+	 * @param identifiers the identifiers to search for.
+	 * @return the publications.
+	 * @since 2.5
+	 */
+	Set<Publication> findAllByIdIn(Collection<Integer> identifiers);
+
 	/** Replies the list of publications with the given title.
 	 *
 	 * @param title the title to search for, with case insensitive test.

@@ -8,6 +8,7 @@
  *      * `obj` the button that is used for obtaining the button with jQuery. If this `obj` is not
  *        provided, the `selector` or `id` must be provided.
  *      * `url` the URL to pass to Ajax.
+ *      * `requestMethod` the type of request, by default 'post'.
  *      * `timeout` the timeout to cinsider after launching the Ajax query. Default value is `100000`.
  *      * `preparePreconditionBox` the function to pass to the SweetAlert box (preConfirm) for preparing the content of the box.`
  *      * `title` the title of the precondition dialog box.`

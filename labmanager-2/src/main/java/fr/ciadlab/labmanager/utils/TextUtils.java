@@ -16,7 +16,10 @@
 
 package fr.ciadlab.labmanager.utils;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -53,6 +56,23 @@ public final class TextUtils {
 		}
 		final char c = Character.toLowerCase(text.charAt(0));
 		return APOSTROPHE.contains(Character.valueOf(c));
+	}
+
+	/** Replies the preferred string representation of the given number.
+	 *
+	 * @param number the number to format.
+	 * @param unit the unit to user for formatting.
+	 * @param locale the locale to use.
+	 * @return the string representation of the number.
+	 */
+	public static String formatNumber(Number number, Unit unit, Locale locale) {
+		if (number != null) {
+			final Number cvalue = unit == null ? number : unit.convert(number);
+			final DecimalFormatSymbols symbols = new DecimalFormatSymbols(locale == null ? Locale.US : locale);
+			final DecimalFormat format = new DecimalFormat("#0.#", symbols); //$NON-NLS-1$
+			return format.format(cvalue);
+		}
+		return ""; //$NON-NLS-1$
 	}
 
 }

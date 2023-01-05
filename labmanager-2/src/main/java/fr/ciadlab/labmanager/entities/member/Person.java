@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -180,6 +181,11 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 	@Column(length = EntityUtils.VERY_SMALL_TEXT_SIZE)
 	private String mobilePhone;
 
+	/** Number of the office room.
+	 */
+	@Column
+	private String officeRoom;
+
 	/** URL of the person on {@code cordis.europa.eu}.
 	 */
 	@Column
@@ -237,12 +243,12 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 
 	/** List of research organizations for the person.
 	 */
-	@OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<Membership> memberships;
 
 	/** List of publications of the person.
 	 */
-	@OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private Set<Authorship> authorships;
 
 	/**
@@ -288,11 +294,6 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 	}
 
 	@Override
-	public String toString() {
-		return getFullName() + ":" + this.id; //$NON-NLS-1$
-	}
-
-	@Override
 	public int hashCode() {
 		int h = HashCodeUtils.start();
 		h = HashCodeUtils.add(h, this.academiaURL);
@@ -310,6 +311,7 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 		h = HashCodeUtils.add(h, this.linkedInId);
 		h = HashCodeUtils.add(h, this.mobilePhone);
 		h = HashCodeUtils.add(h, this.officePhone);
+		h = HashCodeUtils.add(h, this.officeRoom);
 		h = HashCodeUtils.add(h, this.orcid);
 		h = HashCodeUtils.add(h, this.googleScholarId);
 		h = HashCodeUtils.add(h, this.researcherId);
@@ -370,6 +372,9 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 			return false;
 		}
 		if (!Objects.equals(this.officePhone, other.officePhone)) {
+			return false;
+		}
+		if (!Objects.equals(this.officeRoom, other.officeRoom)) {
 			return false;
 		}
 		if (!Objects.equals(this.orcid, other.orcid)) {
@@ -457,6 +462,9 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 		}
 		if (!Strings.isNullOrEmpty(getOfficePhone())) {
 			consumer.accept("officePhone", getOfficePhone()); //$NON-NLS-1$
+		}
+		if (!Strings.isNullOrEmpty(getOfficeRoom())) {
+			consumer.accept("officeRoom", getOfficeRoom()); //$NON-NLS-1$
 		}
 		if (!Strings.isNullOrEmpty(getORCID())) {
 			consumer.accept("orcid", getORCID()); //$NON-NLS-1$
@@ -801,6 +809,26 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 				// Sort the memberships from the highest date to the lowest date
 				BinaryOperator.minBy(EntityUtils.getPreferredMembershipComparator()),
 				() -> new TreeMap<>(EntityUtils.getPreferredResearchOrganizationComparator())));
+	}
+
+	/** Replies the supervisable memberships of the persons.
+	 *
+	 * @return the supervisable memberships.
+	 * @since 2.1
+	 * @see #getSupervisorMemberships()
+	 */
+	public List<Membership> getSupervisableMemberships() {
+		return getMemberships().stream().filter(it -> it.getMemberStatus().isSupervisable()).collect(Collectors.toList());
+	}
+
+	/** Replies the supervisor memberships of the persons.
+	 *
+	 * @return the supervisor memberships.
+	 * @since 2.1
+	 * @see #getSupervisableMemberships()
+	 */
+	public List<Membership> getSupervisorMemberships() {
+		return getMemberships().stream().filter(it -> it.getMemberStatus().isSupervisor()).collect(Collectors.toList());
 	}
 
 	/** Replies the active membership per research organization.
@@ -1368,12 +1396,28 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 	}
 
 	/** Change the mobile phone number of the person. This phone number is supposed to follows the international
-	 * standards
+	 * standards.
 	 *
 	 * @param number the number.
 	 */
 	public void setMobilePhone(String number) {
 		this.mobilePhone = Strings.emptyToNull(number);
+	}
+
+	/** Replies the office room's number of the person.
+	 *
+	 * @return the number.
+	 */
+	public String getOfficeRoom() {
+		return this.officeRoom;
+	}
+
+	/** Change the office room's number of the person.
+	 *
+	 * @param room the number.
+	 */
+	public void setOfficeRoom(String room) {
+		this.officeRoom = Strings.emptyToNull(room);
 	}
 
 	/** Replies the preferred civil title for this person. This civil title is not stored and computed based

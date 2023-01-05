@@ -23,6 +23,7 @@ import java.util.Locale;
 import fr.ciadlab.labmanager.entities.member.Membership;
 import fr.ciadlab.labmanager.entities.member.Person;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganization;
+import fr.ciadlab.labmanager.entities.organization.ResearchOrganizationType;
 import org.apache.jena.ext.com.google.common.base.Strings;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -57,6 +58,8 @@ public class DefaultVcardBuilder implements VcardBuilder {
 
 	private static final String MOBILE_PHONE = "mobile,voice"; //$NON-NLS-1$
 
+	private static final String OFFICE_ROOM = "office,room"; //$NON-NLS-1$
+
 	private static final String NAME = "N:"; //$NON-NLS-1$
 
 	private static final String FULLNAME = "FN:"; //$NON-NLS-1$
@@ -75,6 +78,10 @@ public class DefaultVcardBuilder implements VcardBuilder {
 
 	private static final String VCARD_END = "END:VCARD\n"; //$NON-NLS-1$
 
+	private static final String ADR_TYPE = "ADR:TYPE="; //$NON-NLS-1$
+
+	private static final String ADR_VALUE = ":"; //$NON-NLS-1$
+	
 	private static void append(StringBuilder vcard, String property, String value) {
 		if (!Strings.isNullOrEmpty(value)) {
 			vcard.append(property).append(value).append("\n"); //$NON-NLS-1$
@@ -96,6 +103,31 @@ public class DefaultVcardBuilder implements VcardBuilder {
 				}
 			}
 			vcard.append("\n"); //$NON-NLS-1$
+		}
+	}
+
+	private static void appendTo(StringBuilder buffer, String value) {
+		if (!Strings.isNullOrEmpty(value)) {
+			if (buffer.length() > 0) {
+				buffer.append(";"); //$NON-NLS-1$
+			}
+			buffer.append(value);
+		}
+	}
+
+	private static void appendAdr(StringBuilder vcard, String type, String postOfficeBox, String additionalNumber, String numberStreetAddress,
+			String locality, String region, String zipCode, String country) {
+		final StringBuilder value = new StringBuilder();
+		appendTo(value, postOfficeBox);
+		appendTo(value, additionalNumber);
+		appendTo(value, numberStreetAddress);
+		appendTo(value, locality);
+		appendTo(value, region);
+		appendTo(value, zipCode);
+		appendTo(value, country);
+		if (value.length() > 0) {
+			vcard.append(ADR_TYPE).append(type).append(ADR_VALUE);
+			vcard.append(value.toString()).append("\n"); //$NON-NLS-1$
 		}
 	}
 
@@ -136,18 +168,22 @@ public class DefaultVcardBuilder implements VcardBuilder {
 		}
 	}
 
-	private static void append(StringBuilder vcard, Membership membership) {
+	private static void append(StringBuilder vcard, Membership membership, Membership university) {
 		if (membership != null) {
 			append(vcard, TITLE, membership.getMemberStatus().getLabel(Locale.US));
 			final StringBuilder org = new StringBuilder();
 			ResearchOrganization ro = membership.getResearchOrganization();
-			do {
-				if (org.length() > 0) {
-					org.insert(0, ";"); //$NON-NLS-1$
-				}
-				org.insert(0, ro.getName());
-				ro = ro.getSuperOrganization();
-			} while (ro != null);
+			if (university == null) {
+				do {
+					if (org.length() > 0) {
+						org.insert(0, ";"); //$NON-NLS-1$
+					}
+					org.insert(0, ro.getName());
+					ro = ro.getSuperOrganization();
+				} while (ro != null);
+			} else {
+				org.append(university.getResearchOrganization().getName()).append(";").append(ro.getName()); //$NON-NLS-1$
+			}
 			append(vcard, ORGANIZATION, org.toString());
 			if (membership.getResponsibility() != null) {
 				append(vcard, ROLE, membership.getResponsibility().getLabel(membership.getPerson().getGender(), Locale.US));
@@ -173,16 +209,32 @@ public class DefaultVcardBuilder implements VcardBuilder {
 		append(vcard, URL_PREFIX, person.getGithubURL());
 		appendTel(vcard, OFFICE_PHONE, person.getOfficePhone());
 		appendTel(vcard, MOBILE_PHONE, person.getMobilePhone());
+		appendAdr(vcard, OFFICE_ROOM,
+				null, // B.O.
+				person.getOfficeRoom(),
+				null, // Street
+				null, // Locality
+				null, // Region
+				null, // Zip code
+				organization == null ? null : organization.getCountryDisplayName());
+		Membership universityMembership = null;
+		Membership detailMembership = null;
 		for (final Membership membership : person.getActiveMemberships().values()) {
-			if (organization != null) {
-				if (organization.getId() == membership.getResearchOrganization().getId()) {
-					append(vcard, membership);
-					break;
-				}
-			} else {
-				append(vcard, membership);
-				break;
+			if (universityMembership == null
+					|| membership.getResearchOrganization().getType().compareTo(ResearchOrganizationType.UNIVERSITY) >= 0) {
+				universityMembership = membership;
 			}
+			if (organization != null) {
+				if (detailMembership == null || organization.getId() == membership.getResearchOrganization().getId()) {
+					detailMembership = membership;
+				}
+			} else if (detailMembership == null
+					|| detailMembership.getResearchOrganization().getType().compareTo(membership.getResearchOrganization().getType()) > 0){
+				detailMembership = membership;
+			}
+		}
+		if (detailMembership != null) {
+			append(vcard, detailMembership, universityMembership);
 		}
 		appendPhoto(vcard, person.getPhotoURL());
 		vcard.append(VCARD_END);

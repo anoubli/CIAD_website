@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs" />
+<th:block th:replace="fragments/form :: formLibs" />
+<th:block th:replace="fragments/buttons :: ajaxButtons" />
+<th:block th:replace="fragments/buttons :: waitButtons" />
+<th:block th:replace="fragments/buttons :: interactiveDeletionProcess" />
+<th:block th:replace="fragments/formselect2 :: all" />
+
+<th:block th:replace="fragments/nav :: personListBar*(#{html.EditInvitations(${person.fullName})})"/>
+
+<form id="form">
+	<button id="btAdd" class="btn btn-warning mt-4 pr-4 pl-4"
+		th:if="${changeEnabled}" th:utext="#{html.AddInvitation}"></button>
+	<th:block th:if="${changeEnabled}">
+		<div id="new-invitation-input-area" class="form-super-group form-super-group-new" style="display:none">
+			<div class="form-group" th:replace="fragments/form :: multiSelectionTextInput*(guest_new, #{html.Guest})"></div>
+			<div class="form-group" th:replace="fragments/form :: multiSelectionTextInput*(inviter_new, #{html.Inviter})"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(type_new, #{html.InvitationType}, ~{::option#option-type-new})">
+				<option id="option-type-new"
+				        th:each="type : ${T(fr.ciadlab.labmanager.entities.invitation.PersonInvitationType).values}"
+				        th:value="${type.name}"
+				        th:utext="${type.label}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: dateInput(startDate_new, #{html.StartDate},'')"></div>
+			<div class="form-group" th:replace="fragments/form :: dateInput(endDate_new, #{html.EndDate},'')"></div>
+			<div class="form-group" th:replace="fragments/form :: textInput*(title_new, #{html.Title}, #{html.PlaceHolderPersonInvitationTitle},'')"></div>
+			<div class="form-group" th:replace="fragments/form :: textInput*(university_new, #{html.University}, #{html.PlaceHolderUniversityName},'')"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(country_new, #{html.Country}, ~{::option#option-country-new})">
+				<option id="option-country-new"
+				        th:each="country : ${T(org.arakhne.afc.util.CountryCode).values}"
+				        th:selected="${defaultCountry == country}"
+				        th:value="${country.name}"
+				        th:utext="#{html.CountryNameInList(${countryLabels.get(country)},${country.code})}"></option>
+			</div>
+			<button th:id="btSave_new" type="button"
+				class="btn btn-primary mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+				th:utext="#{html.Submit}"></button>
+		</div>
+	</th:block>
+	<th:block th:each="invitation : ${sortedInvitations}">
+		<div th:id="${'editorblock' + invitation.id}" class="form-super-group form-super-group-active">
+			<div class="form-group" th:replace="fragments/form :: multiSelectionTextInput*(${'guest_' + invitation.id}, #{html.Guest})"></div>
+			<div class="form-group" th:replace="fragments/form :: multiSelectionTextInput*(${'inviter_' + invitation.id}, #{html.Inviter})"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(${'type_' + invitation.id}, #{html.InvitationType}, ~{::option#option-type})">
+				<option id="option-type"
+				        th:each="type : ${T(fr.ciadlab.labmanager.entities.invitation.PersonInvitationType).values}"
+				        th:selected="${invitation.type == type}"
+				        th:value="${type.name}"
+				        th:utext="${type.label}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: dateInput(${'startDate_' + invitation.id}, #{html.StartDate}, ${invitation.startDate == null ? '' : invitation.startDate.toString})"></div>
+			<div class="form-group" th:replace="fragments/form :: dateInput(${'endDate_' + invitation.id}, #{html.EndDate}, ${invitation.endDate == null ? '' : invitation.endDate.toString})"></div>
+			<div class="form-group" th:replace="fragments/form :: textInput*(${'title_' + invitation.id}, #{html.Title}, #{html.PlaceHolderPersonInvitationTitle}, ${invitation.title})"></div>
+			<div class="form-group" th:replace="fragments/form :: textInput*(${'university_' + invitation.id}, #{html.University}, #{html.PlaceHolderUniversityName}, ${invitation.university})"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(${'country_' + invitation.id}, #{html.Country}, ~{::option#option-country})">
+				<option id="option-country"
+				        th:each="country : ${T(org.arakhne.afc.util.CountryCode).values}"
+				        th:selected="${invitation.country == country}"
+				        th:value="${country.name}"
+				        th:utext="#{html.CountryNameInList(${countryLabels.get(country)},${country.code})}"></option>
+			</div>
+			<button th:id="${'btSave_' + invitation.id}" type="button"
+				class="btn btn-primary mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+				th:utext="#{html.Submit}"></button>
+			<button th:id="${'TheDeleteButton_' + invitation.id}" type="button"
+				class="btn btn-danger mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+				th:utext="#{html.DeleteInvitation}"></button>
+		</div>
+	</th:block>
+</form>
+<script type="text/javascript" th:inline="javascript">
+function addSavingButtonCallback(invitationId, isNewInvitation) {
+	attachSpinnerAjaxHandler({
+		id: 'btSave_' + invitationId,
+		url: "[(${savingUrl})]",
+		requestMethod: 'put',
+		text: "[(#{html.Submit})]",
+		prepareData: ($bt, formData) => {
+			formData.append("person", parseInt("[(${person.id})]"));
+			if (!isNewInvitation) {
+				formData.append("invitation", invitationId);
+			}
+			formData.append("startDate", $('#dateInput_startDate_' + invitationId).val());
+			formData.append("endDate", $('#dateInput_endDate_' + invitationId).val());
+			formData.append("type", $('#comboInput_type_' + invitationId + ' option:selected').attr('value'));
+			formData.append("title", $('#textInput_title_' + invitationId).val());
+			formData.append("university", $('#textInput_university_' + invitationId).val());
+			formData.append("country", $('#comboInput_country_' + invitationId + ' option:selected').attr('value'));
+			var nameElt = $('#multiSelectionTextInput_guest_' + invitationId);
+			var selectionArray = nameElt.select2('data');
+			var guestName = '';
+			if (selectionArray && selectionArray[0] && selectionArray[0].element) {
+				guestName = selectionArray[0].element.value;
+			}
+			formData.append("guest", guestName);
+			nameElt = $('#multiSelectionTextInput_inviter_' + invitationId);
+			var selectionArray = nameElt.select2('data');
+			var inviterName = '';
+			if (selectionArray && selectionArray[0] && selectionArray[0].element) {
+				inviterName = selectionArray[0].element.value;
+			}
+			formData.append("inviter", inviterName);
+		},
+		failureText: "[(#{html.InvitationSavingError})]",
+		onSuccess: () => {
+			Swal.fire(
+					  "[(#{html.Success})]",
+					  "[(#{html.InvitationSavingSuccess})]",
+					  'success'
+					).then(result => {
+						location.reload();
+					});
+		},
+	});
+}
+$(document).ready(function () {
+	var completeListOfPersons = [
+        /*[# th:each="person : ${allPersons}"]*/
+        	{ id: "[(${person.id})]", text: "[(${person.fullName})]" },
+	    /*[/]*/
+	];
+    /*[# th:if="${changeEnabled}"]*/
+	$(document).on('click', '#btAdd', () => {
+		$('#btAdd').prop("disabled", true);
+		$('#new-invitation-input-area').show();
+	    addSavingButtonCallback("new", true);
+	});
+  		/*[# th:each="invitation : ${sortedInvitations}"]*/
+    addSavingButtonCallback("[(${invitation.id})]", false);
+		/*[/]*/
+    /*[/]*/
+	initMultiSelectionComboWithInputOrder({
+		id: "multiSelectionTextInput_guest_new",
+		placeholder: "[(#{html.PlaceHolderGuestName})]",
+		data: completeListOfPersons,
+		selection: [],
+	});
+	initMultiSelectionComboWithInputOrder({
+		id: "multiSelectionTextInput_inviter_new",
+		placeholder: "[(#{html.PlaceHolderInviterName})]",
+		data: completeListOfPersons,
+		selection: [],
+	});
+	/*[# th:each="invitation : ${sortedInvitations}"]*/
+	initMultiSelectionComboWithInputOrder({
+		id: "[(${'multiSelectionTextInput_guest_' + invitation.id})]",
+		placeholder: "[(#{html.PlaceHolderGuestName})]",
+		data: completeListOfPersons,
+		selection: [
+		    /*[# th:if="${invitation.guest != null}"]*/
+	    	"[(${invitation.guest.id})]",
+	   		/*[/]*/
+		],
+	});
+	initMultiSelectionComboWithInputOrder({
+		id: "[(${'multiSelectionTextInput_inviter_' + invitation.id})]",
+		placeholder: "[(#{html.PlaceHolderInviterName})]",
+		data: completeListOfPersons,
+		selection: [
+		    /*[# th:if="${invitation.inviter != null}"]*/
+	    	"[(${invitation.inviter.id})]",
+	   		/*[/]*/
+		],
+	});
+	attachDeletionHandler({
+		id: "[(${invitation.id})]",
+		url: "[(${deletionUrl + '?id=' + invitation.id})]",
+		name: "[(${invitation.startDate.toString})]",
+		questionTitle: "[(#{html.DeleteInvitation})]",
+		questionText: "[(#{html.AreYouSureToDeleteInvitation(${person.fullName})})]",
+		successText: "[(#{html.InvitationDeleted})]",
+		failureText: "[(#{html.CannotDeleteInvitation})]",
+    });
+    /*[/]*/
+});
+/*[# th:if="${gotoName != null}"]*/
+$(window).on('load', () => {
+	setTimeout( () => {
+	    const gotoElement = document.getElementById("[(${'editorblock' + gotoName})]");
+	    gotoElement.scrollIntoView();
+	}, 200);
+});
+/*[/]*/
+</script>
+</html>

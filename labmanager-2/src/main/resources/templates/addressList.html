@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs"/>
+<th:block th:replace="fragments/libs :: bootstrap-datatable"/>
+
+<th:block th:replace="fragments/table :: adminTableDefinition(${changeEnabled})"/>
+
+<th:block th:replace="fragments/nav :: addressListBar"/>
+
+<table th:replace="fragments/table :: adminTable(~{::thead}, ~{::tbody})">
+	<thead>
+		<th th:text="#{html.Id}"></th>
+		<th th:text="#{html.Name}"></th>
+		<th th:text="#{html.Street}"></th>
+		<th th:text="#{html.ZipCode}"></th>
+		<th th:text="#{html.City}"></th>
+		<th th:text="#{html.Actions}"></th>
+	</thead>
+    <tbody>
+        <tr th:each="address : ${addresses}">
+            <td>
+                <th:block th:utext="${address.id}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${address.name}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${address.street}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${address.zipCode}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${address.city}"></th:block>
+            </td>
+            <td th:replace="fragments/table :: adminToolButtons(${address.id}, ${address.name},
+            		#{html.EditAddress(${address.name})},
+            		#{html.DeleteAddress(${address.name})},
+            		null,
+            		null, null, null, null)"></td>
+        </tr>
+    </tbody>
+</table>
+<script type="text/javascript" th:inline="javascript">
+    $(document).ready(() => {
+    	initAdministrationTable({
+    		columns: 5,
+    		actionWidth: '60px',
+    	});
+    });
+    /*[# th:if="${changeEnabled}" th:each="address : ${addresses}"]*/
+	attachDeletionHandler({
+		id: "[[${address.id}]]",
+		url: "[(@{/deleteAddress(address=${address.id})})]",
+		name: [[${address.name}]],
+		questionTitle: [[#{html.DeleteAddress1(${address.name})}]],
+		questionText: [[#{html.AreYouSureToDelete(${address.name})}]],
+		successText: [[#{html.AddressDeleted}]],
+		failureText: [[#{html.CannotDeleteAddress}]],
+    });
+    /*[/]*/
+</script>
+</html>

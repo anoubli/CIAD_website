@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<th:block th:replace="fragments/general :: allBaseLibs"/>
+<th:block th:unless="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs"/>
+</th:block>
+<th:block th:if="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs-embedded"/>
+</th:block>
 <th:block th:replace="fragments/libs :: bootstrap-datatable"/>
 <script th:src="@{/js/labmanager/showmembers.js}"></script>
 
@@ -25,7 +30,7 @@
     </div>
 </div>
 
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
 $(document).ready(() => {
 	const tableId = parseInt("[(${uuid})]");
 	const dtableConfig = {

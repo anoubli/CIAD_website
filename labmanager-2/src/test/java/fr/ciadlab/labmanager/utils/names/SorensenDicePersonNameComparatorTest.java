@@ -16,11 +16,7 @@
 
 package fr.ciadlab.labmanager.utils.names;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 /** Tests for {@link SorensenDicePersonNameComparator}.
  * 
@@ -30,191 +26,13 @@ import org.junit.jupiter.api.Test;
  * @mavenartifactid $ArtifactId$
  */
 @SuppressWarnings("all")
-public class SorensenDicePersonNameComparatorTest {
-
-	private PersonNameParser nameParser;
-
-	private SorensenDicePersonNameComparator test;
+public class SorensenDicePersonNameComparatorTest extends AbstractTestPersonNameComparator {
 
 	@BeforeEach
+	@Override
 	public void setUp() {
-		this.nameParser = new DefaultPersonNameParser();
+		super.setUp();
 		this.test = new SorensenDicePersonNameComparator(this.nameParser);
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_null_0() {
-		assertFalse(this.test.isSimilar(null, "Galland", "Stephane", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_null_1() {
-		assertFalse(this.test.isSimilar("Stephane", null, "Stephane", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_null_2() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", null, "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_null_3() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "Stephane", null));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_null_4() {
-		assertFalse(this.test.isSimilar("Stephane", null, "Stephane", null));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_null_5() {
-		assertFalse(this.test.isSimilar(null, "Galland", null, "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_null_6() {
-		assertFalse(this.test.isSimilar(null, null, null, null));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_empty_0() {
-		assertFalse(this.test.isSimilar("", "Galland", "Stephane", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_empty_1() {
-		assertFalse(this.test.isSimilar("Stephane", "", "Stephane", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_empty_2() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_empty_3() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "Stephane", ""));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_empty_4() {
-		assertFalse(this.test.isSimilar("Stephane", "", "Stephane", ""));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_empty_5() {
-		assertFalse(this.test.isSimilar("", "Galland", "", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_empty_6() {
-		assertFalse(this.test.isSimilar("", "", "", ""));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_0() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "Etienne", "Dupont"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_1() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "Etienne", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_2() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "Stephane", "Dupont"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_3() {
-		assertTrue(this.test.isSimilar("Stephane", "Galland", "Stephane", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_4() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "E", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_5() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "E.", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_6() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "Galland", "E"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_7() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "Galland", "E."));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_8() {
-		assertTrue(this.test.isSimilar("Stephane", "Galland", "S", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_9() {
-		assertTrue(this.test.isSimilar("Stephane", "Galland", "S.", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_10() {
-		assertTrue(this.test.isSimilar("Stephane", "Galland", "Galland", "S"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_11() {
-		assertTrue(this.test.isSimilar("Stephane", "Galland", "Galland", "S."));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_12() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "Sarah", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_simpleName_13() {
-		assertFalse(this.test.isSimilar("Stephane", "Galland", "Galland", "Sarah"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_accent_0() {
-		assertTrue(this.test.isSimilar("Stéphane", "Galland", "Stephane", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_accent_1() {
-		assertTrue(this.test.isSimilar("Stéphane", "Galland", "S", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_accent_2() {
-		assertTrue(this.test.isSimilar("Stéphane", "Galland", "S.", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_accent_3() {
-		assertTrue(this.test.isSimilar("Stéphane", "Galland", "Galland", "Stéphane"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_accent_4() {
-		assertFalse(this.test.isSimilar("Stéphane", "Galland", "Galland", "étienne"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_accent_5() {
-		assertFalse(this.test.isSimilar("Stéphane", "Galland", "étienne", "Galland"));
-	}
-
-	@Test
-	public void isSimilar_StringStringStringString_accent_6() {
-		assertTrue(this.test.isSimilar("étienne", "dupont", "etienne", "dupont"));
 	}
 
 }

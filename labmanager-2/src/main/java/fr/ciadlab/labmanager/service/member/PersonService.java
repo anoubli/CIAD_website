@@ -17,21 +17,16 @@
 package fr.ciadlab.labmanager.service.member;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Strings;
 import fr.ciadlab.labmanager.configuration.Constants;
-import fr.ciadlab.labmanager.entities.EntityUtils;
 import fr.ciadlab.labmanager.entities.member.Gender;
 import fr.ciadlab.labmanager.entities.member.Person;
-import fr.ciadlab.labmanager.entities.member.PersonComparator;
 import fr.ciadlab.labmanager.entities.member.WebPageNaming;
 import fr.ciadlab.labmanager.entities.publication.Authorship;
 import fr.ciadlab.labmanager.entities.publication.Publication;
@@ -136,6 +131,7 @@ public class PersonService extends AbstractService {
 				null, // email
 				null, // office phone
 				null, // mobile phone
+				null, // office room
 				null, // Gravatar Id
 				null, // Orcid
 				null, // ResearcherId
@@ -160,6 +156,7 @@ public class PersonService extends AbstractService {
 	 * @param email the email of the person.
 	 * @param officePhone the phone number at office.
 	 * @param mobilePhone the mobile phone number.
+	 * @param officeRoom the number of the office room.
 	 * @param gravatarId the identifier for obtaining a photo on Gravatar.
 	 * @param orcid the ORCID of the person.
 	 * @param researcherId the identifier of the person on ResearchId/WOS/Publon.
@@ -179,9 +176,10 @@ public class PersonService extends AbstractService {
 	 * @see Gender
 	 */
 	public Person createPerson(String firstName, String lastName, Gender gender, String email, String officePhone,
-			String mobilePhone, String gravatarId, String orcid, String researcherId, String scholarId, String linkedInId,
-			String githubId, String researchGateId, String facebookId, String dblpURL, String academiaURL,
-			String cordisURL, WebPageNaming webPageNaming, int scholarHindex, int wosHindex) {
+			String mobilePhone, String officeRoom, String gravatarId, String orcid, String researcherId,
+			String scholarId, String linkedInId, String githubId, String researchGateId, String facebookId,
+			String dblpURL, String academiaURL, String cordisURL, WebPageNaming webPageNaming,
+			int scholarHindex, int wosHindex) {
 		final Person res = new Person();
 		res.setFirstName(firstName);
 		res.setLastName(lastName);
@@ -189,6 +187,7 @@ public class PersonService extends AbstractService {
 		res.setEmail(email);
 		res.setOfficePhone(officePhone);
 		res.setMobilePhone(mobilePhone);
+		res.setOfficeRoom(officeRoom);
 		res.setGravatarId(gravatarId);
 		res.setORCID(orcid);
 		res.setResearcherId(researcherId);
@@ -216,6 +215,7 @@ public class PersonService extends AbstractService {
 	 * @param email the email of the person.
 	 * @param officePhone the phone number at office.
 	 * @param mobilePhone the mobile phone number.
+	 * @param officeRoom the number of the office room.
 	 * @param gravatarId the identifier for obtaining a photo on Gravatar.
 	 * @param orcid the ORCID of the person.
 	 * @param researcherId the identifier of the person on ResearchId/WOS/Publon.
@@ -233,8 +233,8 @@ public class PersonService extends AbstractService {
 	 * @return the updated person.
 	 */
 	public Person updatePerson(int identifier, String firstName, String lastName, Gender gender, String email, String officePhone,
-			String mobilePhone, String gravatarId, String orcid, String researcherId, String scholarId, String linkedInId,
-			String githubId, String researchGateId, String facebookId, String dblpURL, String academiaURL,
+			String mobilePhone, String officeRoom, String gravatarId, String orcid, String researcherId, String scholarId,
+			String linkedInId, String githubId, String researchGateId, String facebookId, String dblpURL, String academiaURL,
 			String cordisURL, WebPageNaming webPageNaming, int scholarHindex, int wosHindex) {
 		final Optional<Person> res = this.personRepository.findById(Integer.valueOf(identifier));
 		if (res.isPresent()) {
@@ -249,6 +249,7 @@ public class PersonService extends AbstractService {
 			person.setEmail(email);
 			person.setOfficePhone(officePhone);
 			person.setMobilePhone(mobilePhone);
+			person.setOfficeRoom(officeRoom);
 			person.setGravatarId(gravatarId);
 			person.setORCID(orcid);
 			person.setResearcherId(researcherId);
@@ -352,9 +353,11 @@ public class PersonService extends AbstractService {
 	 * @see #getPersonIdBySimilarName(String, String)
 	 */
 	public Person getPersonBySimilarName(String firstName, String lastName) {
-		for (final Person person : this.personRepository.findAll()) {
-			if (this.nameComparator.isSimilar(firstName, lastName, person.getFirstName(), person.getLastName())) {
-				return person;
+		if (!Strings.isNullOrEmpty(firstName) || !Strings.isNullOrEmpty(lastName)) {
+			for (final Person person : this.personRepository.findAll()) {
+				if (this.nameComparator.isSimilar(firstName, lastName, person.getFirstName(), person.getLastName())) {
+					return person;
+				}
 			}
 		}
 		return null;
@@ -418,49 +421,6 @@ public class PersonService extends AbstractService {
 		return persons;
 	}
 
-	/** Replies the duplicate person names.
-	 * The replied list contains groups of persons who have similar names.
-	 *
-	 * @param comparator comparator of persons that is used for sorting the groups of duplicates. If it is {@code null},
-	 *      a {@link PersonComparator} is used.
-	 * @return the duplicate persons.
-	 */
-	public List<Set<Person>> getPersonDuplicates(Comparator<? super Person> comparator) {
-		// Each list represents a group of authors that could be duplicate
-		final List<Set<Person>> matchingAuthors = new ArrayList<>();
-
-		// Copy the list of authors into another list in order to enable its
-		// modification during the function's process
-		final List<Person> authorsList = new ArrayList<>(this.personRepository.findAll());
-
-		final Comparator<? super Person> theComparator = comparator == null ? EntityUtils.getPreferredPersonComparator() : comparator;
-
-		for (int i = 0; i < authorsList.size() - 1; ++i) {
-			final Person referencePerson = authorsList.get(i);
-
-			final Set<Person> currentMatching = new TreeSet<>(theComparator);
-			currentMatching.add(referencePerson);
-
-			final ListIterator<Person> iterator2 = authorsList.listIterator(i + 1);
-			while (iterator2.hasNext()) {
-				final Person otherPerson = iterator2.next();
-				if (this.nameComparator.isSimilar(
-						referencePerson.getFirstName(), referencePerson.getLastName(),
-						otherPerson.getFirstName(), otherPerson.getLastName())) {
-					currentMatching.add(otherPerson);
-					// Consume the other person to avoid to be treated twice times
-					iterator2.remove();
-				}
-			}
-
-			if (currentMatching.size() > 1) {
-				matchingAuthors.add(currentMatching);
-			}
-		}
-
-		return matchingAuthors;
-	}
-
 	/** Replies if the given list of authors contains at least one person who is associated to a research organization,
 	 * i.e., with a membership. The name similarity is used for searching the members based on their names.
 	 *
@@ -472,35 +432,82 @@ public class PersonService extends AbstractService {
 	 */
 	public boolean containsAMember(List<String> authors, boolean useNameSimilarity) {
 		final Pattern idPattern = Pattern.compile("\\d+"); //$NON-NLS-1$
-		for (final String author : authors) {
-			int authorId = 0;
-			if (idPattern.matcher(author).matches()) {
-				// Numeric value means that the person is known.
-				try {
-					authorId = Integer.parseInt(author);
-				} catch (Throwable ex) {
-					// Silent
+		try {
+			for (final String author : authors) {
+				if (author != null) {
+					int authorId = 0;
+					if (idPattern.matcher(author).matches()) {
+						// Numeric value means that the person is known.
+						try {
+							authorId = Integer.parseInt(author);
+						} catch (Throwable ex) {
+							// Silent
+						}
+					}
+					if (authorId == 0) {
+						// The author seems to be not in the database already. Check it based on the name.
+						final String firstName = this.nameParser.parseFirstName(author);
+						final String lastName = this.nameParser.parseLastName(author);
+						if (useNameSimilarity) {
+							authorId = getPersonIdBySimilarName(firstName, lastName);
+						} else {
+							authorId = getPersonIdByName(firstName, lastName);
+						}
+					}
+					if (authorId != 0) {
+						// Check if the given author identifier corresponds to a known person with memberships.
+						final Optional<Person> optPers = this.personRepository.findById(Integer.valueOf(authorId));
+						if (optPers.isPresent() && !optPers.get().getMemberships().isEmpty()) {
+							throw new SuccessException();
+						}
+					}
 				}
 			}
-			if (authorId == 0) {
-				// The author seems to be not in the database already. Check it based on the name.
-				final String firstName = this.nameParser.parseFirstName(author);
-				final String lastName = this.nameParser.parseLastName(author);
-				if (useNameSimilarity) {
-					authorId = getPersonIdBySimilarName(firstName, lastName);
-				} else {
-					authorId = getPersonIdByName(firstName, lastName);
-				}
-			}
-			if (authorId != 0) {
-				// Check if the given author identifier corresponds to a known person with memberships.
-				final Optional<Person> optPers = this.personRepository.findById(Integer.valueOf(authorId));
-				if (optPers.isPresent() && !optPers.get().getMemberships().isEmpty()) {
-					return true;
-				}
-			}
+		} catch (SuccessException ex) {
+			return true;
 		}
 		return false;
+	}
+
+	/** Internal exception
+	 * 
+	 * @author $Author: sgalland$
+	 * @version $Name$ $Revision$ $Date$
+	 * @mavengroupid $GroupId$
+	 * @mavenartifactid $ArtifactId$
+	 */
+	private static class SuccessException extends RuntimeException {
+
+		private static final long serialVersionUID = -2814067417193916087L;
+
+		SuccessException() {
+			//
+		}
+
+	}
+
+	/** Callback that is invoked when building the list of duplicate persons.
+	 * 
+	 * @author $Author: sgalland$
+	 * @version $Name$ $Revision$ $Date$
+	 * @mavengroupid $GroupId$
+	 * @mavenartifactid $ArtifactId$
+	 * @since 2.2
+	 */
+	@FunctionalInterface
+	public interface PersonDuplicateCallback {
+
+		/** Invoked for each person.
+		 *
+		 * @param index the position of the reference person in the list of persons. It represents the progress of the treatment
+		 *     of each person.
+		 * @param duplicateCount the count of discovered duplicates.
+		 * @param total the total number of persons in the list.
+		 * @throws Exception if there is an error during the callback treatment. This exception is forwarded to the
+		 *     caller of the function that has invoked this callback.
+		 */
+		void onDuplicate(int index, int duplicateCount, int total) throws Exception;
+
 	}
 
 }

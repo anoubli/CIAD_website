@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs" />
+<th:block th:replace="fragments/form :: formLibs" />
+<th:block th:replace="fragments/formdraglist :: all" />
+
+<th:block th:replace="fragments/nav :: globalIndicatorsBar"/>
+
+<div th:utext="#{html.GlobalIndicatorsIntro}"></div>
+<form th:replace="fragments/form :: entityForm(globalIndicators, ${globalIndicators == null ? '' : globalIndicators.id}, ${formActionUrl}, ${formRedirectUrl}, #{html.PublicationSavingError}, ~{::.form-group})">
+	<div class="form-group" th:replace="fragments/formdraglist :: draglist(visibleIndicators, #{html.GlobalIndicatorsVisible}, #{html.GlobalIndicatorsInvisible}, ~{::li.visibleIndicator}, ~{::li.invisibleIndicator})">
+		<li class="list-group-item visibleIndicator"
+		    th:each="indicator : ${visibleIndicators}"
+			th:id="${indicator.key}">
+			<span th:utext="${indicator.name + ' = ' + indicator.getNumericValue(organization)}"
+			      th:title="${indicator.getComputationDetails()}"></span>
+		</li>
+		<li class="list-group-item invisibleIndicator"
+		    th:each="indicator : ${invisibleIndicators}"
+			th:id="${indicator.key}">
+			<span th:utext="${indicator.name + ' = ' + indicator.getNumericValue(organization)}"
+			      th:title="${indicator.getComputationDetails()}"></span>
+		</li>
+	</div>
+</form>
+<button id="btResetValues" class="btn btn-warning mt-4 pr-4 pl-4" th:utext="#{html.ResetIndicatorValues}"></button>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(() => {
+	initDragList({
+		name: 'visibleIndicators',
+		groupname: 'list-of-global-indicators',		
+	});
+    /*[# th:if="${changeEnabled}"]*/
+	attachSpinnerAjaxHandler({
+		id: "btResetValues",
+		url: "[(${resetIndicatorUrl})]",
+		requestMethod: 'put',
+		timeout: 500000,
+		text: "[(#{html.ResetIndicatorValues})]",
+		failureText: "[(#{html.Error})]",
+		onSuccess: () => {
+			Swal.fire(
+					  "[(#{html.Success})]",
+					  "[(#{html.Success})]",
+					  'success'
+					).then(result => {
+    					location.reload();
+					});
+		},
+	});
+    /*[/]*/
+});
+</script>
+</html>

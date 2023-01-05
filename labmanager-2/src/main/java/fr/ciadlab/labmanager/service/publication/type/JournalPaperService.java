@@ -20,16 +20,20 @@ import java.time.LocalDate;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Strings;
 import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.entities.journal.Journal;
+import fr.ciadlab.labmanager.entities.member.Person;
 import fr.ciadlab.labmanager.entities.publication.Publication;
 import fr.ciadlab.labmanager.entities.publication.PublicationLanguage;
 import fr.ciadlab.labmanager.entities.publication.PublicationType;
 import fr.ciadlab.labmanager.entities.publication.type.JournalPaper;
 import fr.ciadlab.labmanager.io.filemanager.DownloadableFileManager;
 import fr.ciadlab.labmanager.repository.publication.type.JournalPaperRepository;
+import fr.ciadlab.labmanager.service.member.MembershipService;
 import fr.ciadlab.labmanager.service.publication.AbstractPublicationTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -48,6 +52,8 @@ public class JournalPaperService extends AbstractPublicationTypeService {
 
 	private JournalPaperRepository repository;
 
+	private MembershipService membershipService;
+
 	/** Constructor for injector.
 	 * This constructor is defined for being invoked by the IOC injector.
 	 *
@@ -55,14 +61,17 @@ public class JournalPaperService extends AbstractPublicationTypeService {
 	 * @param constants the accessor to the live constants.
 	 * @param downloadableFileManager downloadable file manager.
 	 * @param repository the repository for this service.
+	 * @param membershipService the service for accessing the memberships.
 	 */
 	public JournalPaperService(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
 			@Autowired DownloadableFileManager downloadableFileManager,
-			@Autowired JournalPaperRepository repository) {
+			@Autowired JournalPaperRepository repository,
+			@Autowired MembershipService membershipService) {
 		super(messages, constants, downloadableFileManager);
 		this.repository = repository;
+		this.membershipService = membershipService;
 	}
 
 	/** Replies all the journal papers.
@@ -88,8 +97,31 @@ public class JournalPaperService extends AbstractPublicationTypeService {
 	 * @param journalId the identifier of the journal.
 	 * @return the journal papers.
 	 */
-	public List<Publication> getJournalPapersByJournalId(int journalId) {
+	public List<JournalPaper> getJournalPapersByJournalId(int journalId) {
 		return this.repository.findAllByJournalId(journalId);
+	}
+
+	/** Replies all the journal paper from the database that are attached to a person involved in the given organization.
+	 *
+	 * @param identifier the identifier of the organization.
+	 * @param includeSubOrganizations indicates if the members of the suborganizations are considered.
+	 * @param filterAuthorshipsWithActiveMemberships indicates if the authorships must correspond to active memberships.
+	 * @return the publications.
+	 */
+	public Set<JournalPaper> getJournalPapersByOrganizationId(int identifier, boolean includeSubOrganizations,
+			boolean filterAuthorshipsWithActiveMemberships) {
+		final Set<Person> members;
+		if (includeSubOrganizations) {
+			members = this.membershipService.getMembersOf(identifier);
+		} else {
+			members = this.membershipService.getDirectMembersOf(identifier);
+		}
+		final Set<Integer> identifiers = members.stream().map(it -> Integer.valueOf(it.getId())).collect(Collectors.toUnmodifiableSet());
+		final Set<JournalPaper> publications = this.repository.findAllByAuthorshipsPersonIdIn(identifiers);
+		if (filterAuthorshipsWithActiveMemberships) {
+			return filterPublicationsWithMemberships(publications, identifier, includeSubOrganizations);
+		}
+		return publications;
 	}
 
 	/** Create a journal paper.

@@ -84,6 +84,16 @@ function fillDataFormInEntityForm(formData) {
 			}
 		}
 	});
+	// Send the hidden values: {name: value}
+	$('input.form-control[type="hidden"]').each( (index, $elt) => {
+		var fieldValue = $elt.value;
+		if (fieldValue) {
+			var fieldName = $elt.name;
+			if (fieldName) {
+				formData.append(fieldName, fieldValue);
+			}
+		}
+	});
 
 	$.each(GLOBAL_FORM_DATA_INPUT_TRANSFORMERS, (index, callback) => {
 		callback(formData);

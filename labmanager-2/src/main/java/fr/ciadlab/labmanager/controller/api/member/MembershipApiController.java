@@ -29,8 +29,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 
-import com.google.common.base.Strings;
 import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.controller.api.AbstractApiController;
 import fr.ciadlab.labmanager.entities.EntityUtils;
@@ -46,9 +46,10 @@ import fr.ciadlab.labmanager.service.organization.ResearchOrganizationService;
 import fr.ciadlab.labmanager.utils.bap.FrenchBap;
 import fr.ciadlab.labmanager.utils.cnu.CnuSection;
 import fr.ciadlab.labmanager.utils.conrs.ConrsSection;
-import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.MutableTriple;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -58,7 +59,7 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -89,14 +90,16 @@ public class MembershipApiController extends AbstractApiController {
 	 * @param membershipService the service for managing the memberships.
 	 * @param organizationService the service for accessing the organizations.
 	 * @param membershipComparator the comparator of member for determining the more recents.
+	 * @param usernameKey the key string for encrypting the usernames.
 	 */
 	public MembershipApiController(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
 			@Autowired MembershipService membershipService,
 			@Autowired ResearchOrganizationService organizationService,
-			@Autowired ChronoMembershipComparator membershipComparator) {
-		super(messages, constants);
+			@Autowired ChronoMembershipComparator membershipComparator,
+			@Value("${labmanager.security.username-key}") String usernameKey) {
+		super(messages, constants, usernameKey);
 		this.membershipService = membershipService;
 		this.organizationService = organizationService;
 		this.membershipComparator = membershipComparator;
@@ -109,8 +112,10 @@ public class MembershipApiController extends AbstractApiController {
 	 * @param membership the identifier of the membership. If the identifier is not provided, this endpoint is supposed to create
 	 *     a membership in the database.
 	 * @param organization the identifier of the organization related to the membership.
+	 * @param organizationAddress the identifier of the specific address of the organization where the person is located.
 	 * @param status the status of the person related to the membership. If {@code null} or empty, the status does not change in
 	 *     the existing membership.
+	 * @param permanentPosition indicates if the position is permanent or not.
 	 * @param responsibility the responsibility of the person during the period of the menmbership.
 	 * @param memberSinceWhen the start date of the membership, or {@code null} to set it as unknown or "since always".
 	 * @param memberToWhen the end date of the membership, or {@code null} to set it as unknown or "for the rest of the time".
@@ -127,12 +132,14 @@ public class MembershipApiController extends AbstractApiController {
 	 * @param username the name of the logged-in user.
 	 * @throws Exception if it is impossible to save the membership in the database.
 	 */
-	@PostMapping(value = "/" + Constants.MEMBERSHIP_SAVING_ENDPOINT)
+	@PutMapping(value = "/" + Constants.MEMBERSHIP_SAVING_ENDPOINT)
 	public void saveMembership(
 			@RequestParam(required = true) Integer person,
 			@RequestParam(required = false) Integer membership,
 			@RequestParam(required = false) Integer organization,
+			@RequestParam(required = false) Integer organizationAddress,
 			@RequestParam(required = false) String status,
+			@RequestParam(required = false, defaultValue = "false") boolean permanentPosition,
 			@RequestParam(required = false) String responsibility,
 			@RequestParam(required = false) String memberSinceWhen,
 			@RequestParam(required = false) String memberToWhen,
@@ -141,18 +148,22 @@ public class MembershipApiController extends AbstractApiController {
 			@RequestParam(required = false) String frenchBap,
 			@RequestParam(required = false, defaultValue = "true") boolean isMainPosition,
 			@RequestParam(required = false, defaultValue = "true") boolean closeActive,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
-		getLogger().info("Opening /" + Constants.MEMBERSHIP_SAVING_ENDPOINT + " by " + username + " for person " + person); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		ensureCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws Exception {
+		ensureCredentials(username, Constants.MEMBERSHIP_SAVING_ENDPOINT, person);
 		try {
+			final String inStatus = inString(status);
+			final String inResponsibility = inString(responsibility);
+			final String inMemberSinceWhen = inString(memberSinceWhen);
+			final String inMemberToWhen = inString(memberToWhen);
+			final String inFrenchBap = inString(frenchBap);
 			// Parse values to Java objects
-			LocalDate startDate = Strings.isNullOrEmpty(memberSinceWhen) ? null : LocalDate.parse(memberSinceWhen);
-			final LocalDate endDate = Strings.isNullOrEmpty(memberToWhen) ? null : LocalDate.parse(memberToWhen);
-			final MemberStatus statusObj = Strings.isNullOrEmpty(status) ? null : MemberStatus.valueOfCaseInsensitive(status);
-			final Responsibility responsibilityObj = Strings.isNullOrEmpty(responsibility) ? null : Responsibility.valueOfCaseInsensitive(responsibility);
+			LocalDate startDate = inMemberSinceWhen == null ? null : LocalDate.parse(inMemberSinceWhen);
+			final LocalDate endDate = inMemberToWhen == null ? null : LocalDate.parse(inMemberToWhen);
+			final MemberStatus statusObj = inStatus == null ? null : MemberStatus.valueOfCaseInsensitive(inStatus);
+			final Responsibility responsibilityObj = inResponsibility == null ? null : Responsibility.valueOfCaseInsensitive(inResponsibility);
 			final CnuSection cnuSectionObj = cnuSection == null || cnuSection.intValue() == 0 ? null : CnuSection.valueOf(cnuSection);
 			final ConrsSection conrsSectionObj = conrsSection == null || conrsSection.intValue() == 0 ? null : ConrsSection.valueOf(conrsSection);
-			final FrenchBap frenchBapObj = Strings.isNullOrEmpty(frenchBap) ? null : FrenchBap.valueOfCaseInsensitive(frenchBap);
+			final FrenchBap frenchBapObj = inFrenchBap == null ? null : FrenchBap.valueOfCaseInsensitive(inFrenchBap);
 
 			// Check validity of dates
 			if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
@@ -175,8 +186,11 @@ public class MembershipApiController extends AbstractApiController {
 					continueCreation = false;
 					final Pair<Membership, Boolean> result = this.membershipService.addMembership(
 							organization.intValue(),
+							organizationAddress,
 							person.intValue(),
-							startDate, endDate, statusObj, responsibilityObj,
+							startDate, endDate,
+							statusObj, permanentPosition,
+							responsibilityObj,
 							cnuSectionObj, conrsSectionObj,
 							frenchBapObj, isMainPosition, false);
 					if (!result.getRight().booleanValue()) {
@@ -187,15 +201,14 @@ public class MembershipApiController extends AbstractApiController {
 								startDate = LocalDate.now();
 							}
 							final LocalDate pEnd = startDate.minus(1, ChronoUnit.DAYS);
-							LocalDate pStart = otherMembership.getMemberSinceWhen();
-							if (pStart != null && pEnd.isBefore(pStart)) {
-								pStart = pEnd;
-							}
 							this.membershipService.updateMembershipById(
 									otherMembership.getId(),
 									Integer.valueOf(otherMembership.getResearchOrganization().getId()),
-									pStart, pEnd,
+									otherMembership.getOrganizationAddress() != null 
+									? Integer.valueOf(otherMembership.getOrganizationAddress().getId()) : null,
+									otherMembership.getMemberSinceWhen(), pEnd,
 									otherMembership.getMemberStatus(),
+									otherMembership.isPermanentPosition(),
 									otherMembership.getResponsibility(),
 									otherMembership.getCnuSection(),
 									otherMembership.getConrsSection(),
@@ -211,7 +224,10 @@ public class MembershipApiController extends AbstractApiController {
 				// Update an existing membership.
 				this.membershipService.updateMembershipById(
 						membership.intValue(),
-						organization, startDate, endDate, statusObj, responsibilityObj,
+						organization, organizationAddress,
+						startDate, endDate,
+						statusObj, permanentPosition,
+						responsibilityObj,
 						cnuSectionObj, conrsSectionObj, frenchBapObj,
 						isMainPosition);
 			}
@@ -230,9 +246,8 @@ public class MembershipApiController extends AbstractApiController {
 	@DeleteMapping("/" + Constants.MEMBERSHIP_DELETION_ENDPOINT)
 	public void deleteMembership(
 			@RequestParam Integer id,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
-		getLogger().info("Opening /" + Constants.MEMBERSHIP_DELETION_ENDPOINT + " by " + username + " for membership " + id); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		ensureCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws Exception {
+		ensureCredentials(username, Constants.MEMBERSHIP_DELETION_ENDPOINT, id);
 		if (id == null || id.intValue() == 0) {
 			throw new IllegalStateException("Missing the membership id"); //$NON-NLS-1$
 		}
@@ -261,14 +276,17 @@ public class MembershipApiController extends AbstractApiController {
 			@RequestParam(required = false, name = Constants.INCLUDESUBORGANIZATION_ENDPOINT_PARAMETER, defaultValue = "true") boolean includeSuborganizations,
 			@RequestParam(required = false, defaultValue = "false", name = Constants.FORAJAX_ENDPOINT_PARAMETER) Boolean forAjax,
 			@RequestParam(required = false, defaultValue = "false", name = Constants.INATTACHMENT_ENDPOINT_PARAMETER) Boolean inAttachment,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
-		getLogger().info("Opening /" + Constants.EXPORT_MEMBERS_TO_JSON_ENDPOINT + " by " + username + " for organization " + organization); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		readCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		readCredentials(username, Constants.EXPORT_MEMBERS_TO_JSON_ENDPOINT, Integer.valueOf(organization));
 		final boolean isAjax = forAjax != null && forAjax.booleanValue();
 		final boolean isAttachment = !isAjax && inAttachment != null && inAttachment.booleanValue();
-		final ResearchOrganizationType otherOrganizationTypeEnum =
-				otherOrganizationType == null ? ResearchOrganizationType.UNIVERSITY
-						: ResearchOrganizationType.valueOfCaseInsensitive(otherOrganizationType);
+		final Predicate<ResearchOrganization> otherOrganizationTypePredicate;
+		if (otherOrganizationType == null) {
+			otherOrganizationTypePredicate = it -> it.getType() == ResearchOrganizationType.UNIVERSITY || it.getType() == ResearchOrganizationType.OTHER;
+		} else {
+			final ResearchOrganizationType expectedType = ResearchOrganizationType.valueOfCaseInsensitive(otherOrganizationType);
+			otherOrganizationTypePredicate = it -> it.getType() == expectedType;
+		}
 		//
 		final Optional<ResearchOrganization> organizationOpt = this.organizationService.getResearchOrganizationById(organization);
 		if (organizationOpt.isEmpty()) {
@@ -276,8 +294,8 @@ public class MembershipApiController extends AbstractApiController {
 		}
 		final ResearchOrganization rootOrganization = organizationOpt.get();
 		//
-		// List of memberships should be built specifically for the front ends
-		final Map<Person, MutablePair<Membership, Set<ResearchOrganization>>> members = new TreeMap<>(EntityUtils.getPreferredPersonComparator());
+		// List of memberships that are be built specifically for the front ends
+		final Map<Person, MutableTriple<Membership, GeneralMemberType, Set<ResearchOrganization>>> members = new TreeMap<>(EntityUtils.getPreferredPersonComparator());
 		final LinkedList<ResearchOrganization> organizationStack = new LinkedList<>();
 		organizationStack.push(rootOrganization);
 		while (!organizationStack.isEmpty()) {
@@ -288,26 +306,47 @@ public class MembershipApiController extends AbstractApiController {
 			for (final Membership membership : currentOrganization.getMemberships()) {
 				if (!membership.isFuture()) {
 					final Person person = membership.getPerson();
-					final MutablePair<Membership, Set<ResearchOrganization>> pair = members.computeIfAbsent(person, it -> new MutablePair<>());
-					final Membership previousMembership = pair.getKey();
+					final MutableTriple<Membership, GeneralMemberType, Set<ResearchOrganization>> triple = members.computeIfAbsent(person, it -> new MutableTriple<>());
+					final Membership previousMembership = triple.getLeft();
+					final GeneralMemberType gmt;
 					if (previousMembership == null) {
-						pair.setLeft(membership);
+						triple.setLeft(membership);
+						gmt = GeneralMemberType.fromMembership(membership);
+						triple.setMiddle(gmt);
 					} else {
 						final int cmp = this.membershipComparator.compare(membership, previousMembership);
 						if (cmp < 0) {
-							pair.setLeft(membership);
+							triple.setLeft(membership);
+							gmt = GeneralMemberType.fromMembership(membership);
+							triple.setMiddle(gmt);
+						} else {
+							gmt = triple.getMiddle();
 						}
 					}
-					if (otherOrganizationTypeEnum != null) {
-						for (final Membership otherm : person.getMemberships()) {
+					for (final Membership otherm : person.getMemberships()) {
+						if (otherm.isActive() || gmt == GeneralMemberType.FORMER_MEMBERS) {
 							final ResearchOrganization otherro = otherm.getResearchOrganization();
-							if (otherro.getId() != organization && otherOrganizationTypeEnum == otherro.getType()) {
-								Set<ResearchOrganization> orgs = pair.getRight();
+							if (otherro.getId() != organization 
+									&& otherOrganizationTypePredicate.test(otherro)) {
+								Set<ResearchOrganization> orgs = triple.getRight();
 								if (orgs == null) {
 									orgs = new TreeSet<>(EntityUtils.getPreferredResearchOrganizationComparator());
-									pair.setRight(orgs);
+									triple.setRight(orgs);
 								}
-								orgs.add(otherro);
+								if (gmt == GeneralMemberType.FORMER_MEMBERS) {
+									// retain the more recent organization for former members.
+									if (orgs.isEmpty()) {
+										orgs.add(otherro);
+									} else {
+										ResearchOrganization prevOrg = orgs.iterator().next();
+										if (prevOrg.compareTo(otherro) < 0) {
+											orgs.clear();
+											orgs.add(otherro);
+										}
+									}
+								} else {
+									orgs.add(otherro);
+								}
 							}
 						}
 					}
@@ -316,10 +355,17 @@ public class MembershipApiController extends AbstractApiController {
 		}
 		//
 		// Build the data structure to be serialized to JSON
+		final String countryLabel;
+		if (rootOrganization.getCountry() != null) {
+			countryLabel = rootOrganization.getCountryDisplayName();
+		} else {
+			countryLabel = null;
+		}
 		final List<Map<String, Object>> content = new ArrayList<>();
-		for (final MutablePair<Membership, Set<ResearchOrganization>> entry : members.values()) {
-			final Map<String, Object> data = buildMemberEntry(entry.getLeft());
+		for (final MutableTriple<Membership, GeneralMemberType, Set<ResearchOrganization>> entry : members.values()) {
+			final Map<String, Object> data = buildMemberEntry(entry.getLeft(), entry.getMiddle());
 			if (data != null) {
+				data.put("country", countryLabel); //$NON-NLS-1$
 				Set<ResearchOrganization> oo = entry.getRight();
 				if (oo == null) {
 					oo = Collections.emptySet();
@@ -343,12 +389,10 @@ public class MembershipApiController extends AbstractApiController {
 		return bb.body(contentObj);
 	}
 
-	private static Map<String, Object> buildMemberEntry(Membership membership) {
-		final GeneralMemberType type = GeneralMemberType.fromMembership(membership);
+	private static Map<String, Object> buildMemberEntry(Membership membership, GeneralMemberType type) {
 		if (type == null) {
 			return null;
 		}
-
 		final Map<String, Object> entry = new HashMap<>();
 		entry.put("person", membership.getPerson()); //$NON-NLS-1$
 		entry.put("memberStatus", membership.getMemberStatus()); //$NON-NLS-1$

@@ -47,4 +47,11 @@ public interface AuthorshipRepository extends JpaRepository<Authorship, Integer>
 	 */
 	List<Authorship> findByPublicationId(int publicationId);
 
+	/** Count the number of authorships for the person with the given id.
+	 *
+	 * @param id the identifier of the person.
+	 * @return the count of authorships.
+	 */
+	int countDistinctByPersonId(int id);
+
 }

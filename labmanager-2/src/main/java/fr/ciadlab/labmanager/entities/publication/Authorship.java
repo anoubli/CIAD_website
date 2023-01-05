@@ -87,12 +87,6 @@ public class Authorship implements Serializable, AttributeProvider, Comparable<A
 	}
 
 	@Override
-	public String toString() {
-		return "{" + getPerson() + "}{" + getAuthorRank() + "}{" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				+ getPublication() + "}:" + this.id; //$NON-NLS-1$
-	}
-
-	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
 			return true;

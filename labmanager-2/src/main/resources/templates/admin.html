@@ -2,102 +2,45 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <th:block th:replace="fragments/general :: allBaseLibs-with-bundles"/>
 
+<div th:if="${helpUrl != null}" class="helpbutton">
+  <a th:href="${helpUrl}" class="noLink" target="_blank"><span class="fa-solid fa-circle-question"></span></a>
+</div>
+
+<nav class="labmanager-administration-navigation" aria-label="breadcrumb">
+  <ol class="breadcrumb">
+  	<li class="breadcrumb-item" th:utext="#{html.MainWebSite}"></li>
+    <li class="breadcrumb-item"><a th:href="${mainSiteUrl}" th:utext="${mainSiteName}"></a></li>
+  </ol>
+</nav>
+
 <div class="row row-cols-1 row-cols-md-4 g-4">
     <div class="col">
 		<div class="card">
 			<img th:src="@{/images/card/dashboard.jpg}" class="card-img-top"></img>
 		    <div class="card-body">
-			    <h5 class="card-title">Dash Board</h5>
+			    <h5 class="card-title" th:utext="#{html.IndicatorsAndDashBoard}"></h5>
 			    <p class="card-text">
-          
-				    	<a th:href="@{/dashboard}" class="btn btn-labeled btn-success" role="button">
-			    		<span class="fa-solid fa-chart-simple"></span>&nbsp;<th:block th:utext="Dashboard"></th:block></a>
-			    	
-			    				    	
-<!-- 			     	<button type="button" class="btn btn-labeled btn-success" disabled> -->
-<!-- 			    	<span class="fa-solid fa-chart-simple"></span>&nbsp;Charts</button> -->
-<!-- 			    	<button type="button" class="btn btn-labeled btn-primary" disabled> -->
-<!-- 			    	<span class="fa-solid fa-file-excel"></span>&nbsp;Export to spreadsheet</button> -->
-
+			    	<a th:href="@{/globalIndicatorsEditor}" class="btn btn-labeled btn-success" role="button">
+			    		<span class="fa-solid fa-sort-numeric-up-alt"></span>&nbsp;<th:block th:utext="#{html.GlobalIndicators}"></th:block></a>
+			    	<button type="button" class="btn btn-labeled btn-primary" disabled>
+			    	<span class="fa-solid fa-chart-simple"></span>&nbsp;Charts</button>
+			    	<button type="button" class="btn btn-labeled btn-secondary" disabled>
+			    	<span class="fa-solid fa-file-excel"></span>&nbsp;Export to spreadsheet</button>
 			    </p>
 			</div>
-		</div>
-	</div>
-    <div class="col">
-		<div class="card">
-			<img th:src="@{/images/card/organizations.jpg}" class="card-img-top"></img>
-		    <div class="card-body">
-			    <h5 class="card-title" th:utext="#{html.ResearchOrganizationManagement}"></h5>
-			    <p class="card-text">
-			    	<a th:href="@{/organizationList}" class="btn btn-labeled btn-success" role="button">
-			    		<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.OrganizationsList}"></th:block></a>
-			    	<a th:if="${changeEnabled}"
-			    	   th:href="@{/organizationEditor}" class="btn btn-labeled btn-primary" role="button">
-			    		<span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddOrganization}"></th:block></a>
-			    </p>
-			</div>
-		</div>
-	</div>
-    <div class="col">
-		<div class="card">
-		    <div class="card-body">
-				<img th:src="@{/images/card/staff.jpg}" class="card-img-top"></img>
-			    <h5 class="card-title" th:utext="#{html.PersonManagement}"></h5>
-			    <p class="card-text">
-			    	<a th:href="@{/personList}" class="btn btn-labeled btn-success" role="button">
-				    	<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.PersonsList}"></th:block></a>
-			    	<a th:if="${changeEnabled}"
-			    	   th:href="@{/personEditor}" class="btn btn-labeled btn-primary" role="button">
-				       <span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddPerson}"></th:block></a>
-			    	<a th:if="${changeEnabled}"
-			    	   th:href="@{/personDuplicateList}" class="btn btn-labeled btn-secondary" role="button">
-				       <span class="fa-solid fa-code-merge"></span>&nbsp;<th:block th:utext="#{html.MergePersons}"></th:block></a>
-			    </p>
-				<div class="card-footer">
-					<div class="dropdown">
-				    	<button type="button" class="btn btn-labeled btn-info dropdown-toggle" data-bs-toggle="dropdown"
-			    	            id="dropdownFrontMembers" aria-expanded="false">
-				    	<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.FrontMemberList}"></th:block></button>
-				    	<ul class="dropdown-menu" aria-labelledby="dropdownFrontMembers">
-							<li th:each="organization : ${organizations}">
-								<a class="dropdown-item"
-								   th:href="@{/showMembers(organization=${organization.id})}"
-								   th:utext="${organization.acronymOrName}"></a></li>
-						</ul>
-					</div>
+			<div class="card-footer">
+				<div class="dropdown">
+			    	<button type="button" class="btn btn-labeled btn-info dropdown-toggle" data-bs-toggle="dropdown"
+		    	            id="dropdownShowGlobalIndicators" aria-expanded="false">
+			    	<span class="fa-solid fa-sort-numeric-up-alt"></span>&nbsp;<th:block th:utext="#{html.GlobalIndicators}"></th:block></button>
+			    	<ul class="dropdown-menu" aria-labelledby="dropdownShowGlobalIndicators">
+						<li th:each="organization : ${organizations}"
+						    th:if="${organization.isMajorOrganization}">
+							<a class="dropdown-item"
+							   th:href="@{/showGlobalIndicators(dbId=${organization.id})}"
+							   th:utext="${organization.acronymOrName}"></a></li>
+					</ul>
 				</div>
-			</div>
-		</div>
-	</div>
-    <div class="col">
-		<div class="card">
-		    <div class="card-body">
-				<img th:src="@{/images/card/journals.jpg}" class="card-img-top"></img>
-			    <h5 class="card-title" th:utext="#{html.JournalManagement}"></h5>
-			    <p class="card-text">
-			    	<a th:href="@{/journalList}" class="btn btn-labeled btn-success" role="button">
-			    		<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.JournalsList}"></th:block></a>
-			    	<a th:if="${changeEnabled}"
-			    	   th:href="@{/journalEditor}" class="btn btn-labeled btn-primary" role="button">
-			    		<span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddJournal}"></th:block></a>
-			    </p>
-			</div>
-		</div>
-	</div>
-    <div class="col">
-		<div class="card">
-		    <div class="card-body">
-				<img th:src="@{/images/card/conferences.jpg}" class="card-img-top"></img>
-			    <h5 class="card-title">Conferences</h5>
-			    <p class="card-text">
-			    	<a th:href="@{/conferenceList}" class="btn btn-labeled btn-success" role="button">
-			    		<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.ConferencesList}"></th:block></a>
-<!-- 			    	<button type="button" class="btn btn-labeled btn-success" disabled> -->
-<!-- 			    		<span class="fa-solid fa-list"></span>&nbsp;List of conferences</button> -->
-			    	<a th:if="${changeEnabled}"
-			    	   th:href="@{/conferenceEditor}" class="btn btn-labeled btn-primary" role="button">
-			    		<span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddConference}"></th:block></a>			    	
-			    </p>
 			</div>
 		</div>
 	</div>
@@ -115,6 +58,9 @@
 			    	<a th:if="${changeEnabled}"
 			    	   th:href="@{/showBibTeXImporter}" class="btn btn-labeled btn-secondary" role="button">
 			    		<span class="fa-solid fa-upload"></span>&nbsp;<th:block th:utext="#{html.ImportBibTeX}"></th:block></a>
+			    	<a th:if="${changeEnabled}"
+			    	   th:href="@{/regenerateThumbnail}" class="btn btn-labeled btn-warning" role="button">
+			    		<span class="fa-solid fa-sync"></span>&nbsp;<th:block th:utext="#{html.RegeneratePictures}"></th:block></a>
 			    </p>
 				<div class="card-footer">
 					<div class="dropdown">
@@ -124,7 +70,8 @@
 				    	<ul class="dropdown-menu" aria-labelledby="dropdownPublications">
 							<li><a class="dropdown-item" th:href="@{/showPublications}" th:utext="#{html.All}"></a></li>
 							<li><hr class="dropdown-divider"></li>
-							<li th:each="organization : ${organizations}">
+							<li th:each="organization : ${organizations}"
+							    th:if="${organization.isMajorOrganization}">
 								<button type="button" class="dropdown-item"
 								   th:utext="${organization.acronymOrName}"></button>
 								<ul class="dropdown-menu dropdown-submenu">
@@ -145,15 +92,198 @@
     <div class="col">
 		<div class="card">
 		    <div class="card-body">
-				<img th:src="@{/images/card/projects.jpg}" class="card-img-top"></img>
-			    <h5 class="card-title"th:utext="#{html.ProjectManagement}"></h5>
+				<img th:src="@{/images/card/activityreport.jpg}" class="card-img-top"></img>
+			    <h5 class="card-title">Activity Reports &amp; CV</h5>
 			    <p class="card-text">
-			    	<a th:href="@{/projectList}" class="btn btn-labeled btn-success" role="button">
-			    	<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.ProjectsList}"></th:block></a>
-			    	<a th:if="${changeEnabled}" 
-			    		th:href="@{/projectEditor}" class="btn btn-labeled btn-primary" role="button">
-			    	<span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddProject}"></th:block></a>
+			    	<button type="button" class="btn btn-labeled btn-success" disabled>
+			    		<span class="fa-solid fa-download"></span>&nbsp;Download RIPEC C3 Template</button>
+			    	<button type="button" class="btn btn-labeled btn-primary" disabled>
+			    		<span class="fa-solid fa-download"></span>&nbsp;Download CV Template</button>
+			    	<button type="button" class="btn btn-labeled btn-secondary" disabled>
+			    		<span class="fa-solid fa-download"></span>&nbsp;Download HCERES Template</button>
+			    	<button type="button" class="btn btn-labeled btn-warning" disabled>
+			    		<span class="fa-solid fa-download"></span>&nbsp;Download Annual Report Template</button>
 			    </p>
+			</div>
+		</div>
+	</div>
+    <div class="col">
+		<div class="card">
+		    <div class="card-body">
+				<img th:src="@{/images/card/projects.jpg}" class="card-img-top"></img>
+			    <h5 class="card-title">Project Management</h5>
+			    <p class="card-text">
+			    	<button type="button" class="btn btn-labeled btn-success" disabled>
+			    	<span class="fa-solid fa-list"></span>&nbsp;List of projects</button>
+			    	<button type="button" class="btn btn-labeled btn-primary" disabled>
+			    	<span class="fa-solid fa-circle-plus"></span>&nbsp;Add a project</button>
+			    </p>
+			</div>
+		</div>
+	</div>
+    <div class="col">
+		<div class="card">
+		    <div class="card-body">
+				<img th:src="@{/images/card/journals.jpg}" class="card-img-top"></img>
+			    <h5 class="card-title" th:utext="#{html.JournalManagement}"></h5>
+			    <p class="card-text">
+			    	<a th:href="@{/journalList}" class="btn btn-labeled btn-success" role="button">
+			    		<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.JournalsList}"></th:block></a>
+			    	<a th:if="${changeEnabled}"
+			    	   th:href="@{/journalEditor}" class="btn btn-labeled btn-primary" role="button">
+			    		<span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddJournal}"></th:block></a>
+			    	<a th:if="${changeEnabled}"
+			    	   th:href="@{/journalRankingUpdater}" class="btn btn-labeled btn-secondary" role="button">
+			    		<span class="fa-solid fa-sync"></span>&nbsp;<th:block th:utext="#{html.UpdateJournalRankings}"></th:block></a>
+			    </p>
+			</div>
+		</div>
+	</div>
+    <div class="col">
+		<div class="card">
+		    <div class="card-body">
+				<img th:src="@{/images/card/conferences.jpg}" class="card-img-top"></img>
+			    <h5 class="card-title">Conferences</h5>
+			    <p class="card-text">
+			    	<button type="button" class="btn btn-labeled btn-success" disabled>
+			    		<span class="fa-solid fa-list"></span>&nbsp;List of conferences</button>
+			    	<button type="button" class="btn btn-labeled btn-primary" disabled>
+			    		<span class="fa-solid fa-circle-plus"></span>&nbsp;Add a conference</button>
+			    </p>
+			</div>
+		</div>
+	</div>
+    <div class="col">
+		<div class="card">
+		    <div class="card-body">
+				<img th:src="@{/images/card/staff.jpg}" class="card-img-top"></img>
+			    <h5 class="card-title" th:utext="#{html.PersonManagement}"></h5>
+			    <p class="card-text">
+					<div class="dropdown">
+				    	<button type="button" class="btn btn-labeled btn-success dropdown-toggle" data-bs-toggle="dropdown"
+			    	            id="dropdownPersonList" aria-expanded="false">
+				    	<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.PersonsList}"></th:block></button>
+				    	<ul class="dropdown-menu" aria-labelledby="dropdownPersonList">
+							<li><a class="dropdown-item" th:href="@{/personList}" th:utext="#{html.All}"></a></li>
+							<li><hr class="dropdown-divider"></li>
+							<li th:each="organization : ${organizations}"
+							    th:if="${organization.isMajorOrganization}">
+								<a class="dropdown-item"
+								   th:href="@{/personList(organization=${organization.id})}"
+								   th:utext="${organization.acronymOrName}"></a></li>
+						</ul>
+					</div>
+
+
+			    	<a th:if="${changeEnabled}"
+			    	   th:href="@{/personEditor}" class="btn btn-labeled btn-primary" role="button">
+				       <span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddPerson}"></th:block></a>
+			    	<a th:if="${changeEnabled}"
+			    	   th:href="@{/personDuplicateList}" class="btn btn-labeled btn-secondary" role="button">
+				       <span class="fa-solid fa-code-merge"></span>&nbsp;<th:block th:utext="#{html.MergePersons}"></th:block></a>
+			    </p>
+				<div class="card-footer">
+					<div class="dropdown">
+				    	<button type="button" class="btn btn-labeled btn-info dropdown-toggle" data-bs-toggle="dropdown"
+			    	            id="dropdownFrontMembers" aria-expanded="false">
+				    	<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.FrontMemberList}"></th:block></button>
+				    	<ul class="dropdown-menu" aria-labelledby="dropdownFrontMembers">
+							<li th:each="organization : ${organizations}"
+							    th:if="${organization.isMajorOrganization}">
+								<a class="dropdown-item"
+								   th:href="@{/showMembers(organization=${organization.id})}"
+								   th:utext="${organization.acronymOrName}"></a></li>
+						</ul>
+					</div>
+					<div class="dropdown">
+				    	<button type="button" class="btn btn-labeled btn-info dropdown-toggle" data-bs-toggle="dropdown"
+			    	            id="dropdownSupervisions" aria-expanded="false">
+				    	<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.Supervisions}"></th:block></button>
+				    	<ul class="dropdown-menu" aria-labelledby="dropdownSupervisions">
+							<li th:each="organization : ${organizations}"
+							    th:if="${organization.isMajorOrganization}">
+								<button type="button" class="dropdown-item"
+								   th:utext="${organization.acronymOrName}"></button>
+								<ul class="dropdown-menu dropdown-submenu">
+									<li><a th:each="membership : ${#lists.sort(organization.memberships, T(fr.ciadlab.labmanager.entities.EntityUtils).preferredPersonNameBasedMembershipComparator)}"
+									       th:if="${membership.isActive && membership.isMainPosition && membership.memberStatus.isResearcher && membership.memberStatus.hierachicalLevel <= 2}"
+									       class="dropdown-item"
+									       th:href="@{/showSupervisions(dbId=${membership.person.id})}"
+									       th:utext="${membership.person.fullNameWithLastNameFirst}"></a></li>
+								</ul> 
+						</ul>
+					</div>
+					<div class="dropdown">
+				    	<button type="button" class="btn btn-labeled btn-info dropdown-toggle" data-bs-toggle="dropdown"
+			    	            id="dropdownJuryMemberships" aria-expanded="false">
+				    	<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.JuryMemberships}"></th:block></button>
+				    	<ul class="dropdown-menu" aria-labelledby="dropdownJuryMemberships">
+							<li th:each="organization : ${organizations}"
+							    th:if="${organization.isMajorOrganization}">
+								<button type="button" class="dropdown-item"
+								        th:utext="${organization.acronymOrName}"></button>
+								<ul class="dropdown-menu dropdown-submenu">
+									<li><a th:each="membership : ${#lists.sort(organization.memberships, T(fr.ciadlab.labmanager.entities.EntityUtils).preferredPersonNameBasedMembershipComparator)}"
+									       th:if="${membership.isActive && membership.isMainPosition && membership.memberStatus.isResearcher && membership.memberStatus.hierachicalLevel <= 2}"
+									       class="dropdown-item"
+									       th:href="@{/showJuryMemberships(dbId=${membership.person.id})}"
+									       th:utext="${membership.person.fullNameWithLastNameFirst}"></a></li>
+								</ul> 
+						</ul>
+					</div>
+					<div class="dropdown">
+				    	<button type="button" class="btn btn-labeled btn-info dropdown-toggle" data-bs-toggle="dropdown"
+			    	            id="dropdownPersonInvitations" aria-expanded="false">
+				    	<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.PersonInvitations}"></th:block></button>
+				    	<ul class="dropdown-menu" aria-labelledby="dropdownPersonInvitations">
+							<li th:each="organization : ${organizations}"
+							    th:if="${organization.isMajorOrganization}">
+								<button type="button" class="dropdown-item"
+								        th:utext="${organization.acronymOrName}"></button>
+								<ul class="dropdown-menu dropdown-submenu">
+									<li><a th:each="membership : ${#lists.sort(organization.memberships, T(fr.ciadlab.labmanager.entities.EntityUtils).preferredPersonNameBasedMembershipComparator)}"
+									       th:if="${membership.isActive && membership.isMainPosition && membership.memberStatus.isResearcher && membership.memberStatus.hierachicalLevel <= 2}"
+									       class="dropdown-item"
+									       th:href="@{/showInvitations(dbId=${membership.person.id})}"
+									       th:utext="${membership.person.fullNameWithLastNameFirst}"></a></li>
+								</ul> 
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+    <div class="col">
+		<div class="card">
+			<img th:src="@{/images/card/organizations.jpg}" class="card-img-top"></img>
+		    <div class="card-body">
+			    <h5 class="card-title" th:utext="#{html.ResearchOrganizationManagement}"></h5>
+			    <p class="card-text">
+			    	<a th:href="@{/organizationList}" class="btn btn-labeled btn-success" role="button">
+			    		<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.OrganizationsList}"></th:block></a>
+			    	<a th:if="${changeEnabled}"
+			    	   th:href="@{/organizationEditor}" class="btn btn-labeled btn-primary" role="button">
+			    		<span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddOrganization}"></th:block></a>
+			    	<a th:href="@{/addressList}" class="btn btn-labeled btn-secondary" role="button">
+			    		<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.AddressList}"></th:block></a>
+			    	<a th:if="${changeEnabled}"
+			    	   th:href="@{/addressEditor}" class="btn btn-labeled btn-warning" role="button">
+			    		<span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddAddress}"></th:block></a>
+			    </p>
+			</div>
+			<div class="card-footer">
+				<div class="dropdown">
+			    	<button type="button" class="btn btn-labeled btn-info dropdown-toggle" data-bs-toggle="dropdown"
+		    	            id="dropdownShowOrganizationAddresses" aria-expanded="false">
+			    	<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.AddressPublicComponent}"></th:block></button>
+			    	<ul class="dropdown-menu" aria-labelledby="dropdownShowOrganizationAddresses">
+						<li th:each="organization : ${organizations}"
+						    th:if="${organization.isMajorOrganization}">
+							<a class="dropdown-item"
+							   th:href="@{/showOrganizationAddresses(dbId=${organization.id})}"
+							   th:utext="${organization.acronymOrName}"></a></li>
+					</ul>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -163,10 +293,14 @@
 				<img th:src="@{/images/card/databases.jpg}" class="card-img-top"></img>
 			    <h5 class="card-title" th:utext="#{html.DatabaseManagement}"></h5>
 			    <p class="card-text">
-			    	<a th:href="@{/exportDatabaseToJson}" class="btn btn-labeled btn-success" role="button">
+			    	<a th:href="@{/exportDatabaseToZip}" class="btn btn-labeled btn-success" role="button">
+			    	<span class="fa-solid fa-download"></span>&nbsp;<th:block th:utext="#{html.DatabaseToZipExport}"></th:block></a>
+			    	<a th:href="@{/exportDatabaseToJson}" class="btn btn-labeled btn-primary" role="button">
 			    	<span class="fa-solid fa-download"></span>&nbsp;<th:block th:utext="#{html.DatabaseToJsonExport}"></th:block></a>
-			    	<a th:href="@{/mergeDatabaseBibTeXToJson}" class="btn btn-labeled btn-primary" role="button">
+			    	<a th:href="@{/mergeDatabaseBibTeXToJson}" class="btn btn-labeled btn-secondary" role="button">
 			    	<span class="fa-solid fa-code-merge"></span>&nbsp;<th:block th:utext="#{html.DatabaseBibTeXToJsonExport}"></th:block></a>
+			    	<a th:href="@{/saveDatabaseToServerZip}" class="btn btn-labeled btn-warning" role="button">
+			    	<span class="fa-solid fa-save"></span>&nbsp;<th:block th:utext="#{html.SaveDatabaseToServerZip0}"></th:block></a>
 			    </p>
 			</div>
 		</div>

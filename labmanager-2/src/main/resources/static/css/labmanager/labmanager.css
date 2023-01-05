@@ -11,7 +11,25 @@ a:active.noLink {
 	all: unset;
 	cursor:pointer;
 }
-
+/* Simplified style for links */
+a.simpleLink {
+	all: unset;
+    color: #3b4d05 !important;
+    text-decoration: underline dotted;
+	cursor:pointer;
+}
+a:hover.simpleLink {
+	all: unset;
+    color: #212529 !important;
+    text-decoration: underline dotted;
+	cursor:pointer;
+}
+a:active.simpleLink {
+	all: unset;
+    color: #212529 !important;
+    text-decoration: underline dotted;
+	cursor:pointer;
+}
 .form-control.is-valid {
     border-color: #0d64c1;
     border-width:2px;
@@ -29,9 +47,15 @@ label.required:after {
     font-weight: bold;
     font-size: larger;
 }
+p.publicationTitlePart {
+	margin: 0px;
+}
 .publicationAuthors {
     color: #212529 !important;
     font-weight: bold;
+}
+p.publicationAuthors {
+	margin: 0px;
 }
 .publicationAuthors a {
     color: #3b4d05 !important;
@@ -43,6 +67,45 @@ label.required:after {
     color: #212529 !important;
 }
 .publicationDetails {
+    font-size: smaller;
+}
+p.publicationDetails {
+	margin: 0px;
+}
+div.publicationDetails {
+	margin: 0px 0px 0px 25px;
+}
+span.publicationNewJournal {
+    color: #ff6e4a !important;
+}
+table.dataTable.publicationDetails tbody td {
+	padding: 5px;
+	border-spacing : 0px;
+	border-collapse : collapse;
+	vertical-align: top;
+}
+.invitationTitle {
+    color: #96c10d !important;
+    font-weight: bold;
+    font-size: larger;
+}
+.invitationDetails {
+    font-size: smaller;
+}
+.juryMembershipTitle {
+    color: #96c10d !important;
+    font-weight: bold;
+    font-size: larger;
+}
+.juryMembershipDetails {
+    font-size: smaller;
+}
+.supervisionTitle {
+    color: #96c10d !important;
+    font-weight: bold;
+    font-size: larger;
+}
+.supervisionDetails {
     font-size: smaller;
 }
 div.form-super-group {
@@ -65,10 +128,13 @@ div.form-super-group-future {
 	background-color: #c8960d !important;
 }
 td.details-control:before {
-	content: "\f070";
+	content: "\f05a";
 }
 td.details-control.opened:before {
-	content: "\f06e";
+	content: "\f2d3";
+}
+td span.publicationTitle {
+    cursor: pointer;
 }
 td.details-control {
     cursor: pointer;
@@ -105,6 +171,18 @@ img.publicationDetailsScimagoQuartile {
 table.dataTable tbody tr.selected, table.dataTable tbody th.selected, table.dataTable tbody td.selected {
     color: #96c10d !important;
     background-color: grey !important;
+}
+table#addressTable {
+	width: 100%;
+}
+table#addressTable td.dataCell {
+    padding: 2px;
+}
+table.supervisorTable {
+	width: 100%;
+}
+table.supervisorTable td.dataCell {
+    padding: 2px;
 }
 .page-item.active .page-link {
     background-color: #96c10d !important;
@@ -180,6 +258,32 @@ table.dataTable tbody tr.selected, table.dataTable tbody th.selected, table.data
 .person-card-contact {
     margin-top: 0.5rem;
 	margin-bottom: 0.5rem;
+}
+.person-card-addresses {
+    margin-top: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+.person-card-officeroom {
+	font-family: 'Lato', sans-serif;
+	line-height: 24px;
+    color: #444;
+}
+.person-card-postaladdress {
+	font-family: 'Lato', sans-serif;
+	line-height: 24px;
+    color: #444;
+}
+.person-card-postaladdress a {
+	all: unset;
+	cursor: pointer;
+}
+.person-card-postaladdress a:hover {
+	all: unset;
+	cursor: pointer;
+}
+.person-card-postaladdress a:visited {
+	all: unset;
+	cursor: pointer;
 }
 .person-card-indexes {
     margin-top: 0.5rem;
@@ -341,7 +445,33 @@ span.obfuscated-pn:after {
 nav.labmanager-administration-navigation {
 	--bs-breadcrumb-divider: '>';	
 }
-
-.chart {
-	width: 50%;
+div.form-group li.list-group-item {
+	background-color: lightgray;
+	color: white;
+}
+div.helpbutton {
+	font-size: 50px;
+	color: red;
+	position: absolute;
+	margin: 0px;
+	padding: 0px;
+	top: -10px;
+	right: 0px;
+	z-index: 10;
+}
+div.col-form-sub-label {
+	margin-left: 100px;
+}
+label.col-form-sub-label {
+	margin-left: 100px;
+}
+select.form-sub-control {
+	margin-left: 100px;
+}
+span.journalTitle {
+    color: #96c10d !important;
+    font-weight: bold;
+}
+.redBackground {
+	 background-color: red;
 }

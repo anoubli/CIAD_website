@@ -40,6 +40,16 @@
 		</th:block>
 	</th:block>
 
+	<th:block th:fragment="addressListBar">
+		<th:block th:replace="fragments/nav :: simpleBar(#{html.AddressList})"></th:block>
+	</th:block>
+
+	<th:block th:fragment="addressListBar*(current)">
+		<th:block th:replace="fragments/nav :: standardBar(~{::a#lab-nav-addressList-item}, ${current})">
+			<a id="lab-nav-addressList-item" th:href="@{/addressList}" th:utext="#{html.AddressList}"></a><
+		</th:block>
+	</th:block>
+
 	<th:block th:fragment="organizationListBar">
 		<th:block th:replace="fragments/nav :: simpleBar(#{html.OrganizationsList})"></th:block>
 	</th:block>
@@ -60,26 +70,8 @@
 		</th:block>
 	</th:block>
 
-	
-	<th:block th:fragment="projectListBar">
-		<th:block th:replace="fragments/nav :: simpleBar(#{html.ProjectsList})"></th:block>
-	</th:block>
-	
-	<th:block th:fragment="projectListBar*(current)">
-		<th:block th:replace="fragments/nav :: standardBar(~{::a#lab-nav-projectList-item}, ${current})">
-			<a id="lab-nav-projectList-item" th:href="@{/projectList}" th:utext="#{html.ProjectsList}"></a><
-		</th:block>
-	</th:block>
-
-
-	<th:block th:fragment="conferenceListBar">
-		<th:block th:replace="fragments/nav :: simpleBar(#{html.ConferencesList})"></th:block>
-	</th:block>
-
-	<th:block th:fragment="conferenceListBar*(current)">
-		<th:block th:replace="fragments/nav :: standardBar(~{::a#lab-nav-conferenceList-item}, ${current})">
-			<a id="lab-nav-conferenceList-item" th:href="@{/conferenceList}" th:utext="#{html.ConferencesList}"></a><
-		</th:block>
+	<th:block th:fragment="globalIndicatorsBar">
+		<th:block th:replace="fragments/nav :: simpleBar(#{html.GlobalIndicators})"></th:block>
 	</th:block>
 
 </html>

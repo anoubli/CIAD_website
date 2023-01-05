@@ -424,4 +424,36 @@ public class ConferencePaper extends Publication {
 		return false;
 	}
 
+	@Override
+	public Boolean getOpenAccess() {
+		final String pub = getPublisher();
+		if (pub != null) {
+			// TODO remove when conference entity is created in the system
+			final String lpub = pub.toLowerCase();
+			if (lpub.contains("elsevier")) { //$NON-NLS-1$
+				return Boolean.TRUE;
+			}
+			if (lpub.contains("aaai")) { //$NON-NLS-1$
+				return Boolean.TRUE;
+			}
+			if (lpub.contains("acm") || lpub.contains("association for computing machinery")) { //$NON-NLS-1$ //$NON-NLS-2$
+				return Boolean.TRUE;
+			}
+			if (lpub.contains("iaria")) { //$NON-NLS-1$
+				return Boolean.TRUE;
+			}
+			if (lpub.contains("roadef")) { //$NON-NLS-1$
+				return Boolean.TRUE;
+			}
+			if (lpub.contains("insticc")) { //$NON-NLS-1$
+				return Boolean.TRUE;
+			}
+			if (lpub.contains("bnaic")) { //$NON-NLS-1$
+				return Boolean.TRUE;
+			}
+			return Boolean.FALSE;
+		}
+		return null;
+	}
+
 }

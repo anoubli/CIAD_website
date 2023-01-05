@@ -16,13 +16,8 @@
 
 package fr.ciadlab.labmanager.entities.member;
 
-import java.time.LocalDate;
-import java.util.Comparator;
-
+import fr.ciadlab.labmanager.entities.organization.OrganizationAddressComparator;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganizationComparator;
-import fr.ciadlab.labmanager.utils.bap.FrenchBap;
-import fr.ciadlab.labmanager.utils.cnu.CnuSection;
-import fr.ciadlab.labmanager.utils.conrs.ConrsSection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
@@ -37,20 +32,26 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Primary
-public class MembershipComparator implements Comparator<Membership> {
+public class MembershipComparator extends AbstractMembershipComparator {
 
 	private PersonComparator personComparator;
 
 	private ResearchOrganizationComparator organizationComparator;
 
+	private OrganizationAddressComparator addressComparator;
+
 	/** Constructor.
 	 *
 	 * @param personComparator the comparator of persons names.
 	 * @param organizationComparator the comparator of research organizations.
+	 * @param addressComparator the comparator of organization addresses.
 	 */
-	public MembershipComparator(@Autowired PersonComparator personComparator, @Autowired ResearchOrganizationComparator organizationComparator) {
+	public MembershipComparator(@Autowired PersonComparator personComparator,
+			@Autowired ResearchOrganizationComparator organizationComparator,
+			@Autowired OrganizationAddressComparator addressComparator) {
 		this.personComparator = personComparator;
 		this.organizationComparator = organizationComparator;
+		this.addressComparator = addressComparator;
 	}
 
 	@Override
@@ -65,6 +66,10 @@ public class MembershipComparator implements Comparator<Membership> {
 			return Integer.MAX_VALUE;
 		}
 		int n = this.organizationComparator.compare(o1.getResearchOrganization(), o2.getResearchOrganization());
+		if (n != 0) {
+			return n;
+		}
+		n = this.addressComparator.compare(o1.getOrganizationAddress(), o2.getOrganizationAddress());
 		if (n != 0) {
 			return n;
 		}
@@ -84,7 +89,7 @@ public class MembershipComparator implements Comparator<Membership> {
 		if (n != 0) {
 			return n;
 		}
-		n = o1.getResponsibility().compareTo(o2.getResponsibility());
+		n = compareResponsabilities(o1.getResponsibility(), o2.getResponsibility());
 		if (n != 0) {
 			return n;
 		}
@@ -106,57 +111,6 @@ public class MembershipComparator implements Comparator<Membership> {
 			return n;
 		}
 		return Integer.compare(o1.getId(), o2.getId());
-	}
-
-	private static int compareDate(LocalDate d0, LocalDate d1) {
-		if (d0 == d1) {
-			return 0;
-		}
-		if (d0 == null) {
-			return Integer.MIN_VALUE;
-		}
-		if (d1 == null) {
-			return Integer.MAX_VALUE;
-		}
-		return d1.compareTo(d0);
-	}
-
-	private static int compareCnuSection(CnuSection s0, CnuSection s1) {
-		if (s0 == s1) {
-			return 0;
-		}
-		if (s0 == null) {
-			return Integer.MIN_VALUE;
-		}
-		if (s1 == null) {
-			return Integer.MAX_VALUE;
-		}
-		return s0.compareTo(s1);
-	}
-
-	private static int compareConrsSection(ConrsSection s0, ConrsSection s1) {
-		if (s0 == s1) {
-			return 0;
-		}
-		if (s0 == null) {
-			return Integer.MIN_VALUE;
-		}
-		if (s1 == null) {
-			return Integer.MAX_VALUE;
-		}
-		return s0.compareTo(s1);
-	}
-	private static int compareFrenchBap(FrenchBap b0, FrenchBap b1) {
-		if (b0 == b1) {
-			return 0;
-		}
-		if (b0 == null) {
-			return Integer.MIN_VALUE;
-		}
-		if (b1 == null) {
-			return Integer.MAX_VALUE;
-		}
-		return b0.compareTo(b1);
 	}
 
 }

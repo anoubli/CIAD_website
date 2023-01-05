@@ -131,7 +131,7 @@ public class JacksonJsonExporter extends AbstractJsonExporter {
 					entryNode.set("htmlTypeLabel", mapper.valueToTree(publication.getType().getLabel())); //$NON-NLS-1$
 				}
 				if (entryNode.has("category")) { //$NON-NLS-1$
-					entryNode.set("htmlCategoryLabel", mapper.valueToTree(publication.getType().getCategory(publication.isRanked()).getLabel())); //$NON-NLS-1$
+					entryNode.set("htmlCategoryLabel", mapper.valueToTree(publication.getCategory().getLabel())); //$NON-NLS-1$
 				}
 			}
 			//

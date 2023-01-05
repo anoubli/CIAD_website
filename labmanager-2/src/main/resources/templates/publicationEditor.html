@@ -14,7 +14,7 @@
 	<th:block th:replace="fragments/nav :: publicationListBar*(#{html.AddPublication})"/>
 </th:block>
 
-<form th:replace="fragments/form :: entityForm(publication, ${publication == null ? '' : publication.id}, ${formActionUrl}, ${formRedirectUrl}, #{html.PublicationSavingError}, ~{::.form-group})">
+<form th:replace="fragments/form :: entityForm(publication, ${publication == null ? '' : publication.id}, ${formActionUrl}, ${formRedirectUrl}, #{html.GlobalIndicatorsSavingError}, ~{::.form-group})">
 	<div class="form-group" th:replace="fragments/form :: comboInput*(type, #{html.Type}, ~{::option#option-type})">
 		<option id="option-type"
 		        th:each="type : ${T(fr.ciadlab.labmanager.entities.publication.PublicationType).values}"
@@ -66,8 +66,9 @@
 	<div class="form-group" th:replace="fragments/formfileinput :: fileUploadPdf(pathToDownloadablePDF, #{html.PdfDocumentFor})"></div>
 	<div class="form-group" th:replace="fragments/formfileinput :: fileUploadPdf(pathToDownloadableAwardCertificate, #{html.AwardDocumentFor})"></div>
 	<div class="form-group" th:replace="fragments/form :: checkInput(manualValidationForced, #{html.ManualValidationForced}, #{html.ManualValidationForced}, ${publication != null ? publication.manualValidationForced : false})"></div>
+	<div class="form-group" th:replace="fragments/form :: checkInput(validated, #{html.ValidatedPublication}, #{html.ValidatedPublication}, ${publication != null ? publication.validated : false})"></div>
 </form>
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
 $(document).ready(function () {
 	
 	// Initialize form validation

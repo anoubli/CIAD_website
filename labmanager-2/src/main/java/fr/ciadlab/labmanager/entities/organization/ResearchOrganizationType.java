@@ -42,9 +42,12 @@ public enum ResearchOrganizationType {
 	/** Faculty.
 	 */
 	FACULTY,
-	/** University.
+	/** University or college.
 	 */
 	UNIVERSITY,
+	/** High school.
+	 */
+	HIGH_SCHOOL,
 	/** University community or network.
 	 */
 	COMMUNITY,

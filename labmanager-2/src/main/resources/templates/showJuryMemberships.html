@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:unless="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs"/>
+</th:block>
+<th:block th:if="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs-embedded"/>
+</th:block>
+<th:block th:replace="fragments/table :: publicTable"/>
+<th:block th:if="${editionUrl != null}">
+	<a th:href="${editionUrl}" class="btn btn-warning mt-4 pr-4 pl-4"><span class="fa-solid fa-pen"></span><th:block th:utext="#{html.ChangeJuruMemberships}"></th:block></a>
+</th:block>
+<div class="table table-responsive">
+    <table class="data-tables datatable-primary" th:id="${'table'+uuid}" style="width: 100%">
+        <thead>
+	        <th>Rank</th>
+	        <th th:utext="#{html.JuryMembershipType}"></th>
+	        <th th:utext="#{html.Year}"></th>
+	        <th th:utext="#{html.CandidateName0}"></th>
+	        <th th:utext="#{html.Description}"></th>
+        </thead>
+        <tbody>
+        <tr th:each="membership : ${memberships}"
+            th:with="typeLabelKey = ${membership.getLongTypeLabelKey(person.gender)}">
+            <td>
+            	<th:block th:utext="${typeLabelKeyOrdering.get(typeLabelKey)}"></th:block>
+            </td>
+            <td>
+            	<th:block th:utext="#{${typeLabelKey}}"></th:block>
+            </td>
+            <td>
+            	<th:block th:utext="${membership.date.year}"></th:block>
+            </td>
+            <td>
+            	<a th:href="${membership.candidate.webPageURI}"
+            	   th:if="${membership.candidate.webPageURI != null}"
+            	   class="simpleLink"
+            	   th:utext="${membership.candidate.fullNameWithLastNameFirst}"></a>
+            	<th:block th:unless="${membership.candidate.webPageURI != null}"
+            	          th:utext="${membership.candidate.fullNameWithLastNameFirst}"></th:block>
+				<th:block th:if="${editionUrl != null}"><a th:href="${editionUrl + '&goto=' + membership.id}" class="noLink"><span class="fa-solid fa-pen"></span></a></th:block>
+            </td>
+            <td>
+            	<div class="juryMembershipTitle" th:utext="${membership.title}"></div>
+            	<div class="juryMembershipDetails">
+	            	<th:block th:utext="${membership.university + ', ' + countryLabels.get(membership.country)}"></th:block>
+	            	<th:block th:unless="${membership.promoters.isEmpty()}">
+		            	<br/><th:block th:utext="#{html.Promoters0}"></th:block>
+		            	<th:block th:each="promoter, iPromoter : ${membership.promoters}">
+		                    <th:block th:unless="${iPromoter.first}" th:utext="', '"></th:block>
+			            	<a th:href="${promoter.webPageURI}"
+			            	   th:if="${promoter.webPageURI != null}"
+			            	   class="simpleLink"
+			            	   th:utext="${promoter.fullNameWithLastNameFirst}"></a>
+			            	<th:block th:unless="${promoter.webPageURI != null}"
+			            	          th:utext="${promoter.fullNameWithLastNameFirst}"></th:block>
+		            	</th:block>
+	            	</th:block>
+            	</div>
+            </td>
+        </tbody>
+    </table>
+</div>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(() => {
+	var $dtable = initFrontTable( {
+		id: [[${'table'+uuid}]],
+		dom: 't',
+		columns: [
+        	{
+                "orderable": false,
+        	},
+        	{
+        		data: 'type',
+                "orderable": false,
+        	},
+        	{
+        		data: 'year',
+                "orderable": false,
+			},
+        	{
+        		data: 'candidate',
+                "orderable": false,
+        	},
+        	{
+                "orderable": false,
+            }
+		],
+		order: [ [0, 'asc'], [2, 'desc'], [3, 'asc'] ],
+		tableParams: {
+			rowGroup: {
+				startRender: (rows, group) => {
+					return group;
+				},
+				endRender: null,
+				dataSrc: ['type', 'year'],
+			},
+		},
+	});
+	$dtable.column(0).visible(false);
+	$dtable.column(1).visible(false);
+	$dtable.column(2).visible(false);
+});
+</script>
+</html>

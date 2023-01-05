@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs" />
+<th:block th:replace="fragments/form :: formLibs" />
+<th:block th:replace="fragments/formfileinput :: all" />
+
+<th:block th:if="${address != null}">
+	<th:block th:replace="fragments/nav :: addressListBar*(#{html.EditAddress(${address.name})})"/>
+</th:block>
+<th:block th:if="${address == null}">
+	<th:block th:replace="fragments/nav :: addressListBar*(#{html.AddAddress})"/>
+</th:block>
+
+<th:block th:with="eutils = ${T(fr.ciadlab.labmanager.entities.EntityUtils)}">
+	<form th:replace="fragments/form :: entityForm(address, ${address == null ? '' : address.id}, ${formActionUrl}, ${formRedirectUrl}, #{html.AddressSavingError}, ~{::.form-group})">
+		<div class="form-group" th:replace="fragments/form :: textInput*(name, #{html.Name}, #{html.PlaceHolderAddressName}, ${address != null ? address.name : ''})"></div>
+		<div class="form-group" th:replace="fragments/form :: textInput(complement, #{html.AddressComplement}, #{html.PlaceHolderAddressComplement}, ${address != null ? eutils.fixAddressComplementForEditor(address.complement) : ''})"></div>
+		<div class="form-group" th:replace="fragments/form :: textInput*(street, #{html.Street}, #{html.PlaceHolderAddressStreet}, ${address != null ? address.street : ''})"></div>
+		<div class="form-group" th:replace="fragments/form :: textInput(zipCode, #{html.ZipCode}, #{html.PlaceHolderAddressZipCode}, ${address != null ? address.zipCode : ''})"></div>
+		<div class="form-group" th:replace="fragments/form :: textInput*(city, #{html.City}, #{html.PlaceHolderAddressCity}, ${address != null ? address.city : ''})"></div>
+		<div class="form-group" th:replace="fragments/form :: textInput(mapCoordinates, #{html.MapCoordinates}, #{html.PlaceHolderAddressCoordinates}, ${address != null ? address.mapCoordinates : ''})"></div>
+		<div class="form-group" th:replace="fragments/form :: textInput(googleMapLink, #{html.GoogleMapLink}, #{html.PlaceHolderGoogleMapLink}, ${address != null ? address.googleMapLink : ''})"></div>
+		<div class="form-group" th:replace="fragments/formfileinput :: fileUploadImage(pathToBackgroundImage, #{html.AddressBackgroundImage})"></div>
+	</form>
+</th:block>
+<script type="text/javascript" th:inline="javascript">
+$(document).ready(function () {
+    $('#form:first').validate({
+        rules: {
+            name: {
+                required: true,
+                minlength: 2
+            },
+            street: {
+                required: true,
+                minlength: 2
+            },
+            city: {
+                required: true,
+                minlength: 2
+            }
+        },
+    });
+	
+	initFileUploadSingleImage({
+		name: 'pathToBackgroundImage',
+		basename: "[(${pathToBackgroundImage_basename})]",
+		picture: "[(${pathToBackgroundImage_picture})]",
+	});
+});
+</script>
+</html>

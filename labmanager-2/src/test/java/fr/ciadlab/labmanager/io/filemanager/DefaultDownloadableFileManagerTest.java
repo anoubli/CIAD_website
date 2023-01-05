@@ -44,11 +44,14 @@ public class DefaultDownloadableFileManagerTest {
 
 	private File root;
 
+	private File tmp;
+
 	@BeforeEach
 	public void setUp() throws IOException {
 		this.stream = new ByteArrayOutputStream();
 		this.root = new File(File.listRoots()[0], "rootuploads");
-		this.test = new DefaultDownloadableFileManager(this.root.toString());
+		this.tmp = new File(File.listRoots()[0], "rootuploads-tmp");
+		this.test = new DefaultDownloadableFileManager(this.root.toString(), this.tmp.toString());
 	}
 
 	@Test

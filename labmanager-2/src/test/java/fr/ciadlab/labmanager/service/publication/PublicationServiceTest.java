@@ -318,7 +318,7 @@ public class PublicationServiceTest {
 
 	@Test
 	public void importPublications_null() throws Exception {
-		List<Integer> ids = this.test.importPublications(null, null);
+		List<Integer> ids = this.test.importPublications(null, null, false);
 		assertNotNull(ids);
 		assertTrue(ids.isEmpty());
 	}
@@ -326,7 +326,7 @@ public class PublicationServiceTest {
 	@Test
 	public void importPublications_empty() throws Exception {
 		Reader rd = new StringReader("");
-		List<Integer> ids = this.test.importPublications(rd, null);
+		List<Integer> ids = this.test.importPublications(rd, null, false);
 		assertNotNull(ids);
 		assertTrue(ids.isEmpty());
 	}
@@ -352,7 +352,7 @@ public class PublicationServiceTest {
 		Publication p1 = mock(Publication.class);
 		when(p1.getId()).thenReturn(874);
 		when(p1.getAuthors()).thenReturn(Arrays.asList(a1, a2));
-		when(this.bibtex.extractPublications(any(Reader.class), anyBoolean(), anyBoolean(), anyBoolean())).thenReturn(Arrays.asList(p0, p1));
+		when(this.bibtex.extractPublications(any(Reader.class), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean())).thenReturn(Arrays.asList(p0, p1));
 		when(this.personRepository.findById(anyInt())).thenAnswer(it -> {
 			switch ((Integer) it.getArgument(0)) {
 			case 1234:
@@ -382,7 +382,7 @@ public class PublicationServiceTest {
 			return Optional.empty();
 		});
 
-		List<Integer> ids = this.test.importPublications(new StringReader(bibtex), null);
+		List<Integer> ids = this.test.importPublications(new StringReader(bibtex), null, false);
 
 		assertNotNull(ids);
 		assertEquals(2, ids.size());
@@ -569,7 +569,7 @@ public class PublicationServiceTest {
 		when(this.publicationRepository.findAllByAuthorshipsPersonIdIn(any())).thenReturn(
 				new HashSet<>(Arrays.asList(this.pub0, this.pub2)));
 
-		final Set<Publication> list = this.test.getPublicationsByOrganizationId(2345, false);
+		final Set<Publication> list = this.test.getPublicationsByOrganizationId(2345, false, false);
 		assertNotNull(list);
 		assertEquals(2, list.size());
 		assertTrue(list.contains(this.pub0));

@@ -16,15 +16,10 @@
 
 package fr.ciadlab.labmanager.controller.view.member;
 
-import java.util.List;
-import java.util.Set;
-
 import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.controller.view.AbstractViewController;
-import fr.ciadlab.labmanager.entities.EntityUtils;
-import fr.ciadlab.labmanager.entities.member.Person;
-import fr.ciadlab.labmanager.service.member.PersonService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -43,21 +38,18 @@ import org.springframework.web.servlet.ModelAndView;
 @CrossOrigin
 public class PersonMergingViewController extends AbstractViewController {
 
-	private PersonService personService;
-
 	/** Constructor for injector.
 	 * This constructor is defined for being invoked by the IOC injector.
 	 *
 	 * @param messages the provider of messages.
 	 * @param constants the constants of the app.
-	 * @param personService the person service.
+	 * @param usernameKey the key string for encrypting the usernames.
 	 */
 	public PersonMergingViewController(
 			@Autowired MessageSourceAccessor messages,
 			@Autowired Constants constants,
-			@Autowired PersonService personService) {
-		super(messages, constants);
-		this.personService = personService;
+			@Value("${labmanager.security.username-key}") String usernameKey) {
+		super(messages, constants, usernameKey);
 	}
 
 	/** Show the view that permits to analyze duplicate persons and merge them.
@@ -66,32 +58,14 @@ public class PersonMergingViewController extends AbstractViewController {
 	 * @return the model-view that shows the duplicate persons.
 	 */
 	@GetMapping("/personDuplicateList")
-	public ModelAndView showPersonDuplicateList(
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
-		ensureCredentials(username);
+	public ModelAndView personDuplicateList(
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		ensureCredentials(username, "personDuplicateList"); //$NON-NLS-1$
 		final ModelAndView modelAndView = new ModelAndView("personDuplicateList"); //$NON-NLS-1$
-		initModelViewWithInternalProperties(modelAndView);
-		final List<Set<Person>> matchingAuthors = this.personService.getPersonDuplicates((a, b) -> {
-			if (a == b) {
-				return 0;
-			}
-			if (a == null) {
-				return -1;
-			}
-			if (b == null) {
-				return 1;
-			}
-			int cmp = Integer.compare(b.getAuthorships().size(), a.getAuthorships().size());
-			if (cmp != 0) {
-				return cmp;
-			}
-			cmp = Integer.compare(b.getActiveMemberships().size(), a.getActiveMemberships().size());
-			if (cmp != 0) {
-				return cmp;
-			}
-			return EntityUtils.getPreferredPersonComparator().compare(a, b);
-		});
-		modelAndView.addObject("matchingPersons", matchingAuthors); //$NON-NLS-1$
+		initModelViewWithInternalProperties(modelAndView, false);
+		//
+		modelAndView.addObject("batchUrl", endpoint(Constants.COMPUTE_PERSON_DUPLICATE_NAMES_ENDPOINT)); //$NON-NLS-1$
+		//
 		return modelAndView;
 	}
 

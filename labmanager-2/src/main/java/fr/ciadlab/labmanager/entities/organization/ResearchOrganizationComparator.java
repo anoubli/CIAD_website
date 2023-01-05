@@ -58,6 +58,22 @@ public class ResearchOrganizationComparator implements Comparator<ResearchOrgani
 		if (cmp != 0) {
 			return cmp;
 		}
+		cmp = StringUtils.compare(o1.getDescription(), o2.getDescription());
+		if (cmp != 0) {
+			return cmp;
+		}
+		cmp = Boolean.compare(o1.isMajorOrganization(), o2.isMajorOrganization());
+		if (cmp != 0) {
+			return cmp;
+		}
+		cmp = StringUtils.compare(o1.getRnsr(), o2.getRnsr());
+		if (cmp != 0) {
+			return cmp;
+		}
+		cmp = StringUtils.compare(o1.getNationalIdentifier(), o2.getNationalIdentifier());
+		if (cmp != 0) {
+			return cmp;
+		}
 		cmp = compareCountry(o1.getCountry(), o2.getCountry());
 		if (cmp != 0) {
 			return cmp;

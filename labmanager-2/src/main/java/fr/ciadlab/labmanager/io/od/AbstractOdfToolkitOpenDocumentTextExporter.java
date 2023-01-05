@@ -35,12 +35,14 @@ import fr.ciadlab.labmanager.entities.publication.type.MiscDocument;
 import fr.ciadlab.labmanager.entities.publication.type.Patent;
 import fr.ciadlab.labmanager.entities.publication.type.Report;
 import fr.ciadlab.labmanager.entities.publication.type.Thesis;
+import fr.ciadlab.labmanager.io.AbstractPublicationExporter;
 import fr.ciadlab.labmanager.io.ExportedAuthorStatus;
 import fr.ciadlab.labmanager.io.ExporterConfigurator;
 import org.apache.jena.ext.com.google.common.base.Strings;
 import org.odftoolkit.odfdom.doc.OdfTextDocument;
 import org.odftoolkit.odfdom.dom.element.style.StyleTextPropertiesElement;
 import org.odftoolkit.odfdom.dom.element.text.TextAElement;
+import org.odftoolkit.odfdom.dom.element.text.TextHElement;
 import org.odftoolkit.odfdom.dom.element.text.TextListElement;
 import org.odftoolkit.odfdom.dom.element.text.TextListItemElement;
 import org.odftoolkit.odfdom.dom.element.text.TextPElement;
@@ -57,7 +59,7 @@ import org.springframework.context.support.MessageSourceAccessor;
  * @since 2.0.0
  * @see "https://odftoolkit.org"
  */
-public abstract class AbstractOdfToolkitOpenDocumentTextExporter implements OpenDocumentTextExporter {
+public abstract class AbstractOdfToolkitOpenDocumentTextExporter extends AbstractPublicationExporter implements OpenDocumentTextExporter {
 
 	/** Green color for CIAD lab.
 	 */
@@ -104,10 +106,30 @@ public abstract class AbstractOdfToolkitOpenDocumentTextExporter implements Open
 			return null;
 		}
 		final OdfTextDocument odt = OdfTextDocument.newTextDocument();
-		final TextListElement list = odt.getContentRoot().newTextListElement();
-		for (final Publication publication : publications) {
-			exportPublication(list, publication, configurator);
-		}
+		exportPublicationsWithGroupingCriteria(publications, configurator,
+				it -> {
+					try {
+						final TextHElement element = odt.getContentRoot().newTextHElement(1);
+						element.setTextContent(it);
+					} catch (Exception ex) {
+						throw new RuntimeException(ex);
+					}
+				},
+				it -> {
+					try {
+						final TextHElement element = odt.getContentRoot().newTextHElement(2);
+						element.setTextContent(it);
+					} catch (Exception ex) {
+						throw new RuntimeException(ex);
+					}
+				},
+				it -> {
+					try {
+						exportFlatList(odt.getContentRoot().newTextListElement(), it, configurator);
+					} catch (Exception ex) {
+						throw new RuntimeException(ex);
+					}					
+				});
 		final byte[] content;
 		try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
 			odt.save(output);
@@ -115,6 +137,18 @@ public abstract class AbstractOdfToolkitOpenDocumentTextExporter implements Open
 			content = output.toByteArray();
 		}
 		return content;
+	}
+
+	/** Export the publications in a flat list.
+	 *
+	 * @param list the ODT list in which the publications must be exported.
+	 * @param publications the publications to export.
+	 * @param configurator the exporter configurator.
+	 */
+	protected void exportFlatList(TextListElement list, Iterable<? extends Publication> publications, ExporterConfigurator configurator) {
+		for (final Publication publication : publications) {
+			exportPublication(list, publication, configurator);
+		}
 	}
 
 	/** Export in ODT a single publication.

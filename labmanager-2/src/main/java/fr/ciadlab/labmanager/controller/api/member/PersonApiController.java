@@ -28,8 +28,8 @@ import fr.ciadlab.labmanager.service.organization.ResearchOrganizationService;
 import fr.ciadlab.labmanager.utils.names.PersonNameComparator;
 import fr.ciadlab.labmanager.utils.names.PersonNameParser;
 import fr.ciadlab.labmanager.utils.vcard.VcardBuilder;
-import org.apache.jena.ext.com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -78,6 +78,7 @@ public class PersonApiController extends AbstractApiController {
 	 * @param organizationService the organization service.
 	 * @param nameParser the parser of person names.
 	 * @param vcardBuilder the builder of Vcards.
+	 * @param usernameKey the key string for encrypting the usernames.
 	 */
 	public PersonApiController(
 			@Autowired MessageSourceAccessor messages,
@@ -85,8 +86,9 @@ public class PersonApiController extends AbstractApiController {
 			@Autowired PersonService personService,
 			@Autowired ResearchOrganizationService organizationService,
 			@Autowired PersonNameParser nameParser,
-			@Autowired VcardBuilder vcardBuilder) {
-		super(messages, constants);
+			@Autowired VcardBuilder vcardBuilder,
+			@Value("${labmanager.security.username-key}") String usernameKey) {
+		super(messages, constants, usernameKey);
 		this.personService = personService;
 		this.organizationService = organizationService;
 		this.nameParser = nameParser;
@@ -112,10 +114,10 @@ public class PersonApiController extends AbstractApiController {
 			@RequestParam(required = false) Integer dbId,
 			@RequestParam(required = false) String webId,
 			@RequestParam(defaultValue = "false", required = false) boolean strictName,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) {
-		getLogger().info("Opening /getPersonData by " + username + " for dbId " + dbId + " or webId " + webId); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		ensureCredentials(username);
-		final Person person = getPersonWith(dbId, webId, null, this.personService, this.nameParser);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) {
+		final String inWebId = inString(webId);
+		ensureCredentials(username, "getPersonData", dbId, inWebId); //$NON-NLS-1$
+		final Person person = getPersonWith(dbId, inWebId, null, this.personService, this.nameParser);
 		if (person == null) {
 			throw new IllegalArgumentException("Person not found"); //$NON-NLS-1$
 		}
@@ -132,6 +134,7 @@ public class PersonApiController extends AbstractApiController {
 	 * @param email the email of the person.
 	 * @param officePhone the phone number at office.
 	 * @param mobilePhone the mobile phone number.
+	 * @param officeRoom the number of the office room.
 	 * @param gravatarId the identifier for obtaining a photo on Gravatar.
 	 * @param orcid the ORCID of the person.
 	 * @param researcherId the identifier of the person on ResearchId/WOS/Publon.
@@ -149,8 +152,8 @@ public class PersonApiController extends AbstractApiController {
 	 * @param username the name of the logged-in user.
 	 * @throws Exception if the person cannot be saved.
 	 */
-	@PostMapping(value = "/" + Constants.PERSON_SAVING_ENDPOINT)
-	public void savePerson(
+	@PutMapping(value = "/" + Constants.PERSON_SAVING_ENDPOINT)
+	public void personSave(
 			@RequestParam(required = false) Integer person,
 			@RequestParam(required = true) String firstName,
 			@RequestParam(required = true) String lastName,
@@ -158,6 +161,7 @@ public class PersonApiController extends AbstractApiController {
 			@RequestParam(required = false) String email,
 			@RequestParam(required = false) String officePhone,
 			@RequestParam(required = false) String mobilePhone,
+			@RequestParam(required = false) String officeRoom,
 			@RequestParam(required = false) String gravatarId,
 			@RequestParam(required = false) String orcid,
 			@RequestParam(required = false) String researcherId,
@@ -172,11 +176,30 @@ public class PersonApiController extends AbstractApiController {
 			@RequestParam(required = false) String webPageNaming,
 			@RequestParam(required = false) Integer googleScholarHindex,
 			@RequestParam(required = false) Integer wosHindex,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
-		getLogger().info("Opening /" + Constants.PERSON_SAVING_ENDPOINT + " by " + username + " for person " + person); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		ensureCredentials(username);
-		final Gender genderObj = Strings.isNullOrEmpty(gender) ? Gender.NOT_SPECIFIED : Gender.valueOfCaseInsensitive(gender);
-		final WebPageNaming webPageNamingObj = Strings.isNullOrEmpty(webPageNaming) ? WebPageNaming.UNSPECIFIED : WebPageNaming.valueOfCaseInsensitive(webPageNaming);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws Exception {
+		ensureCredentials(username, Constants.PERSON_SAVING_ENDPOINT, person);
+		final String inFirstName = inString(firstName);
+		final String inLastName = inString(lastName);
+		final String inGender = inString(gender);
+		final String inEmail = inString(email);
+		final String inOfficePhone = inString(officePhone);
+		final String inMobilePhone = inString(mobilePhone);
+		final String inOfficeRoom = inString(officeRoom);
+		final String inGravatarId = inString(gravatarId);
+		final String inOrcid = inString(orcid);
+		final String inResearcherId = inString(researcherId);
+		final String inGoogleScholarId = inString(googleScholarId);
+		final String inLinkedInId = inString(linkedInId);
+		final String inGithubId = inString(githubId);
+		final String inResearchGateId = inString(researchGateId);
+		final String inFacebookId = inString(facebookId);
+		final String inDblpURL = inString(dblpURL);
+		final String inAcademiaURL = inString(academiaURL);
+		final String inCordisURL = inString(cordisURL);
+		final String inWebPageNaming = inString(webPageNaming);
+		//
+		final Gender genderObj = inGender == null ? Gender.NOT_SPECIFIED : Gender.valueOfCaseInsensitive(inGender);
+		final WebPageNaming webPageNamingObj = inWebPageNaming == null ? WebPageNaming.UNSPECIFIED : WebPageNaming.valueOfCaseInsensitive(inWebPageNaming);
 		final int shindex = googleScholarHindex == null ? 0 : googleScholarHindex.intValue();
 		final int whindex = wosHindex == null ? 0 : wosHindex.intValue();
 		//
@@ -184,15 +207,15 @@ public class PersonApiController extends AbstractApiController {
 		//
 		if (person == null) {
 			optPerson = this.personService.createPerson(
-					firstName, lastName, genderObj, email, officePhone, mobilePhone,
-					gravatarId, orcid, researcherId, googleScholarId, linkedInId, githubId, researchGateId,
-					facebookId, dblpURL, academiaURL, cordisURL, webPageNamingObj,
+					inFirstName, inLastName, genderObj, inEmail, inOfficePhone, inMobilePhone, inOfficeRoom,
+					inGravatarId, inOrcid, inResearcherId, inGoogleScholarId, inLinkedInId, inGithubId, inResearchGateId,
+					inFacebookId, inDblpURL, inAcademiaURL, inCordisURL, webPageNamingObj,
 					shindex, whindex);
 		} else {
 			optPerson = this.personService.updatePerson(person.intValue(),
-					firstName, lastName, genderObj, email, officePhone, mobilePhone,
-					gravatarId, orcid, researcherId, googleScholarId, linkedInId, githubId, researchGateId,
-					facebookId, dblpURL, academiaURL, cordisURL, webPageNamingObj,
+					inFirstName, inLastName, genderObj, inEmail, inOfficePhone, inMobilePhone, inOfficeRoom,
+					inGravatarId, inOrcid, inResearcherId, inGoogleScholarId, inLinkedInId, inGithubId, inResearchGateId,
+					inFacebookId, inDblpURL, inAcademiaURL, inCordisURL, webPageNamingObj,
 					shindex, whindex);
 		}
 		if (optPerson == null) {
@@ -209,9 +232,8 @@ public class PersonApiController extends AbstractApiController {
 	@DeleteMapping("/deletePerson")
 	public void deletePerson(
 			@RequestParam Integer person,
-			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
-		getLogger().info("Opening /deletePerson by " + username + " for person " + person); //$NON-NLS-1$ //$NON-NLS-2$
-		ensureCredentials(username);
+			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) byte[] username) throws Exception {
+		ensureCredentials(username, "deletePerson", person); //$NON-NLS-1$
 		if (person == null || person.intValue() == 0) {
 			throw new IllegalStateException("Person not found"); //$NON-NLS-1$
 		}
@@ -229,17 +251,17 @@ public class PersonApiController extends AbstractApiController {
 	 * @return the Vcard.
 	 */
 	@GetMapping(value = "/" + Constants.PERSON_VCARD_ENDPOINT)
-	public ResponseEntity<String> getPersonVcard(
+	public ResponseEntity<String> personVcard(
 			@RequestParam(required = false) Integer dbId,
 			@RequestParam(required = false) String webId,
 			@RequestParam(required = false) String organization,
 			@RequestParam(required = false, defaultValue = "false", name = Constants.INATTACHMENT_ENDPOINT_PARAMETER) Boolean inAttachment) {
-		final Person personObj = getPersonWith(dbId, webId, null, this.personService, this.nameParser);
+		final Person personObj = getPersonWith(dbId, inString(webId), null, this.personService, this.nameParser);
 		if (personObj == null) {
 			throw new IllegalArgumentException("Person not found"); //$NON-NLS-1$
 		}
 		//
-		final ResearchOrganization organizationObj = getOrganizationWith(organization, this.organizationService);
+		final ResearchOrganization organizationObj = getOrganizationWith(inString(organization), this.organizationService);
 		//
 		final String content = this.vcardBuilder.build(personObj, organizationObj);
 		//

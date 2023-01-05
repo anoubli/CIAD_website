@@ -1,9 +1,19 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<th:block th:replace="fragments/general :: allBaseLibs"/>
+<th:block th:unless="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs"/>
+</th:block>
+<th:block th:if="${isEmbeddedPage}">
+	<th:block th:replace="fragments/general :: allBaseLibs-embedded"/>
+</th:block>
 <th:block th:replace="fragments/libs :: bootstrap-datatable"/>
 <script th:src="@{/js/labmanager/showpublications.js}"></script>
-
+<th:block th:if="${bibtexImportUrl != null}">
+	<a th:href="${bibtexImportUrl}" class="btn btn-warning mt-4 pr-4 pl-4"><span class="fa-solid fa-pen"></span><th:block th:utext="#{html.ImportBibTeX}"></th:block></a>
+</th:block>
+<th:block th:if="${additionUrl != null}">
+	<a th:href="${additionUrl}" class="btn btn-danger mt-4 pr-4 pl-4"><span class="fa-solid fa-pen"></span><th:block th:utext="#{html.AddPublicationManually}"></th:block></a>
+</th:block>
 <th:block th:if="${enableExports || enableSearch || enableSortChanges}">
 	<div class="row">
 	    <div th:if="${enableExports || enableSearch}"
@@ -95,12 +105,15 @@
     </div>
 </div>
 
-<script th:inline="javascript">
+<script type="text/javascript" th:inline="javascript">
 $(document).ready(() => {
 	const tableId = parseInt("[(${uuid})]");
 	const dtableConfig = {
 		obj: $('#table' + tableId),
 		url: "[(${url})]",
+	    /*[# th:if="${editionUrl != null}"]*/
+		editionUrl: "[(${editionUrl})]",
+	    /*[/]*/
 		categoryLabels: {
 	        /*[# th:each="category : ${T(fr.ciadlab.labmanager.entities.publication.PublicationCategory).values()}"]*/
 			"[(${category.name})]": "[(${category.getLabel() + ' (' + category.name + ')'})]",
@@ -163,18 +176,24 @@ $(document).ready(() => {
 		id: 'btBibtexGlobal',
 		dataSource: dtable,
 		url: "[(${endpoint_export_bibtex})]",
+		perTypeSelector: '#groupType',
+		perYearSelector: '#groupYear',
 	});
 
 	attachGlobalPublicationDownloadHandler({
 		id: 'btWordGlobal',
 		dataSource: dtable,
 		url: "[(${endpoint_export_odt})]",
+		perTypeSelector: '#groupType',
+		perYearSelector: '#groupYear',
 	});
 
 	attachGlobalPublicationDownloadHandler({
 		id: 'btHtmlGlobal',
 		dataSource: dtable,
 		url: "[(${endpoint_export_html})]",
+		perTypeSelector: '#groupType',
+		perYearSelector: '#groupYear',
 	});
     /*[/]*/
 	

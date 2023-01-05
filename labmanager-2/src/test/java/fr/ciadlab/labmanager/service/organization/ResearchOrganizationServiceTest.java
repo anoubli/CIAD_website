@@ -43,10 +43,12 @@ import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.entities.member.MemberStatus;
 import fr.ciadlab.labmanager.entities.member.Membership;
 import fr.ciadlab.labmanager.entities.member.Person;
+import fr.ciadlab.labmanager.entities.organization.OrganizationAddress;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganization;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganizationType;
 import fr.ciadlab.labmanager.repository.member.MembershipRepository;
 import fr.ciadlab.labmanager.repository.member.PersonRepository;
+import fr.ciadlab.labmanager.repository.organization.OrganizationAddressRepository;
 import fr.ciadlab.labmanager.repository.organization.ResearchOrganizationRepository;
 import org.arakhne.afc.util.CountryCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,6 +79,8 @@ public class ResearchOrganizationServiceTest {
 
 	private MessageSourceAccessor messages;
 
+	private OrganizationAddressRepository addressRepository;
+
 	private ResearchOrganizationRepository organizationRepository;
 
 	private ResearchOrganizationService test;
@@ -84,8 +88,9 @@ public class ResearchOrganizationServiceTest {
 	@BeforeEach
 	public void setUp() {
 		this.messages = mock(MessageSourceAccessor.class);
+		this.addressRepository = mock(OrganizationAddressRepository.class);
 		this.organizationRepository = mock(ResearchOrganizationRepository.class);
-		this.test = new ResearchOrganizationService(this.messages, new Constants(), this.organizationRepository);
+		this.test = new ResearchOrganizationService(this.messages, new Constants(), this.addressRepository, this.organizationRepository);
 
 		// Prepare some organizations to be inside the repository
 		// The lenient configuration is used to configure the mocks for all the tests
@@ -200,8 +205,10 @@ public class ResearchOrganizationServiceTest {
 
 	@Test
 	public void createResearchOrganization() {
-		final Optional<ResearchOrganization> res = this.test.createResearchOrganization("NA", "NN", "ND",
-				ResearchOrganizationType.FACULTY, "NURL", CountryCode.GERMANY, 0);
+		List<Integer> addrs = Collections.emptyList();
+		Set<OrganizationAddress> raddrs = Collections.emptySet();
+		final Optional<ResearchOrganization> res = this.test.createResearchOrganization("NA", "NN", true, "NRNSR", "NNI", "ND",
+				ResearchOrganizationType.FACULTY, "NURL", CountryCode.GERMANY, addrs, 0);
 		assertNotNull(res);
 		assertNotNull(res.get());
 
@@ -211,6 +218,9 @@ public class ResearchOrganizationServiceTest {
 		assertNotNull(actual);
 		assertEquals("NA", actual.getAcronym());
 		assertEquals("NN", actual.getName());
+		assertTrue(actual.isMajorOrganization());
+		assertEquals("NNI", actual.getNationalIdentifier());
+		assertEquals("NRNSR", actual.getRnsr());
 		assertEquals("ND", actual.getDescription());
 		assertSame(ResearchOrganizationType.FACULTY, actual.getType());
 		assertEquals("NURL", actual.getOrganizationURL());
@@ -236,8 +246,10 @@ public class ResearchOrganizationServiceTest {
 
 	@Test
 	public void updateResearchOrganization() {
-		Optional<ResearchOrganization> res = this.test.updateResearchOrganization(234, "NA", "NN", "ND",
-				ResearchOrganizationType.FACULTY, "NURL", CountryCode.GERMANY, 0);
+		List<Integer> addrs = Collections.emptyList();
+		Set<OrganizationAddress> raddrs = Collections.emptySet();
+		Optional<ResearchOrganization> res = this.test.updateResearchOrganization(234, "NA", "NN", true, "NRNSR", "NNI", "ND",
+				ResearchOrganizationType.FACULTY, "NURL", CountryCode.GERMANY, addrs, 0);
 		assertNotNull(res);
 		assertNotNull(res.get());
 
@@ -261,6 +273,14 @@ public class ResearchOrganizationServiceTest {
 
 		verify(this.orga1, atLeastOnce()).setName(arg2.capture());
 		assertEquals("NN", arg2.getValue());
+
+		verify(this.orga1, atLeastOnce()).setMajorOrganization(eq(true));
+
+		verify(this.orga1, atLeastOnce()).setRnsr(arg2.capture());
+		assertEquals("NRNSR", arg2.getValue());
+
+		verify(this.orga1, atLeastOnce()).setNationalIdentifier(arg2.capture());
+		assertEquals("NNI", arg2.getValue());
 
 		verify(this.orga1, atLeastOnce()).setDescription(arg2.capture());
 		assertEquals("ND", arg2.getValue());

@@ -108,11 +108,6 @@ public class JournalQualityAnnualIndicators implements Serializable, AttributePr
 	}
 
 	@Override
-	public String toString() {
-		return ":" + this.id; //$NON-NLS-1$
-	}
-
-	@Override
 	public int hashCode() {
 		int h = HashCodeUtils.start();
 		h = HashCodeUtils.add(h, this.id);

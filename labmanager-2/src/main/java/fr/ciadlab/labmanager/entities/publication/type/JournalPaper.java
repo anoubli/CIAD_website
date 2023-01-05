@@ -21,6 +21,7 @@ import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
@@ -72,7 +73,7 @@ public class JournalPaper extends Publication implements JournalBasedPublication
 
 	/** Reference to the journal.
 	 */
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	private Journal journal;
 
 	/** Construct a journal paper with the given values.
@@ -280,7 +281,7 @@ public class JournalPaper extends Publication implements JournalBasedPublication
 		if (journal != null) {
 			return journal.getScimagoQIndexByYear(getPublicationYear());
 		}
-		return null;
+		return QuartileRanking.NR;
 	}
 
 	@Override
@@ -289,7 +290,7 @@ public class JournalPaper extends Publication implements JournalBasedPublication
 		if (journal != null) {
 			return journal.getWosQIndexByYear(getPublicationYear());
 		}
-		return null;
+		return QuartileRanking.NR;
 	}
 
 	@Override
@@ -305,8 +306,8 @@ public class JournalPaper extends Publication implements JournalBasedPublication
 	public boolean isRanked() {
 		final Journal journal = getJournal();
 		if (journal != null) {
-			return journal.getScimagoQIndexByYear(getPublicationYear()) != null
-					|| journal.getWosQIndexByYear(getPublicationYear()) != null;
+			return journal.getScimagoQIndexByYear(getPublicationYear()) != QuartileRanking.NR
+					|| journal.getWosQIndexByYear(getPublicationYear()) != QuartileRanking.NR;
 		}
 		return false;
 	}
@@ -371,6 +372,15 @@ public class JournalPaper extends Publication implements JournalBasedPublication
 		if (this.journal != null) {
 			this.journal.setISSN(issn);
 		}
+	}
+
+	@Override
+	public Boolean getOpenAccess() {
+		final Journal journal = getJournal();
+		if (journal != null) {
+			return journal.getOpenAccess();
+		}
+		return null;
 	}
 
 }

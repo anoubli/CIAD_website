@@ -56,10 +56,9 @@ public class PersonListComparator implements Comparator<List<Person>> {
 		if (o2 == null) {
 			return Integer.MAX_VALUE;
 		}
-		final int max = Integer.max(o1.size(), o2.size());
 		final Iterator<Person> it1 = o1.iterator();
 		final Iterator<Person> it2 = o2.iterator();
-		for (int i = 0; i < max; ++i) {
+		while (it1.hasNext() && it2.hasNext()) {
 			final Person p1 = it1.next();
 			final Person p2 = it2.next();
 			final int cmp = this.personComparator.compare(p1, p2);
@@ -67,7 +66,13 @@ public class PersonListComparator implements Comparator<List<Person>> {
 				return cmp;
 			}
 		}
-		return Integer.compare(o1.size(), o2.size());
+		if (it1.hasNext()) {
+			return 1;
+		}
+		if (it2.hasNext()) {
+			return -1;
+		}
+		return 0;
 	}
 
 }

@@ -11,12 +11,12 @@ function formatPublicationDetails(d, config) {
 		+ "</td><td>" + d.note + '</td></tr>') : "";
 	var keywords = d.keywords && d.keywords != "" ? ("<tr><td>"
 		+ labels['keywords'] + "</td><td>" + d.keywords + '</td></tr>') : "";
-	var scimagoQuartile = d.scimagoQIndex && d.scimagoQIndex != "" ? ("<tr><td>"
+	var scimagoQuartile = d.scimagoQIndex && d.scimagoQIndex != "" && d.scimagoQIndex != "NR" ? ("<tr><td>"
 		+ labels['scimago'] + "<td>" + d.scimagoQIndex
 		+ "&nbsp;[<span title=\"" + labels['scimagoNote'] + "\" style=\"cursor:help\">*</span>]"
 		+ (d.scimagoQIndex_imageUrl && d.scimagoQIndex_imageUrl != "" ? '<img class="publicationDetailsScimagoQuartile" src="'
 		+ d.scimagoQIndex_imageUrl + '" />' : '') + '</td></tr>') : "";
-	var wosQuartile = d.wosQIndex && d.wosQIndex != "" ? ("<tr><td>"
+	var wosQuartile = d.wosQIndex && d.wosQIndex != "" && d.wosQIndex != "NR" ? ("<tr><td>"
 		+ labels['wos'] + "</td><td>" + d.wosQIndex
 		+ "&nbsp;[<span title=\"" + labels['wosNote'] + "\" style=\"cursor:help\">*</span>]"
 		+ '</td></tr>') : "";
@@ -50,7 +50,7 @@ function formatPublicationDetails(d, config) {
 	if (sessionStorage.getItem('status') != null && ((d.htmlEdit && d.htmlEdit != "") || (d.htmlDelete && d.htmlDelete != ""))) {
 		management = "<tr><td>" + labels['management'] + "</td><td>" + d.htmlEdit + d.htmlDelete + '</td></tr>';
 	}
-	return '<div class="table-responsive"><table class="table" cellpadding="5" cellspacing="0" border="0" style="padding-left:50px; width: 100%">'
+	return '<div class="publicationDetails"><div class="table-responsive"><table class="table">'
 		+ "<tr><td>" + labels['authors'] + "</td><td class=\"publicationAuthors\">" + d.htmlAuthors + '</td></tr>'
 		+ "<tr><td>" + labels['type'] + "</td><td>" + d.htmlCategoryLabel + ' (' + d.category + ') / '
 		+ d.htmlTypeLabel + ' (' + d.type + ')</td></tr>'
@@ -65,7 +65,7 @@ function formatPublicationDetails(d, config) {
 		+ downloads
 		+ exports
 		+ management
-		+ '</table></div>';
+		+ '</table></div></div>';
 }
 
 /** Initialize the DataTable for showing the publications on the front-end.
@@ -83,6 +83,7 @@ function formatPublicationDetails(d, config) {
  *       number of publications in total in the table.
  *     * `infoTextId` the identifier of the HTML element that should contains the table information (see `infoText`).
  *       Default is `tableInfos`.
+ *     * `editionUrl` the URL for editing the publication. The URL will be completed with "=<PUBLICATION_ID>".
  *     * `publicationDescription` a function that generate the HTML code for showing a publication in the main part of the table.
  *       If it is not provided, a default rendering is used. Three arguments are provided to this function: the
  *       data itself, the type, the row data provided by the backend.
@@ -102,9 +103,16 @@ function initPublicationDataTable(config) {
 	(!('enableAuthorFilter' in config)) && (config['enableAuthorFilter'] = true);
 	(!('infoTextId' in config)) && (config['infoTextId'] = 'tableInfos');
 	(!('publicationDescription' in config)) && (config['publicationDescription'] = (data, type, row) => {
-		return '<p class="publicationTitle">' + row.title + '</p><p class="publicationAuthors">'
+		var cnt = '<p class="publicationTitlePart"><span class="publicationTitle">' + row.title + '</span>';
+		if (config['editionUrl']) {
+		    cnt += "<a href=\"";
+		    cnt += config['editionUrl'] + row.id;
+		    cnt += "\" class=\"noLink\"><span class=\"fa-solid fa-pen\"></span></a>";
+		}
+		cnt += '</p><p class="publicationAuthors">'
 			+ row.htmlAuthors + '</p><p class="publicationDetails">'
 			+ row.htmlPublicationDetails + '. ' + row.publicationYear + '.</p>';
+		return cnt;
 	});
 	(!('publicationDetails' in config)) && (config['publicationDetails'] = formatPublicationDetails);
 	(!('enableDetails' in config)) && (config['enableDetails'] = true);
@@ -214,22 +222,38 @@ function initPublicationDataTable(config) {
 	if (config['enableDetails'] && 'publicationDetails' in config && config['publicationDetails']) {
 		$(document).on('click', "tbody td.details-control", (event) => {
 			var td = $(event.target);
-			var tr = td.closest('tr');
-			var row = dtable.row(tr);
-			if (row.child.isShown()) {
-				td.removeClass('opened');
-				tr.removeClass('shown');
-				row.child('').hide();
-			} else {
-				var details = config['publicationDetails'](row.data(), config);
-				row.child(details).show();
-				td.addClass('opened');
-				tr.addClass('shown');
-	 		}
+			__doOpenOrClosePublicationDetails(config, dtable, td, td, null);
+		});
+		$(document).on('click', "tbody td span.publicationTitle", (event) => {
+			var td = $(event.target);
+			__doOpenOrClosePublicationDetails(config, dtable, td, null, td);
 		});
 	}
 
 	return dtable;
+}
+
+function __doOpenOrClosePublicationDetails(config, dtable, td, icontd, titletd) {
+		var tr = td.closest('tr');
+		var row = dtable.row(tr);
+		if (!icontd) {
+			icontd = tr.find("td.details-control");
+		}
+		if (!titletd) {
+			titletd = tr.find("td span.publicationTitle");
+		}
+		if (row.child.isShown()) {
+			icontd.removeClass('opened');
+			titletd.removeClass('opened');
+			tr.removeClass('shown');
+			row.child('').hide();
+		} else {
+			var details = config['publicationDetails'](row.data(), config);
+			row.child(details).show();
+			icontd.addClass('opened');
+			titletd.addClass('opened');
+			tr.addClass('shown');
+ 		}	
 }
 
 function __getComponentAndSelection(config) {
@@ -267,6 +291,8 @@ function attachGlobalPublicationDownloadHandler(config) {
 		throw 'You must specify the following parameter: table';
 	}
 	$(document).on('click', componentSelector, () => {
+		const typesel = $(config['perTypeSelector']).is(':checked');
+		const yearsel = $(config['perYearSelector']).is(':checked');
 		const source = config['dataSource'];
 		var list = "";
 		source.rows( { filter : 'applied'} ).data().each((r) => {
@@ -276,6 +302,8 @@ function attachGlobalPublicationDownloadHandler(config) {
 		var u = new URL(config['url'], hostURL.origin);
 		u.searchParams.append('id', list);
 		u.searchParams.append('inAttachment', true);
+		u.searchParams.append('groupByCategory', typesel);
+		u.searchParams.append('groupByYear', yearsel);
 		console.log("*** START DOWNLOADING: " + u.href);
 		location.href = u.href;
 	});

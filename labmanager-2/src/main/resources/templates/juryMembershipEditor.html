@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs" />
+<th:block th:replace="fragments/form :: formLibs" />
+<th:block th:replace="fragments/buttons :: ajaxButtons" />
+<th:block th:replace="fragments/buttons :: waitButtons" />
+<th:block th:replace="fragments/buttons :: interactiveDeletionProcess" />
+<th:block th:replace="fragments/formselect2 :: all" />
+
+<th:block th:replace="fragments/nav :: personListBar*(#{html.EditJuryMemberships(${person.fullName})})"/>
+
+<form id="form">
+	<button id="btAdd" class="btn btn-warning mt-4 pr-4 pl-4"
+		th:if="${changeEnabled}" th:utext="#{html.AddMembership}"></button>
+	<th:block th:if="${changeEnabled}">
+		<div id="new-membership-input-area" class="form-super-group form-super-group-new" style="display:none">
+			<div class="form-group" th:replace="fragments/form :: dateInput(date_new, #{html.Date},'')"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(type_new, #{html.PositionType}, ~{::option#option-type-new})">
+				<option id="option-type-new"
+				        th:each="type : ${T(fr.ciadlab.labmanager.entities.jury.JuryMembershipType).values}"
+				        th:value="${type.name}"
+				        th:utext="${type.getLabel(person.gender)}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(defenseType_new, #{html.DefenseType}, ~{::option#option-defenseType-new})">
+				<option id="option-defenseType-new"
+				        th:each="type : ${T(fr.ciadlab.labmanager.entities.jury.JuryType).values}"
+				        th:value="${type.name}"
+				        th:utext="${type.getLabel()}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: textInput*(title_new, #{html.Title}, #{html.PlaceHolderJuryMembershipTitle},'')"></div>
+			<div class="form-group" th:replace="fragments/form :: multiSelectionTextInput*(candidate_new, #{html.CandidateName})"></div>
+			<div class="form-group" th:replace="fragments/form :: textInput*(university_new, #{html.University}, #{html.PlaceHolderUniversityName},'')"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(country_new, #{html.Country}, ~{::option#option-country-new})">
+				<option id="option-country-new"
+				        th:each="country : ${T(org.arakhne.afc.util.CountryCode).values}"
+				        th:selected="${defaultCountry == country}"
+				        th:value="${country.name}"
+				        th:utext="#{html.CountryNameInList(${countryLabels.get(country)},${country.code})}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: multiSelectionTextInput(promoters_new, #{html.Promoters})"></div>
+			<button th:id="btSave_new" type="button"
+				class="btn btn-primary mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+				th:utext="#{html.Submit}"></button>
+		</div>
+	</th:block>
+	<th:block th:each="membership : ${sortedMemberships}">
+		<div th:id="${'editorblock' + membership.id}" class="form-super-group form-super-group-active">
+			<div class="form-group" th:replace="fragments/form :: dateInput(${'date_' + membership.id}, #{html.Date}, ${membership.date == null ? '' : membership.date.toString})"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(${'type_' + membership.id}, #{html.PositionType}, ~{::option#option-type})">
+				<option id="option-type"
+				        th:each="typecst : ${T(fr.ciadlab.labmanager.entities.jury.JuryMembershipType).values}"
+				        th:selected="${membership.type == typecst}"
+				        th:value="${typecst.name}"
+				        th:utext="${typecst.getLabel(person.gender)}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(${'defenseType_' + membership.id}, #{html.DefenseType}, ~{::option#option-defenseType})">
+				<option id="option-defenseType"
+				        th:each="typecst : ${T(fr.ciadlab.labmanager.entities.jury.JuryType).values}"
+				        th:selected="${membership.defenseType == typecst}"
+				        th:value="${typecst.name}"
+				        th:utext="${typecst.getLabel()}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: textInput*(${'title_' + membership.id}, #{html.Title}, #{html.PlaceHolderJuryMembershipTitle}, ${membership.title})"></div>
+			<div class="form-group" th:replace="fragments/form :: multiSelectionTextInput*(${'candidate_' + membership.id}, #{html.CandidateName})"></div>
+			<div class="form-group" th:replace="fragments/form :: textInput*(${'university_' + membership.id}, #{html.University}, #{html.PlaceHolderUniversityName}, ${membership.university})"></div>
+			<div class="form-group" th:replace="fragments/form :: comboInput*(${'country_' + membership.id}, #{html.Country}, ~{::option#option-country})">
+				<option id="option-country"
+				        th:each="country : ${T(org.arakhne.afc.util.CountryCode).values}"
+				        th:selected="${membership.country == country}"
+				        th:value="${country.name}"
+				        th:utext="#{html.CountryNameInList(${countryLabels.get(country)},${country.code})}"></option>
+			</div>
+			<div class="form-group" th:replace="fragments/form :: multiSelectionTextInput(${'promoters_' + membership.id}, #{html.Promoters})"></div>
+			<button th:id="${'btSave_' + membership.id}" type="button"
+				class="btn btn-primary mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+				th:utext="#{html.Submit}"></button>
+			<button th:id="${'TheDeleteButton_' + membership.id}" type="button"
+				class="btn btn-danger mt-4 pr-4 pl-4" th:if="${changeEnabled}"
+				th:utext="#{html.DeleteJuryMembership}"></button>
+		</div>
+	</th:block>
+</form>
+<script type="text/javascript" th:inline="javascript">
+function addSavingButtonCallback(membershipId, isNewMembership) {
+	attachSpinnerAjaxHandler({
+		id: 'btSave_' + membershipId,
+		url: "[(${savingUrl})]",
+		requestMethod: 'put',
+		text: "[(#{html.Submit})]",
+		prepareData: ($bt, formData) => {
+			formData.append("person", parseInt("[(${person.id})]"));
+			if (!isNewMembership) {
+				formData.append("membership", membershipId);
+			}
+			formData.append("date", $('#dateInput_date_' + membershipId).val());
+			formData.append("type", $('#comboInput_type_' + membershipId + ' option:selected').attr('value'));
+			formData.append("defenseType", $('#comboInput_defenseType_' + membershipId + ' option:selected').attr('value'));
+			formData.append("title", $('#textInput_title_' + membershipId).val());
+			formData.append("university", $('#textInput_university_' + membershipId).val());
+			formData.append("country", $('#comboInput_country_' + membershipId + ' option:selected').attr('value'));
+			var nameElt = $('#multiSelectionTextInput_candidate_' + membershipId);
+			var selectionArray = nameElt.select2('data');
+			var candidateName = '';
+			if (selectionArray && selectionArray[0] && selectionArray[0].element) {
+				candidateName = selectionArray[0].element.value;
+			}
+			formData.append("candidate", candidateName);
+			nameElt = $('#multiSelectionTextInput_promoters_' + membershipId);
+			selectionArray = nameElt.select2('data');
+			var selection = [];
+			if (selectionArray) {
+				$.each(selectionArray, (index, elt) => {
+					if (elt.element) {
+						selection.push(elt.element.value);
+					}
+				});
+			}
+			formData.append("promoters", selection);
+		},
+		failureText: "[(#{html.JuryMembershipSavingError})]",
+		onSuccess: () => {
+			Swal.fire(
+					  "[(#{html.Success})]",
+					  "[(#{html.JuryMembershipSavingSuccess})]",
+					  'success'
+					).then(result => {
+						location.reload();
+					});
+		},
+	});
+}
+$(document).ready(() => {
+	var completeListOfPersons = [
+        /*[# th:each="person : ${allPersons}"]*/
+        	{ id: "[(${person.id})]", text: "[(${person.fullName})]" },
+	    /*[/]*/
+	];
+    /*[# th:if="${changeEnabled}"]*/
+	$(document).on('click', '#btAdd', () => {
+		$('#btAdd').prop("disabled", true);
+		$('#new-membership-input-area').show();
+	    addSavingButtonCallback("new", true);
+	});
+  		/*[# th:each="membership : ${sortedMemberships}"]*/
+    addSavingButtonCallback("[(${membership.id})]", false);
+		/*[/]*/
+    /*[/]*/
+	initMultiSelectionComboWithInputOrder({
+		id: "multiSelectionTextInput_candidate_new",
+		placeholder: "[(#{html.PlaceHolderCandidateName})]",
+		data: completeListOfPersons,
+		selection: [],
+	});
+	initMultiSelectionComboWithInputOrder({
+		id: "multiSelectionTextInput_promoters_new",
+		placeholder: "[(#{html.PlaceHolderPromoterNames})]",
+		data: completeListOfPersons,
+		selection: [],
+	});
+	/*[# th:each="membership : ${sortedMemberships}"]*/
+	initMultiSelectionComboWithInputOrder({
+		id: "[(${'multiSelectionTextInput_candidate_' + membership.id})]",
+		placeholder: "[(#{html.PlaceHolderCandidateName})]",
+		data: completeListOfPersons,
+		selection: [
+		    /*[# th:if="${membership.candidate != null}"]*/
+	    	"[(${membership.candidate.id})]",
+	   		/*[/]*/
+		],
+	});
+	initMultiSelectionComboWithInputOrder({
+		id: "[(${'multiSelectionTextInput_promoters_' + membership.id})]",
+		placeholder: "[(#{html.PlaceHolderPromoterNames})]",
+		data: completeListOfPersons,
+		selection: [
+		    /*[# th:each="promoter : ${membership.promoters}"]*/
+	    	"[(${promoter.id})]",
+	   		/*[/]*/
+		],
+	});
+	attachDeletionHandler({
+		id: "[(${membership.id})]",
+		url: "[(${deletionUrl + '?id=' + membership.id})]",
+		name: "[(${membership.date.toString})]",
+		questionTitle: "[(#{html.DeleteJuryMembership})]",
+		questionText: "[(#{html.AreYouSureToDeleteJuryMembership(${person.fullName})})]",
+		successText: "[(#{html.JuryMembershipDeleted})]",
+		failureText: "[(#{html.CannotDeleteJuryMembership})]",
+    });
+    /*[/]*/
+});
+/*[# th:if="${gotoName != null}"]*/
+$(window).on('load', () => {
+	setTimeout( () => {
+	    const gotoElement = document.getElementById("[(${'editorblock' + gotoName})]");
+	    gotoElement.scrollIntoView();
+	}, 200);
+});
+/*[/]*/
+</script>
+</html>
