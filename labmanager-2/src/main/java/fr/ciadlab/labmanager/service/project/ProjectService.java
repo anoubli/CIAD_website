@@ -4,8 +4,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.context.support.MessageSourceAccessor;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.jena.ext.com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,17 +69,64 @@ public class ProjectService extends AbstractService {
 	 * @param globalBudget
 	 * @param budgetCIADLabOnly
 	 * @param type
-	 * @param pathImage
 	 * @param videoUrl
 	 * @param websiteUrl
 	 * @param pathToDownloadPowerpoint
 	 * @param expectedTRL
 	 * @param confidential
+	 * @param owningOrga
+	 * @param managerOrga
+	 * @param partnerOrga
+	 * @param person
 	 * @return
 	 */
 	public Project createProject(String name, String acronym, FundingSchemeType fundingScheme, String description, 
-			float globalBudget, float budgetCIADLabOnly, ProjectType type,String pathImage, String videoUrl, String websiteUrl,
-			String pathToDownloadPowerpoint, TRLGrade expectedTRL, boolean confidential) {
+			float globalBudget, float budgetCIADLabOnly, ProjectType type, String videoUrl, String websiteUrl,
+			String pathToDownloadPowerpoint, TRLGrade expectedTRL, boolean confidential, Integer owningOrga, Integer managerOrga, Integer partnerOrga, Integer person) {
+		
+		final Optional<ResearchOrganization> owningOrgaOpt;
+		
+		if (owningOrga != null && owningOrga.intValue() != 0) {
+			owningOrgaOpt = this.researchOrganizationRepository.findById(owningOrga);
+			if (owningOrgaOpt.isEmpty()) {
+				throw new IllegalArgumentException("Research organization not found with id :" + owningOrga);
+			}
+		} else {
+			owningOrgaOpt = Optional.empty();
+		}
+		
+		final Optional<ResearchOrganization> managerOrgaOpt;
+		
+		if (managerOrga != null && managerOrga.intValue() != 0) {
+			managerOrgaOpt = this.researchOrganizationRepository.findById(managerOrga);
+			if (managerOrgaOpt.isEmpty()) {
+				throw new IllegalArgumentException("Research organization not found with id :" + managerOrga);
+			}
+		} else {
+			managerOrgaOpt = Optional.empty();
+		}
+		
+		final Optional<ResearchOrganization> partnerOrgaOpt;
+		
+		if (partnerOrga != null && partnerOrga.intValue() != 0) {
+			partnerOrgaOpt = this.researchOrganizationRepository.findById(partnerOrga);
+			if (managerOrgaOpt.isEmpty()) {
+				throw new IllegalArgumentException("Research organization not found with id :" + partnerOrga);
+			}
+		} else {
+			partnerOrgaOpt = Optional.empty();
+		}
+		
+		final Optional<Person> personOpt;
+		
+		if (person != null && person.intValue() != 0) {
+			personOpt = this.personRepository.findById(person.intValue());
+			if (personOpt.isEmpty()) {
+				throw new IllegalArgumentException("Person not found with id :" + personOpt);
+			}
+		} else {
+			personOpt = Optional.empty();
+		}
 		
 		final Project res = new Project();
 		res.setName(name);
@@ -87,12 +136,32 @@ public class ProjectService extends AbstractService {
 		res.setGlobalBudget(globalBudget);
 		res.setBudgetCIADLabOnly(budgetCIADLabOnly);
 		res.setType(type);
-		res.setPathImage(pathImage);
 		res.setVideoUrl(videoUrl);
 		res.setWebsiteUrl(websiteUrl);
 		res.setPathToDownloadPowerpoint(pathToDownloadPowerpoint);
 		res.setExpectedTRL(expectedTRL);
 		res.setConfidential(confidential);
+		
+		if (owningOrgaOpt.isPresent()) {
+			res.setOwningOrganization(owningOrgaOpt.get());
+		}
+		
+		if (managerOrgaOpt.isPresent()) {
+			res.setManagerOrganization(managerOrgaOpt.get());
+		}
+		Set<ResearchOrganization> ro = new HashSet();
+		ro.add(partnerOrgaOpt.get());
+		
+		if (partnerOrgaOpt.isPresent()) {
+			res.setPartnerOrganizations(ro);
+		}
+		
+		Set<Person> rp = new HashSet();
+		rp.add(personOpt.get());
+		
+		if (personOpt.isPresent()) {
+			res.setReferencePersons(rp);
+		}
 		
 		this.projectRepository.save(res);
 		return res;
@@ -154,21 +223,67 @@ public class ProjectService extends AbstractService {
 	 * @param globalBudget
 	 * @param budgetCIADLabOnly
 	 * @param type
-	 * @param pathImage
 	 * @param videoUrl
 	 * @param websiteUrl
 	 * @param pathToDownloadPowerpoint
 	 * @param expectedTRL
 	 * @param confidential
+	 * @param owningOrga
+	 * @param managerOrga
+	 * @param partnerOrga
+	 * @param person
 	 * @return
 	 */
 	public Project updateProject(int identifier, String name, String acronym, FundingSchemeType fundingScheme, String description, 
-			float globalBudget, float budgetCIADLabOnly, ProjectType type,String pathImage, String videoUrl, String websiteUrl,
-			String pathToDownloadPowerpoint, TRLGrade expectedTRL, boolean confidential) {
+			float globalBudget, float budgetCIADLabOnly, ProjectType type, String videoUrl, String websiteUrl,
+			String pathToDownloadPowerpoint, TRLGrade expectedTRL, boolean confidential, Integer owningOrga, Integer managerOrga, Integer partnerOrga, Integer person) {
 		
 		final Integer id = Integer.valueOf(identifier);
 		final Optional<Project> res = this.projectRepository.findById(id);
 		
+		final Optional<ResearchOrganization> owningOrgaOpt;
+		
+		if (owningOrga != null && owningOrga.intValue() != 0) {
+			owningOrgaOpt = this.researchOrganizationRepository.findById(owningOrga);
+			if (owningOrgaOpt.isEmpty()) {
+				throw new IllegalArgumentException("Research organization not found with id :" + owningOrga);
+			}
+		} else {
+			owningOrgaOpt = Optional.empty();
+		}
+		
+		final Optional<ResearchOrganization> managerOrgaOpt;
+		
+		if (managerOrga != null && managerOrga.intValue() != 0) {
+			managerOrgaOpt = this.researchOrganizationRepository.findById(managerOrga);
+			if (managerOrgaOpt.isEmpty()) {
+				throw new IllegalArgumentException("Research organization not found with id :" + managerOrga);
+			}
+		} else {
+			managerOrgaOpt = Optional.empty();
+		}
+		
+		final Optional<ResearchOrganization> partnerOrgaOpt;
+		
+		if (partnerOrga != null && partnerOrga.intValue() != 0) {
+			partnerOrgaOpt = this.researchOrganizationRepository.findById(partnerOrga);
+			if (partnerOrgaOpt.isEmpty()) {
+				throw new IllegalArgumentException("Research organization not found with id :" + partnerOrga);
+			}
+		} else {
+			partnerOrgaOpt = Optional.empty();
+		}
+		
+		final Optional<Person> personOpt;
+		
+		if (person != null && person.intValue() != 0) {
+			personOpt = this.personRepository.findById(person.intValue());
+			if (personOpt.isEmpty()) {
+				throw new IllegalArgumentException("Person not found with id :" + personOpt);
+			}
+		} else {
+			personOpt = Optional.empty();
+		}
 		if (res.isPresent()) {
 			final Project project = res.get();
 			if (project != null) {
@@ -182,12 +297,24 @@ public class ProjectService extends AbstractService {
 				project.setGlobalBudget(globalBudget);
 				project.setBudgetCIADLabOnly(budgetCIADLabOnly);
 				project.setType(type);
-				project.setPathImage(Strings.emptyToNull(pathImage));
 				project.setVideoUrl(Strings.emptyToNull(videoUrl));
 				project.setWebsiteUrl(Strings.emptyToNull(websiteUrl));
 				project.setPathToDownloadPowerpoint(Strings.emptyToNull(pathToDownloadPowerpoint));
 				project.setExpectedTRL(expectedTRL);
 				project.setConfidential(confidential);
+				if (owningOrgaOpt.isPresent()) {
+					project.setOwningOrganization(owningOrgaOpt.get());
+				}
+				
+				if (managerOrgaOpt.isPresent()) {
+					project.setManagerOrganization(managerOrgaOpt.get());
+				}
+				if (partnerOrgaOpt.isPresent() && !project.getPartnerOrganizations().contains(partnerOrgaOpt.get())) {
+					project.addPartnerOrganization(partnerOrgaOpt.get());
+				}
+				if (personOpt.isPresent() && !project.getReferencePersons().contains(personOpt.get())) {
+					project.addReferencePerson(personOpt.get());
+				}
 				this.projectRepository.save(project);
 				return project;
 			}

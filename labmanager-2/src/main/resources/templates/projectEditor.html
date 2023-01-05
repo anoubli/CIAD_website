@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs" />
+<th:block th:replace="fragments/form :: formLibs" />
+<th:block th:replace="fragments/form :: dynamicInputFunctions" />
+<th:block th:replace="fragments/gravatar :: gravatarPicture" />
+<th:block th:replace="fragments/formselect2 :: all" />
+<th:block th:replace="fragments/formfileinput :: all" />
+
+<th:block th:if="${project != null}">
+	<th:block th:replace="fragments/nav :: projectListBar*(#{html.EditPublication1(${project.acronym})})"/>
+</th:block>
+<th:block th:if="${project == null}">
+	<th:block th:replace="fragments/nav :: projectListBar*(#{html.AddProject})"/>
+</th:block>
+
+<form th:replace="fragments/form :: entityForm(project, ${project == null ? '' : project.id}, ${formActionUrl}, ${formRedirectUrl}, #{html.ProjectSavingError}, ~{::.form-group})">
+	<div class="form-group" th:replace="fragments/form :: comboInput*(type, #{html.Type}, ~{::option#option-type})">
+		<option id="option-type"
+		        th:each="type : ${T(fr.ciadlab.labmanager.entities.project.ProjectType).values}"
+		        th:selected="${(project == null && defaultProjectType == type) || (project != null && project.type == type)}"
+		        th:value="${type.name}"
+		        th:utext="${type.toString()}"></option>
+	</div>
+	<div class="form-group" th:replace="fragments/form :: textInput*(acronym, #{html.Acronym}, #{html.PlaceHolderProjectAcronym}, ${project != null ? project.acronym : ''})"></div>
+	<div class="form-group" th:replace="fragments/form :: textInput*(name, #{html.Name}, #{html.PlaceHolderProjectName}, ${project != null ? project.name : ''})"></div>
+	<div class="form-group" th:replace="fragments/form :: textInput*(description, #{html.Description}, #{html.PlaceHolderProjectDescription}, ${project != null ? project.description : ''})"></div>
+	<div class="form-group" th:replace="fragments/form :: textInput(globalBudget, #{html.GlobalBudget}, #{html.BudgetPlaceHolder}, ${project != null ? project.globalBudget : 0})"></div>
+	<div class="form-group" th:replace="fragments/form :: textInput(budgetCIADLabOnly, #{html.BudgetCIADOnly}, #{html.BudgetPlaceHolder}, ${project != null ? project.budgetCIADLabOnly : 0})"></div>
+
+	<div class="form-group" th:replace="fragments/form :: comboInput*(fundingScheme, #{html.FundingScheme}, ~{::option#option-fundingScheme})">
+		<option id="option-fundingScheme"
+		        th:each="fundingScheme : ${T(fr.ciadlab.labmanager.entities.project.FundingSchemeType).values}"
+		        th:selected="${(project == null && defaultProjectFundingScheme == fundingScheme) || (project != null && project.fundingScheme == fundingScheme)}"
+		        th:value="${fundingScheme.name}"
+		        th:utext="${fundingScheme.toString()}"></option>
+	</div>
+	<div class="form-group" th:replace="fragments/form :: comboInput*(expectedTRL, #{html.ExpectedTRL}, ~{::option#option-expectedTRL})">
+		<option id="option-expectedTRL"
+		        th:each="expectedTRL : ${T(fr.ciadlab.labmanager.entities.project.TRLGrade).values}"
+		        th:selected="${(project == null && defaultExpectedTRL == expectedTRL) || (project != null && project.expectedTRL == expectedTRL)}"
+		        th:value="${expectedTRL.name}"
+		        th:utext="${expectedTRL.toString()}"></option>
+	</div>
+	<div class="form-group" th:replace="fragments/form :: checkInput(confidential, #{html.Confidential}, #{html.Confidential}, ${project != null ? project.confidential : false})"></div>
+	<div class="form-group" th:replace="fragments/form :: textInput(videoUrl, #{html.VideoURL}, #{html.PlaceHolderURL}, ${project != null ? project.videoUrl : ''})"></div>
+	<div class="form-group" th:replace="fragments/form :: textInput(websiteUrl, #{html.WebsiteURL}, #{html.PlaceHolderURL}, ${project != null ? project.websiteUrl : ''})"></div>
+	<div class="form-group" th:replace="fragments/form :: textInput(pathToDownloadPowerpoint, #{html.PowerpointURL}, #{html.PlaceHolderURL}, ${project != null ? project.pathToDownloadPowerpoint : ''})"></div>
+	<div class="form-group" th:replace="fragments/form :: comboInput*(owningOrga, #{html.OwningOrga}, ~{::option#option-owningOrganization})">
+		<option id="option-owningOrganization"
+		        th:each="owningOrga : ${allOrgas}"
+		        th:selected="${(project == null && defaultProjectOwningOrganization == owningOrga) || (project != null && project.owningOrganization == owningOrga)}"
+		        th:value="${owningOrga.id}"
+		        th:utext="${owningOrga.acronym}"></option>
+	</div>
+	<div class="form-group" th:replace="fragments/form :: comboInput*(managerOrga, #{html.ManagerOrga}, ~{::option#option-managerOrganization})">
+		<option id="option-managerOrganization"
+		        th:each="managerOrga : ${allOrgas}"
+		        th:selected="${(project == null && defaultProjectManagerOrganization == managerOrga) || (project != null && project.managerOrganization == managerOrga)}"
+		        th:value="${managerOrga.id}"
+		        th:utext="${managerOrga.acronym}"></option>
+	</div>
+	<div class="form-group" th:replace="fragments/form :: comboInput*(partnerOrga, #{html.PartnerOrga}, ~{::option#option-partnerOrganization})">
+		<option id="option-partnerOrganization"
+		        th:each="partnerOrga : ${allOrgas}"
+		        th:selected="${(project == null && defaultProjectPartnerOrganization == partnerOrga) || (project != null && project.partnerOrganizations.iterator().next() == partnerOrga)}"
+		        th:value="${partnerOrga.id}"
+		        th:utext="${partnerOrga.acronym}"></option>
+	</div>
+	<div class="form-group" th:replace="fragments/form :: comboInput*(person, #{html.ReferencePerson}, ~{::option#option-referencePerson})">
+		<option id="option-referencePerson" 
+				th:each="referencePerson : ${allPersons}"
+				th:selected="${(project == null && defaultProjectReferencePerson == referencePerson) || (project != null && project.referencePersons.iterator().next() == referencePerson)}"
+				th:value="${referencePerson.id}"
+				th:utext="${referencePerson.firstName + ' ' + referencePerson.lastName}">
+		</option>
+	</div>
+</form>
+
+<script th:inline="javascript">
+$(document).ready(function () {
+	
+	// Initialize form validation
+	
+	$('#form:first').validate({
+        rules: {
+        	acronym: {
+        		required: true,
+        		minLength: 2
+        	},
+        	name: {
+                required: true,
+                minlength: 2
+            },
+        	websiteURL: {
+                required: false,
+                url: true
+            },
+        	videoURL: {
+                required: false,
+                url: true
+            },
+            messages: {
+                acronym: {
+                    required: "[(#{html.PleaseEnterAcronym})]",
+                    minlength: "[(#{html.AcronymLengthMin})]"
+                },
+                name: {
+                    required: "[(#{html.PleaseEnterName})]",
+                    minlength: "[(#{html.NameLengthMin})"
+                }
+            }
+        },
+    });
+});
+</script>
+</html>

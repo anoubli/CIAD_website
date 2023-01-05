@@ -59,5 +59,14 @@
 			<a id="lab-nav-journalList-item" th:href="@{/journalList}" th:utext="#{html.JournalsList}"></a><
 		</th:block>
 	</th:block>
-
+	
+	<th:block th:fragment="projectListBar">
+		<th:block th:replace="fragments/nav :: simpleBar(#{html.ProjectsList})"></th:block>
+	</th:block>
+	
+	<th:block th:fragment="projectListBar*(current)">
+		<th:block th:replace="fragments/nav :: standardBar(~{::a#lab-nav-projectList-item}, ${current})">
+			<a id="lab-nav-projectList-item" th:href="@{/projectList}" th:utext="#{html.ProjectsList}"></a><
+		</th:block>
+	</th:block>
 </html>

@@ -21,4 +21,8 @@ public enum TRLGrade {
 	  public int getValue() {
 	    return this.value;
 	  }
+	  
+	  public String toString() {
+		  return Integer.toString(this.value);
+	  }
 }

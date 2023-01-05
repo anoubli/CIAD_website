@@ -104,9 +104,9 @@ public class Project
 
 	/** List of the reference Person of the project.
 	 */
-	@ManyToMany(mappedBy = "referenceProjects", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-	@JoinTable( name = "PERSONS_PROJECTS", 
-				joinColumns = @JoinColumn(name ="idProjects"),
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinTable( name = "PERSONS_REFERENCE_PROJECTS", 
+				joinColumns = @JoinColumn(name = "idProjects"),
 				inverseJoinColumns = @JoinColumn(name = "idPersons"))
 	private Set<Person> referencePersons;
 	
@@ -130,11 +130,6 @@ public class Project
 	 */
 	@ManyToOne(fetch = FetchType.EAGER)
 	private ResearchOrganization managerOrganization;
-	
-	/** URL of a associated video if the project has one.
-	 */
-	@Column(length = EntityUtils.LARGE_TEXT_SIZE)
-	private String pathImage;
 	
 	/** URL of a associated video if the project has one.
 	 */
@@ -181,7 +176,6 @@ public class Project
 		this.owningOrganization = owningOrganization;
 		this.partnerOrganizations = partnerOrganizations;
 		this.managerOrganization = managerOrganization;
-		this.pathImage = pathImage;
 		this.videoUrl = videoUrl;
 		this.websiteUrl = websiteUrl;
 		this.pathToDownloadPowerpoint = pathToDownloadPowerpoint;
@@ -274,6 +268,10 @@ public class Project
 		this.referencePersons = referencePersons;
 	}
 
+	public void addReferencePerson(Person person) {
+		this.referencePersons.add(person);
+	}
+	
 	public ResearchOrganization getOwningOrganization() {
 		return owningOrganization;
 	}
@@ -289,6 +287,10 @@ public class Project
 	public void setPartnerOrganizations(Set<ResearchOrganization> partnerOrganizations) {
 		this.partnerOrganizations = partnerOrganizations;
 	}
+	
+	public void addPartnerOrganization(ResearchOrganization partnerOrganization) {
+		this.partnerOrganizations.add(partnerOrganization);
+	}
 
 	public ResearchOrganization getManagerOrganization() {
 		return managerOrganization;
@@ -296,14 +298,6 @@ public class Project
 
 	public void setManagerOrganization(ResearchOrganization managerOrganization) {
 		this.managerOrganization = managerOrganization;
-	}
-
-	public String getPathImage() {
-		return pathImage;
-	}
-
-	public void setPathImage(String pathImage) {
-		this.pathImage = pathImage;
 	}
 
 	public String getVideoUrl() {
@@ -349,7 +343,7 @@ public class Project
 	@Override
 	public int hashCode() {
 		return Objects.hash(acronym, budgetCIADLabOnly, confidential, description, expectedTRL, fundingScheme,
-				globalBudget, id, managerOrganization, name, owningOrganization, partnerOrganizations, pathImage,
+				globalBudget, id, managerOrganization, name, owningOrganization, partnerOrganizations,
 				pathToDownloadPowerpoint, referencePersons, type, videoUrl, websiteUrl);
 	}
 
@@ -370,7 +364,6 @@ public class Project
 				&& Objects.equals(managerOrganization, other.managerOrganization) && Objects.equals(name, other.name)
 				&& Objects.equals(owningOrganization, other.owningOrganization)
 				&& Objects.equals(partnerOrganizations, other.partnerOrganizations)
-				&& Objects.equals(pathImage, other.pathImage)
 				&& Objects.equals(pathToDownloadPowerpoint, other.pathToDownloadPowerpoint)
 				&& Objects.equals(referencePersons, other.referencePersons) && type == other.type
 				&& Objects.equals(videoUrl, other.videoUrl) && Objects.equals(websiteUrl, other.websiteUrl);
@@ -382,7 +375,7 @@ public class Project
 				+ ", description=" + description + ", globalBudget=" + globalBudget + ", budgetCIADLabOnly="
 				+ budgetCIADLabOnly + ", type=" + type + ", referencePersons=" + referencePersons
 				+ ", owningOrganization=" + owningOrganization + ", partnerOrganizations=" + partnerOrganizations
-				+ ", managerOrganization=" + managerOrganization + ", pathImage=" + pathImage + ", videoUrl=" + videoUrl
+				+ ", managerOrganization=" + managerOrganization + ", videoUrl=" + videoUrl
 				+ ", websiteUrl=" + websiteUrl + ", pathToDownloadPowerpoint=" + pathToDownloadPowerpoint
 				+ ", expectedTRL=" + expectedTRL + ", confidential=" + confidential + "]";
 	}
@@ -411,6 +404,4 @@ public class Project
 		// TODO Auto-generated method stub
 		
 	}
-
-	
 }
