@@ -341,3 +341,7 @@ span.obfuscated-pn:after {
 nav.labmanager-administration-navigation {
 	--bs-breadcrumb-divider: '>';	
 }
+
+.chart {
+	width: 50%;
+}

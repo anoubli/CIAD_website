@@ -99,7 +99,7 @@ public class DashboardViewController extends AbstractViewController {
 		initModelViewWithInternalProperties(modelAndView);
 		modelAndView.addObject("organizationStat", this.publicationService.getPublicationPerOrganisation());
 		modelAndView.addObject("memberPerOrganization", this.researchOrganizationService.getMembershipPerOrganization());
-		modelAndView.addObject("members", this.journalService.getAllJournals());
+		modelAndView.addObject("projectPerOrganization", this.researchOrganizationService.getProjectByOrganization());
 		modelAndView.addObject("organizations", this.journalService.getAllJournals());
 		modelAndView.addObject("publications", this.publicationService.getNumberOfPublicationPerYear(this.publicationService.getAllPublications()));
 		//initModelViewWithInternalProperties(modelAndView);

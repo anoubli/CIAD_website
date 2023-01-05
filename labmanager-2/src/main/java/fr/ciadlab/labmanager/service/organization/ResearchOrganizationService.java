@@ -16,10 +16,7 @@
 
 package fr.ciadlab.labmanager.service.organization;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 
 import com.google.common.base.Strings;
 import fr.ciadlab.labmanager.configuration.Constants;
@@ -272,6 +269,19 @@ public class ResearchOrganizationService extends AbstractService {
 		}
 
 		return map;
+	}
+
+	public Map<String, Integer> getProjectByOrganization(){
+		Map<String,Integer> map = new TreeMap<>();
+		List<ResearchOrganization>  organizations = getAllResearchOrganizations();
+
+		for(ResearchOrganization organization : organizations){
+			map.put(organization.getAcronym(), organization.getOwningProjects().size());
+		}
+
+		return map;
+
+
 	}
 
 }

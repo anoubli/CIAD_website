@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import fr.ciadlab.labmanager.utils.ranking.CoreRanking;
-import fr.ciadlab.labmanager.utils.ranking.QuartileRanking;
 import org.apache.jena.ext.com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -15,8 +14,6 @@ import fr.ciadlab.labmanager.configuration.Constants;
 import fr.ciadlab.labmanager.controller.api.AbstractApiController;
 import fr.ciadlab.labmanager.entities.conference.Conference;
 import fr.ciadlab.labmanager.entities.conference.ConferenceQualityAnnualIndicators;
-import fr.ciadlab.labmanager.entities.journal.Journal;
-import fr.ciadlab.labmanager.entities.journal.JournalQualityAnnualIndicators;
 import fr.ciadlab.labmanager.service.conference.ConferenceService;
 
 @RestController
@@ -78,7 +75,7 @@ public class ConferenceApiController extends AbstractApiController {
 			@RequestParam(required = false) String issn,
 			@RequestParam(required = false) String coreIdentifier,
 			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
-		getLogger().info("Opening /" + Constants.CONFERENCE_SAVING_ENDPOINT + " by " + username + " for journal " + conference); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		getLogger().info("Opening /" + Constants.CONFERENCE_SAVING_ENDPOINT + " by " + username + " for conference " + conference); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		ensureCredentials(username);
 		final Conference optConference;
 		//
@@ -121,7 +118,7 @@ public class ConferenceApiController extends AbstractApiController {
 	}
 	
 	@DeleteMapping("/" + Constants.DELETE_CONFERENCE_RANKING_ENDPOINT)
-	public void deleteJournalRanking(
+	public void deleteConferenceRanking(
 			@RequestParam(required = true) int conference,
 			@RequestParam(required = true) int year,
 			@CookieValue(name = "labmanager-user-id", defaultValue = Constants.ANONYMOUS) String username) throws Exception {
@@ -129,7 +126,7 @@ public class ConferenceApiController extends AbstractApiController {
 		ensureCredentials(username);
 		final Conference conferenceObj = this.conferenceService.getConferenceById(conference);
 		if (conferenceObj == null) {
-			throw new IllegalArgumentException("Journal not found with: " + conference); //$NON-NLS-1$
+			throw new IllegalArgumentException("conference not found with: " + conference); //$NON-NLS-1$
 		}
 		this.conferenceService.deleteQualityIndicators(conferenceObj, year);
 	}

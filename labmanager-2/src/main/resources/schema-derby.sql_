@@ -16,8 +16,12 @@ create table memberships (id integer not null, cnu_section varchar(255), conrs_s
 create table misc_documents (address varchar(255), document_number varchar(255), document_type varchar(255), how_published varchar(32672), organization varchar(255), publisher varchar(255), id integer not null, primary key (id));
 create table patents (address varchar(255), institution varchar(255), patent_number varchar(255), patent_type varchar(255), id integer not null, primary key (id));
 create table persons (id integer not null, academiaurl varchar(255), cordisurl varchar(255), dblpurl varchar(255), email varchar(255), facebook_id varchar(255), first_name varchar(255), gender varchar(255), github_id varchar(255), google_scholar_hindex integer, google_scholar_id varchar(255), gravatar_id varchar(255), last_name varchar(255), linked_in_id varchar(255), mobile_phone varchar(32), office_phone varchar(32), orcid varchar(255), research_gate_id varchar(255), researcher_id varchar(255), web_page_id varchar(255), web_page_naming varchar(255), wos_hindex integer, primary key (id));
+create table persons_projects (id_persons integer not null, id_projects integer not null, primary key (id_persons, id_projects));
+create table persons_reference_projects (id_projects integer not null, id_persons integer not null, primary key (id_projects, id_persons));
+create table projects (id integer not null, acronym varchar(32672), budgetciadlab_only float, confidential boolean, description varchar(32672), expectedtrl varchar(255), funding_scheme varchar(255), global_budget float, name varchar(32672), path_to_download_powerpoint varchar(32672), type varchar(255), video_url varchar(32672), website_url varchar(32672), manager_organization_id integer, owning_organization_id integer, primary key (id));
 create table publications (id integer not null, abstract_text clob(32672), dblp_url varchar(32672), doi varchar(255), extra_url varchar(32672), hal_id varchar(255), isbn varchar(255), issn varchar(255), keywords clob(32672), major_language varchar(255), manual_validation_forced boolean not null, path_to_downloadable_award_certificate varchar(32672), path_to_downloadablepdf varchar(32672), publication_date date, publication_year integer, title varchar(32672), type varchar(255), video_url varchar(32672), primary key (id));
 create table reports (address varchar(255), institution varchar(255), report_number varchar(255), report_type varchar(255), id integer not null, primary key (id));
+create table research_orgs_partner_projects (id_projects integer not null, id_research_orgs integer not null, primary key (id_research_orgs, id_projects));
 create table research_orgs (id integer not null, acronym varchar(255), country varchar(255) not null, description clob(32672), name varchar(32672), organization_url varchar(32672), type varchar(255) not null, super_organization_id integer, primary key (id));
 create table theses (address varchar(255), institution varchar(255), id integer not null, primary key (id));
 alter table conference_conference_annual_indicators_mapping add constraint UK_9snk58mxup8gp59r51gto9a5l unique (indicators_id);
@@ -40,6 +44,14 @@ alter table memberships add constraint FK5ft2eah0xmxf95w42ap7a2mxi foreign key (
 alter table memberships add constraint FK7kgo8dxt1h745fn5w2gpew8f0 foreign key (research_organization_id) references research_orgs;
 alter table misc_documents add constraint FKema8hjy5elewiagrp79gs2245 foreign key (id) references publications;
 alter table patents add constraint FK6yuqoo5f018trjcfh4aedoku4 foreign key (id) references publications;
+alter table persons_projects add constraint FKgfwijqifpry02j93ef5cjrywr foreign key (id_projects) references projects;
+alter table persons_projects add constraint FK8qpa5s025ig7khce6y80pb1vc foreign key (id_persons) references persons;
+alter table persons_reference_projects add constraint FKnfcxuuqcn01nyq28wx03bugku foreign key (id_persons) references persons;
+alter table persons_reference_projects add constraint FKgj0r2iena5c9bje8os8jydn5y foreign key (id_projects) references projects;
+alter table projects add constraint FKs1u7000k3yfp35qa00x7gixd foreign key (manager_organization_id) references research_orgs;
+alter table projects add constraint FKa52ojofkpjifxmft5jodfxcnd foreign key (owning_organization_id) references research_orgs;
 alter table reports add constraint FKdgjytt0cqe08l21pivf12rmu8 foreign key (id) references publications;
+alter table research_orgs_partner_projects add constraint FKke8e8v4ehx9c2w460hr5fcc72 foreign key (id_research_orgs) references research_orgs;
+alter table research_orgs_partner_projects add constraint FKljx6sy6dmf6ccg2msad7o5vlo foreign key (id_projects) references projects;
 alter table research_orgs add constraint FKeuxupnsj2t89c1rg1ouqwdnlc foreign key (super_organization_id) references research_orgs;
 alter table theses add constraint FKj0vei8vj25t5u0w39mgny07vv foreign key (id) references publications;
