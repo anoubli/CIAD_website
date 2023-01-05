@@ -213,6 +213,30 @@ public class Constants {
 	private static final String DEFAULT_SERVER_NAME = "LabManagerApi"; //$NON-NLS-1$
 
 	private static final String DEFAULT_ORGANIZATION = "ResearchOrganization"; //$NON-NLS-1$
+	
+	/** Name of the endpoint parameter "project".
+	 */
+	public static final String PROJECT_ENDPOINT_PARAMETER = "project"; //$NON-NLS-1$
+
+	/** Default basename of the files in attachment with projects.
+	 */
+	public static final String DEFAULT_PROJECT_ATTACHMENT_BASENAME = "projects"; //$NON-NLS-1$
+
+	/** Name of the endpoint for list of projects.
+	 */
+	public static final String PROJECT_LIST_ENDPOINT = "projectList"; //$NON-NLS-1$
+
+	/** Name of the endpoint for editing a project.
+	 *
+	 * @see #PROJECT_SAVING_ENDPOINT
+	 */
+	public static final String PROJECT_EDITING_ENDPOINT = "projectEditor"; //$NON-NLS-1$
+
+	/** Name of the endpoint for saving a project.
+	 *
+	 * @see #PROJECT_EDITING_ENDPOINT
+	 */
+	public static final String PROJECT_SAVING_ENDPOINT = "projectSave"; //$NON-NLS-1$
 
 	@Value("${server.servlet.context-path}")
 	private String serverName;

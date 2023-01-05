@@ -41,6 +41,9 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.transaction.Transactional;
@@ -54,6 +57,7 @@ import fr.ciadlab.labmanager.entities.AttributeProvider;
 import fr.ciadlab.labmanager.entities.EntityUtils;
 import fr.ciadlab.labmanager.entities.IdentifiableEntity;
 import fr.ciadlab.labmanager.entities.organization.ResearchOrganization;
+import fr.ciadlab.labmanager.entities.project.Project;
 import fr.ciadlab.labmanager.entities.publication.Authorship;
 import fr.ciadlab.labmanager.entities.publication.AuthorshipComparator;
 import fr.ciadlab.labmanager.io.json.JsonUtils;
@@ -241,6 +245,15 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 	@OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private Set<Authorship> authorships;
 
+	/**
+	 * List of references projects 
+	 */
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinTable( name = "PERSONS_PROJECTS", 
+				joinColumns = @JoinColumn(name ="idPersons"),
+				inverseJoinColumns = @JoinColumn(name = "idProjects"))
+	private Set<Project> referenceProjects;
+	
 	/** Construct a person with the given values.
 	 *
 	 * @param id the identifier of the person.
@@ -1497,5 +1510,20 @@ public class Person implements Serializable, JsonSerializable, AttributeProvider
 		}
 		return null;
 	}
+
+	/**
+	 * @return the referenceProjects
+	 */
+	public Set<Project> getReferenceProjects() {
+		return referenceProjects;
+	}
+
+	/**
+	 * @param referenceProjects the referenceProjects to set
+	 */
+	public void setReferenceProjects(Set<Project> referenceProjects) {
+		this.referenceProjects = referenceProjects;
+	}
+	
 
 }
