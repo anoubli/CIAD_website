@@ -146,12 +146,13 @@
 		<div class="card">
 		    <div class="card-body">
 				<img th:src="@{/images/card/projects.jpg}" class="card-img-top"></img>
-			    <h5 class="card-title">Project Management</h5>
+			    <h5 class="card-title"th:utext="#{html.ProjectManagement}"></h5>
 			    <p class="card-text">
-			    	<button type="button" class="btn btn-labeled btn-success" disabled>
-			    	<span class="fa-solid fa-list"></span>&nbsp;List of projects</button>
-			    	<button type="button" class="btn btn-labeled btn-primary" disabled>
-			    	<span class="fa-solid fa-circle-plus"></span>&nbsp;Add a project</button>
+			    	<a th:href="@{/projectList}" class="btn btn-labeled btn-success" role="button">
+			    	<span class="fa-solid fa-list"></span>&nbsp;<th:block th:utext="#{html.ProjectsList}"></th:block></a>
+			    	<a th:if="${changeEnabled}" 
+			    		th:href="@{/projectEditor}" class="btn btn-labeled btn-primary" role="button">
+			    	<span class="fa-solid fa-circle-plus"></span>&nbsp;<th:block th:utext="#{html.AddProject}"></th:block></a>
 			    </p>
 			</div>
 		</div>

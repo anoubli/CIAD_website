@@ -33,9 +33,12 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinTable;
+import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -47,6 +50,7 @@ import fr.ciadlab.labmanager.entities.AttributeProvider;
 import fr.ciadlab.labmanager.entities.EntityUtils;
 import fr.ciadlab.labmanager.entities.IdentifiableEntity;
 import fr.ciadlab.labmanager.entities.member.Membership;
+import fr.ciadlab.labmanager.entities.project.Project;
 import fr.ciadlab.labmanager.io.json.JsonUtils;
 import fr.ciadlab.labmanager.io.json.JsonUtils.CachedGenerator;
 import fr.ciadlab.labmanager.utils.CountryCodeUtils;
@@ -129,6 +133,27 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 	 */
 	@OneToMany(mappedBy = "superOrganization")
 	private Set<ResearchOrganization> subOrganizations = new HashSet<>();
+	
+	/**
+	 * Reference to the projects owned
+	 */
+	@OneToMany(mappedBy = "owningOrganization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private Set<Project> owningProjects;
+	
+	/**
+	 * Reference to the partner projects 
+	 */
+	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	@JoinTable( name = "RESEARCH_ORGS_PARTNER_PROJECTS",
+				joinColumns = @JoinColumn(name = "idResearchOrgs"),
+				inverseJoinColumns = @JoinColumn( name = "idProjects"))
+	private Set<Project> partnerProjects;
+	
+	/**
+	 * Reference to the projects managed
+	 */
+	@OneToMany(mappedBy = "managerOrganization", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	private Set<Project> manageProjects;
 
 	/** Construct a research organization from the given values.
 	 * 
@@ -540,5 +565,48 @@ public class ResearchOrganization implements Serializable, JsonSerializable, Com
 			setType(ResearchOrganizationType.valueOfCaseInsensitive(type));
 		}
 	}
+
+	/**
+	 * @return the owningProjects
+	 */
+	public Set<Project> getOwningProjects() {
+		return owningProjects;
+	}
+
+	/**
+	 * @param owningProjects the owningProjects to set
+	 */
+	public void setOwningProjects(Set<Project> owningProjects) {
+		this.owningProjects = owningProjects;
+	}
+
+	/**
+	 * @return the partnerProjects
+	 */
+	public Set<Project> getPartnerProjects() {
+		return partnerProjects;
+	}
+
+	/**
+	 * @param partnerProjects the partnerProjects to set
+	 */
+	public void setPartnerProjects(Set<Project> partnerProjects) {
+		this.partnerProjects = partnerProjects;
+	}
+
+	/**
+	 * @return the manageProjects
+	 */
+	public Set<Project> getManageProjects() {
+		return manageProjects;
+	}
+
+	/**
+	 * @param manageProjects the manageProjects to set
+	 */
+	public void setManageProjects(Set<Project> manageProjects) {
+		this.manageProjects = manageProjects;
+	}
+	
 
 }

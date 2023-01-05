@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="fragments/general :: allBaseLibs"/>
+<th:block th:replace="fragments/libs :: bootstrap-datatable"/>
+
+<th:block th:replace="fragments/table :: adminTableDefinition(${changeEnabled})"/>
+
+<th:block th:replace="fragments/nav :: projectListBar"/>
+
+<table th:replace="fragments/table :: adminTable(~{::thead}, ~{::tbody})">
+	<thead>
+		<th th:text="#{html.Id}"></th>
+		<th th:text="#{html.Name}"></th>
+		<th th:text="#{html.Acronym}"></th>
+		<th th:text="#{html.Type}"></th>
+		<th th:text="#{html.Description}"></th>
+		<th th:text="#{html.FundingScheme}"></th>
+		<th th:text="#{html.GlobalBudget}"></th>
+		<th th:text="#{html.BudgetCIADOnly}"></th>
+		<th th:text="#{html.ExpectedTRL}"></th>
+		<th th:text="#{html.Confidential}"></th>
+		<th th:text="#{html.OwningOrga}"></th>
+		<th th:text="#{html.ManagerOrga}"></th>
+		<th th:text="#{html.Actions}"></th>
+	</thead>
+    <tbody>
+        <tr th:each="project : ${projects}">
+            <td>
+                <th:block th:utext="${project.id}"></th:block>
+            </td>
+            
+            <td>
+                <th:block th:utext="${project.name}"></th:block>
+            </td>
+            <td>
+                <a th:if="${project.websiteUrl != null}"
+                   th:href="${project.websiteUrl}"
+                   th:utext="${project.acronym}"></a>
+                <th:block th:if="${project.websiteUrl == null}"
+                          th:utext="${project.acronym}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${project.type.toString()}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${project.description}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${project.fundingScheme.toString()}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${project.globalBudget}">$</th:block>
+            </td>
+            <td>
+                <th:block th:utext="${project.budgetCIADLabOnly}">$</th:block>
+            </td>
+            <td>
+                <th:block th:utext="${project.expectedTRL}"></th:block>
+            </td>
+            <td>
+                <th:block th:utext="${project.confidential}"></th:block>
+            </td>
+            <td>
+                <th:block th:if="${project.owningOrganization != null}"
+                          th:utext="${project.owningOrganization.acronymOrName}"></th:block>
+            </td>
+            <td>
+                <th:block th:if="${project.managerOrganization != null}"
+                          th:utext="${project.managerOrganization.acronymOrName}"></th:block>
+            </td>
+            <td th:replace="fragments/table :: adminToolButtons(${project.id}, ${project.getAcronym},
+            		#{html.EditProject1(${project.acronym})},
+            		#{html.DeleteProject1(${project.acronym})},
+            		null,
+            		project, project, project,
+            		@{/getProjectData(id=${project.id})} )"></td>
+        </tr>
+    </tbody>
+</table>
+<script th:inline="javascript">
+    $(document).ready(() => {
+    	initAdministrationTable({
+    		columns: 12,
+    	});
+        /*[# th:if="${changeEnabled}" th:each="project : ${projects}"]*/
+    	attachDeletionHandler({
+    		id: "[[${project.id}]]",
+    		url: "[(@{/deleteProject(project=${project.id})})]",
+    		name: [[${project.acronym}]],
+    		questionTitle: [[#{html.DeleteProject1(${project.acronym})}]],
+    		questionText: [[#{html.AreYouSureToDelete(${project.acronym})}]],
+    		successText: [[#{html.ProjectDeleted}]],
+    		failureText: [[#{html.CannotDeleteProject}]],
+        });
+        /*[/]*/
+    });
+</script>
+</html>
